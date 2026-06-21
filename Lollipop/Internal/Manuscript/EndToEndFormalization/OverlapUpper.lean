@@ -553,6 +553,17 @@ def of_common_anchor
   rightRay := by
     simpa [hanchor] using anchor_mem_raySet M.anchor M.rayDirection
 
+/-- Raw all-four overlap data are symmetric in the two lollipops. -/
+def symm
+    {L M : EuclideanLollipop}
+    (H : PrimitivePairAllFourOverlap L M) :
+    PrimitivePairAllFourOverlap M L where
+  point := H.point
+  leftCircle := H.rightCircle
+  rightCircle := H.leftCircle
+  leftRay := H.rightRay
+  rightRay := H.leftRay
+
 /-- Raw coordinate all-four data give the existing lifted all-four component
 overlap witness. -/
 def toPairComponentAllFourOverlap
@@ -606,6 +617,29 @@ inductive PrimitivePairTripleOverlap
       (hRayCircleLeftRay : p ∈ raySet L.anchor L.rayDirection)
 
 namespace PrimitivePairTripleOverlap
+
+/-- Raw primitive triple-overlap data are symmetric in the two lollipops. -/
+def symm
+    {L M : EuclideanLollipop}
+    (H : PrimitivePairTripleOverlap L M) :
+    PrimitivePairTripleOverlap M L := by
+  cases H with
+  | withoutCircleCircle p hLcircle hMray hLray hMcircle =>
+      exact
+        PrimitivePairTripleOverlap.withoutCircleCircle
+          p hMcircle hLray hMray hLcircle
+  | withoutCircleRay p hLcircle hMcircle hLray hMray =>
+      exact
+        PrimitivePairTripleOverlap.withoutCircleRay
+          p hMcircle hLcircle hMray hLray
+  | withoutRayCircle p hLcircle hMcircle hMray hLray =>
+      exact
+        PrimitivePairTripleOverlap.withoutRayCircle
+          p hMcircle hLcircle hLray hMray
+  | withoutRayRay p hLcircle hMcircle hMray hLray =>
+      exact
+        PrimitivePairTripleOverlap.withoutRayRay
+          p hMcircle hLcircle hLray hMray
 
 /-- Raw primitive triple-overlap data imply raw all-four overlap data. -/
 def toPrimitivePairAllFourOverlap
@@ -702,6 +736,41 @@ def of_common_anchor
   PrimitivePairFourOverlap.allFour
     (PrimitivePairAllFourOverlap.of_common_anchor hanchor)
 
+/-- Raw primitive four-overlap data are symmetric in the two lollipops. -/
+def symm
+    {L M : EuclideanLollipop}
+    (H : PrimitivePairFourOverlap L M) :
+    PrimitivePairFourOverlap M L := by
+  cases H with
+  | allFour H =>
+      exact PrimitivePairFourOverlap.allFour H.symm
+  | triple H =>
+      exact PrimitivePairFourOverlap.triple H.symm
+  | samePointTwoDoubleCcCrRcRr p hpLcircle hpMcircle hpMray hpLray =>
+      exact
+        PrimitivePairFourOverlap.allFour
+          { point := p
+            leftCircle := hpMcircle
+            rightCircle := hpLcircle
+            leftRay := hpMray
+            rightRay := hpLray }
+  | samePointTwoDoubleCcRcCrRr p hpLcircle hpMcircle hpLray hpMray =>
+      exact
+        PrimitivePairFourOverlap.allFour
+          { point := p
+            leftCircle := hpMcircle
+            rightCircle := hpLcircle
+            leftRay := hpMray
+            rightRay := hpLray }
+  | samePointTwoDoubleCcRrCrRc p hpLcircle hpMcircle hpLray hpMray =>
+      exact
+        PrimitivePairFourOverlap.allFour
+          { point := p
+            leftCircle := hpMcircle
+            rightCircle := hpLcircle
+            leftRay := hpMray
+            rightRay := hpLray }
+
 /-- Raw primitive four-overlap data imply raw all-four overlap data. -/
 def toPrimitivePairAllFourOverlap
     {L M : EuclideanLollipop}
@@ -796,6 +865,36 @@ inductive PrimitivePairFiveOverlap
       (hrMray : r ∈ raySet M.anchor M.rayDirection)
 
 namespace PrimitivePairFiveOverlap
+
+/-- Raw primitive five-overlap data are symmetric in the two lollipops. -/
+def symm
+    {L M : EuclideanLollipop}
+    (H : PrimitivePairFiveOverlap L M) :
+    PrimitivePairFiveOverlap M L := by
+  cases H with
+  | triple H =>
+      exact PrimitivePairFiveOverlap.triple H.symm
+  | allFour p hLcircle hMcircle hLray hMray =>
+      exact PrimitivePairFiveOverlap.allFour
+        p hMcircle hLcircle hMray hLray
+  | twoDoubleCcCrRcRr q r hqLcircle hqMcircle hqMray
+      hrLray hrMcircle hrMray =>
+      exact
+        PrimitivePairFiveOverlap.twoDoubleCcRcCrRr
+          q r hqMcircle hqLcircle hqMray
+          hrMcircle hrMray hrLray
+  | twoDoubleCcRcCrRr q r hqLcircle hqMcircle hqLray
+      hrLcircle hrLray hrMray =>
+      exact
+        PrimitivePairFiveOverlap.twoDoubleCcCrRcRr
+          q r hqMcircle hqLcircle hqLray
+          hrMray hrLcircle hrLray
+  | twoDoubleCcRrCrRc q r hqLcircle hqMcircle hqLray hqMray
+      hrLcircle hrMcircle hrLray hrMray =>
+      exact
+        PrimitivePairFiveOverlap.twoDoubleCcRrCrRc
+          q r hqMcircle hqLcircle hqMray hqLray
+          hrMcircle hrLcircle hrMray hrLray
 
 /-- Raw coordinate five-overlap data give the existing lifted component
 five-overlap witness. -/
