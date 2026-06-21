@@ -172,6 +172,25 @@ This combines raw primitive upper overlap witnesses with component-indexed
 Karlsson lower point families.  For a handoff to a geometry checker, this is
 the closest Lean boundary to coordinate-by-coordinate verification.
 
+The raw upper-overlap witness types in
+`Lollipop/Internal/Manuscript/EndToEndFormalization/OverlapUpper.lean` also
+provide small orientation helpers:
+
+```lean
+PrimitivePairAllFourOverlap.symm
+PrimitivePairTripleOverlap.symm
+PrimitivePairFourOverlap.symm
+PrimitivePairFiveOverlap.symm
+PrimitivePairAllFourOverlap.ofEither
+PrimitivePairTripleOverlap.ofEither
+PrimitivePairFourOverlap.ofEither
+PrimitivePairFiveOverlap.ofEither
+```
+
+These are not extra theorem endpoints.  They let a coordinate proof provide a
+primitive overlap witness in either lollipop order and then canonicalize it to
+the ordered-pair interface used by the final certificate boundary.
+
 ## What Is Already Certified Geometrically
 
 The proved base geometry is in:
@@ -326,8 +345,8 @@ lake build Lollipop
 
 On this machine, the first fresh build of this repository from an empty
 `.lake/` cache took about 25 minutes, including cloning and compiling mathlib
-dependencies.  After the local `.lake/` cache existed, rerunning
-`lake build Lollipop` took 4.11 seconds.
+dependencies.  After the local `.lake/` cache existed, a no-op
+`lake build Lollipop` on the current tree took 3.83 seconds.
 
 Build only the public final endpoint:
 
