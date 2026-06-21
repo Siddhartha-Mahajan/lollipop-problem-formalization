@@ -22,6 +22,102 @@ universe u
 
 noncomputable section
 
+/-! ## Orientation helpers for lifted component overlap witnesses -/
+
+/-- Lifted circle-circle component membership is symmetric in the two
+lollipops. -/
+theorem mem_euclideanCircleCircleSet_swap
+    {L M : EuclideanLollipop} {p : EuclideanR2}
+    (hp : p ∈ euclideanCircleCircleSet L M) :
+    p ∈ euclideanCircleCircleSet M L := by
+  rcases hp with ⟨hpL, hpM⟩
+  exact ⟨hpM, hpL⟩
+
+/-- A lifted ray-circle membership becomes circle-ray membership after
+swapping the two lollipops. -/
+theorem mem_euclideanCircleRaySet_swap_of_mem_rayCircle
+    {L M : EuclideanLollipop} {p : EuclideanR2}
+    (hp : p ∈ euclideanRayCircleSet L M) :
+    p ∈ euclideanCircleRaySet M L := by
+  rcases hp with ⟨hpL, hpM⟩
+  exact ⟨hpM, hpL⟩
+
+/-- A lifted circle-ray membership becomes ray-circle membership after
+swapping the two lollipops. -/
+theorem mem_euclideanRayCircleSet_swap_of_mem_circleRay
+    {L M : EuclideanLollipop} {p : EuclideanR2}
+    (hp : p ∈ euclideanCircleRaySet L M) :
+    p ∈ euclideanRayCircleSet M L := by
+  rcases hp with ⟨hpL, hpM⟩
+  exact ⟨hpM, hpL⟩
+
+/-- Lifted ray-ray component membership is symmetric in the two lollipops. -/
+theorem mem_euclideanRayRaySet_swap
+    {L M : EuclideanLollipop} {p : EuclideanR2}
+    (hp : p ∈ euclideanRayRaySet L M) :
+    p ∈ euclideanRayRaySet M L := by
+  rcases hp with ⟨hpL, hpM⟩
+  exact ⟨hpM, hpL⟩
+
+/-- Lifted triple-overlap witnesses are symmetric in the two lollipops. -/
+def pairComponentTripleOverlap_symm
+    {L M : EuclideanLollipop} {q : EuclideanR2}
+    (H : PairComponentTripleOverlap L M q) :
+    PairComponentTripleOverlap M L q := by
+  cases H with
+  | withoutCircleCircle hqcr hqrc hqrr =>
+      exact
+        PairComponentTripleOverlap.withoutCircleCircle
+          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hqrc)
+          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hqcr)
+          (mem_euclideanRayRaySet_swap hqrr)
+  | withoutCircleRay hqcc hqrc hqrr =>
+      exact
+        PairComponentTripleOverlap.withoutRayCircle
+          (mem_euclideanCircleCircleSet_swap hqcc)
+          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hqrc)
+          (mem_euclideanRayRaySet_swap hqrr)
+  | withoutRayCircle hqcc hqcr hqrr =>
+      exact
+        PairComponentTripleOverlap.withoutCircleRay
+          (mem_euclideanCircleCircleSet_swap hqcc)
+          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hqcr)
+          (mem_euclideanRayRaySet_swap hqrr)
+  | withoutRayRay hqcc hqcr hqrc =>
+      exact
+        PairComponentTripleOverlap.withoutRayRay
+          (mem_euclideanCircleCircleSet_swap hqcc)
+          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hqrc)
+          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hqcr)
+
+/-- Lifted two-double-overlap witnesses are symmetric in the two lollipops. -/
+def pairComponentTwoDoubleOverlap_symm
+    {L M : EuclideanLollipop} {q r : EuclideanR2}
+    (H : PairComponentTwoDoubleOverlap L M q r) :
+    PairComponentTwoDoubleOverlap M L q r := by
+  cases H with
+  | circleCircle_circleRay__rayCircle_rayRay hqcc hqcr hrrc hrrr =>
+      exact
+        PairComponentTwoDoubleOverlap.circleCircle_rayCircle__circleRay_rayRay
+          (mem_euclideanCircleCircleSet_swap hqcc)
+          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hqcr)
+          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hrrc)
+          (mem_euclideanRayRaySet_swap hrrr)
+  | circleCircle_rayCircle__circleRay_rayRay hqcc hqrc hrcr hrrr =>
+      exact
+        PairComponentTwoDoubleOverlap.circleCircle_circleRay__rayCircle_rayRay
+          (mem_euclideanCircleCircleSet_swap hqcc)
+          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hqrc)
+          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hrcr)
+          (mem_euclideanRayRaySet_swap hrrr)
+  | circleCircle_rayRay__circleRay_rayCircle hqcc hqrr hrcr hrrc =>
+      exact
+        PairComponentTwoDoubleOverlap.circleCircle_rayRay__circleRay_rayCircle
+          (mem_euclideanCircleCircleSet_swap hqcc)
+          (mem_euclideanRayRaySet_swap hqrr)
+          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hrrc)
+          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hrcr)
+
 /-- A concrete overlap witness sufficient for direct `<= 5` whole-carrier
 savings: either one point lies in any three carrier components, or two
 witnesses together improve all four component estimates. -/
@@ -33,6 +129,29 @@ inductive PairComponentFiveOverlap
       (H : PairComponentTwoDoubleOverlap L M q r)
 
 namespace PairComponentFiveOverlap
+
+/-- Lifted five-overlap witnesses are symmetric in the two lollipops. -/
+def symm
+    {L M : EuclideanLollipop}
+    (H : PairComponentFiveOverlap L M) :
+    PairComponentFiveOverlap M L := by
+  cases H with
+  | triple H =>
+      exact PairComponentFiveOverlap.triple (pairComponentTripleOverlap_symm H)
+  | twoDouble H =>
+      exact PairComponentFiveOverlap.twoDouble
+        (pairComponentTwoDoubleOverlap_symm H)
+
+/-- Canonicalize lifted five-overlap data supplied in either lollipop order. -/
+def ofEither
+    {L M : EuclideanLollipop}
+    (H :
+      PairComponentFiveOverlap L M ⊕
+        PairComponentFiveOverlap M L) :
+    PairComponentFiveOverlap L M := by
+  cases H with
+  | inl H => exact H
+  | inr H => exact H.symm
 
 /-- A five-overlap witness gives direct whole-carrier `<= 5` savings. -/
 def toPairCarrierSavings
@@ -91,6 +210,29 @@ structure PairComponentAllFourOverlap
   rayRay : point ∈ euclideanRayRaySet L M
 
 namespace PairComponentAllFourOverlap
+
+/-- Lifted all-four-overlap witnesses are symmetric in the two lollipops. -/
+def symm
+    {L M : EuclideanLollipop}
+    (H : PairComponentAllFourOverlap L M) :
+    PairComponentAllFourOverlap M L where
+  point := H.point
+  circleCircle := mem_euclideanCircleCircleSet_swap H.circleCircle
+  circleRay := mem_euclideanCircleRaySet_swap_of_mem_rayCircle H.rayCircle
+  rayCircle := mem_euclideanRayCircleSet_swap_of_mem_circleRay H.circleRay
+  rayRay := mem_euclideanRayRaySet_swap H.rayRay
+
+/-- Canonicalize lifted all-four-overlap data supplied in either lollipop
+order. -/
+def ofEither
+    {L M : EuclideanLollipop}
+    (H :
+      PairComponentAllFourOverlap L M ⊕
+        PairComponentAllFourOverlap M L) :
+    PairComponentAllFourOverlap L M := by
+  cases H with
+  | inl H => exact H
+  | inr H => exact H.symm
 
 /-- A primitive coordinate point lying on both circles and both rays gives the
 all-four lifted component-overlap witness. -/
