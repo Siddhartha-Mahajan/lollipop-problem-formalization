@@ -1459,6 +1459,104 @@ noncomputable def toOverlapSavingsStepwiseCertificate
 
 end PrimitiveFlexibleOverlapSavingsStepwiseCertificate
 
+/-- Primitive flexible upper certificate whose overlap witnesses may be
+supplied in either lollipop order.
+
+This is a certificate-writing convenience for coordinate geometry: many local
+intersection calculations naturally produce a witness for `(j,i)` even though
+the theorem pipeline indexes ordered pairs as `i < j`.  Lean orients those
+witnesses using the primitive `ofEither` adapters above. -/
+structure PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate
+    (P : TheoremOne.ProblemFamily.{u}) : Type u where
+  arrangement :
+    ∀ n : Nat, P.Arrangement n →
+      EuclideanLollipopArrangement n
+  spheres_distinct :
+    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i j : Fin n, i < j →
+      euclideanSphere ((arrangement n A).lollipop i).center
+          ((arrangement n A).lollipop i).radius ≠
+        euclideanSphere ((arrangement n A).lollipop j).center
+          ((arrangement n A).lollipop j).radius
+  rayLines_distinct :
+    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i j : Fin n, i < j →
+      euclideanRayLine ((arrangement n A).lollipop i) ≠
+        euclideanRayLine ((arrangement n A).lollipop j)
+  close_overlap :
+    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i j : Fin n, i < j →
+      TheoremOneEndToEnd.CloseDirection.cyclicClose
+        (fun k => (arrangement n A).normalizedDirection k) i j →
+        PrimitivePairFiveOverlap ((arrangement n A).lollipop i)
+            ((arrangement n A).lollipop j) ⊕
+          PrimitivePairFiveOverlap ((arrangement n A).lollipop j)
+            ((arrangement n A).lollipop i)
+  intriguing_overlap :
+    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i j : Fin n, i < j →
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.circleIntriguing
+        (fun k => (arrangement n A).center k)
+        (fun k => (arrangement n A).radius k) i j →
+        PrimitivePairFiveOverlap ((arrangement n A).lollipop i)
+            ((arrangement n A).lollipop j) ⊕
+          PrimitivePairFiveOverlap ((arrangement n A).lollipop j)
+            ((arrangement n A).lollipop i)
+  close_intriguing_overlap :
+    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i j : Fin n, i < j →
+      TheoremOneEndToEnd.CloseDirection.cyclicClose
+        (fun k => (arrangement n A).normalizedDirection k) i j →
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.circleIntriguing
+        (fun k => (arrangement n A).center k)
+        (fun k => (arrangement n A).radius k) i j →
+        PrimitivePairFourOverlap ((arrangement n A).lollipop i)
+            ((arrangement n A).lollipop j) ⊕
+          PrimitivePairFourOverlap ((arrangement n A).lollipop j)
+            ((arrangement n A).lollipop i)
+  region_increment :
+    ∀ n : Nat, ∀ A : P.Arrangement n,
+      StepwiseOrderedIncrementalPairRegionData n (P.region n A)
+        (CompleteFormalization.FiniteCarrier.automaticCarrierCrossingTable
+          (arrangement n A)
+          (spheres_distinct n A)
+          (rayLines_distinct n A))
+  radial_outward :
+    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i : Fin n,
+      ((arrangement n A).lollipop i).IsRadialOutward
+
+namespace PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate
+
+/-- Orient either-order primitive overlap witnesses and recover the existing
+primitive flexible upper certificate. -/
+noncomputable def toPrimitiveFlexibleOverlapSavingsStepwiseCertificate
+    {P : TheoremOne.ProblemFamily.{u}}
+    (h : PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate P) :
+    PrimitiveFlexibleOverlapSavingsStepwiseCertificate P where
+  arrangement := h.arrangement
+  spheres_distinct := h.spheres_distinct
+  rayLines_distinct := h.rayLines_distinct
+  close_overlap := by
+    intro n A i j hij hclose
+    exact PrimitivePairFiveOverlap.ofEither
+      (h.close_overlap n A i j hij hclose)
+  intriguing_overlap := by
+    intro n A i j hij hintriguing
+    exact PrimitivePairFiveOverlap.ofEither
+      (h.intriguing_overlap n A i j hij hintriguing)
+  close_intriguing_overlap := by
+    intro n A i j hij hclose hintriguing
+    exact PrimitivePairFourOverlap.ofEither
+      (h.close_intriguing_overlap n A i j hij hclose hintriguing)
+  region_increment := h.region_increment
+  radial_outward := h.radial_outward
+
+/-- Direct conversion from either-order primitive overlap witnesses to the
+lifted overlap-witness upper certificate. -/
+noncomputable def toOverlapSavingsStepwiseCertificate
+    {P : TheoremOne.ProblemFamily.{u}}
+    (h : PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate P) :
+    OverlapSavingsStepwiseCertificate P :=
+  h.toPrimitiveFlexibleOverlapSavingsStepwiseCertificate
+    |>.toOverlapSavingsStepwiseCertificate
+
+end PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate
+
 end
 
 end OverlapUpper
