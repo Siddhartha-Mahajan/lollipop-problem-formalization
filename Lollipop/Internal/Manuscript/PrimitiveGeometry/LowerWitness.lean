@@ -231,6 +231,46 @@ theorem four_le_pair_cross_of_component_witnesses
       hij hcc hcr hrc hrr hcc_cr hcc_rc hcc_rr hcr_rc hcr_rr hrc_rr)
     |>.bound_le_pair_cross C
 
+/-- Same-cluster local Karlsson lower certificate from four distinct component
+witnesses.
+
+For same-cluster pairs the Karlsson table value is `4`, so the four-component
+local witness is exactly the geometric input needed by the pairwise monotone
+lower pipeline. -/
+def localClusterPairLowerBoundData_of_four_component_same_cluster
+    {n : Nat} {A : EuclideanLollipopArrangement n}
+    {pairCross : Fin n → Fin n → Rat} {cluster : Fin n → Fin 4}
+    {i j : Fin n} (hij : i < j)
+    (hsame : cluster i = cluster j)
+    {pcc pcr prc prr : R2}
+    (hcc :
+      pcc ∈ circleSet (A.lollipop i).center (A.lollipop i).radius ∧
+        pcc ∈ circleSet (A.lollipop j).center (A.lollipop j).radius)
+    (hcr :
+      pcr ∈ circleSet (A.lollipop i).center (A.lollipop i).radius ∧
+        pcr ∈ raySet (A.lollipop j).anchor (A.lollipop j).rayDirection)
+    (hrc :
+      prc ∈ raySet (A.lollipop i).anchor (A.lollipop i).rayDirection ∧
+        prc ∈ circleSet (A.lollipop j).center (A.lollipop j).radius)
+    (hrr :
+      prr ∈ raySet (A.lollipop i).anchor (A.lollipop i).rayDirection ∧
+        prr ∈ raySet (A.lollipop j).anchor (A.lollipop j).rayDirection)
+    (hcc_cr : pcc ≠ pcr)
+    (hcc_rc : pcc ≠ prc)
+    (hcc_rr : pcc ≠ prr)
+    (hcr_rc : pcr ≠ prc)
+    (hcr_rr : pcr ≠ prr)
+    (hrc_rr : prc ≠ prr)
+    (C : LocalPairCarrierCrossingData A pairCross i j hij) :
+    ExplicitInputs.LocalClusterPairLowerBoundData
+      cluster pairCross i j hij where
+  pair_cross_ge_cluster := by
+    have h4 :
+        (4 : Rat) ≤ pairCross i j :=
+      four_le_pair_cross_of_component_witnesses
+        hij hcc hcr hrc hrr hcc_cr hcc_rc hcc_rr hcr_rc hcr_rr hrc_rr C
+    simpa [hsame, ExplicitInputs.karlssonClusterPairCrossing_same] using h4
+
 end PrimitiveGeometry
 end TheoremOneManuscript
 end Lollipop
