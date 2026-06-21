@@ -88,6 +88,43 @@ theorem circleObtuseCondition_of_not_circleIntriguing {V : Type*}
   classical
   exact of_not_not h
 
+/-- Algebraic case split for the formal intriguing-circle relation.
+
+Since `circleIntriguingPair` is the negation of the open obtuse-distance
+interval, an intriguing pair lies on one of the two closed sides of that
+interval. -/
+theorem circleIntriguingPair_iff_distSq2_le_or_radius_add_sq_le
+    (r s : ℝ) (x y : R2) :
+    circleIntriguingPair r s x y ↔
+      distSq2 x y ≤ r ^ 2 + s ^ 2 ∨
+        (r + s) ^ 2 ≤ distSq2 x y := by
+  unfold circleIntriguingPair circleObtuseCondition
+  constructor
+  · intro h
+    by_cases hleft : distSq2 x y ≤ r ^ 2 + s ^ 2
+    · exact Or.inl hleft
+    · have hleft_lt : r ^ 2 + s ^ 2 < distSq2 x y :=
+        lt_of_not_ge hleft
+      right
+      by_contra hright
+      have hright_lt : distSq2 x y < (r + s) ^ 2 :=
+        lt_of_not_ge hright
+      exact h ⟨hleft_lt, hright_lt⟩
+  · rintro (hleft | hright) ⟨hleft_lt, hright_lt⟩
+    · exact (not_lt_of_ge hleft) hleft_lt
+    · exact (not_lt_of_ge hright) hright_lt
+
+/-- Indexed form of
+`circleIntriguingPair_iff_distSq2_le_or_radius_add_sq_le`. -/
+theorem circleIntriguing_iff_distSq2_le_or_radius_add_sq_le {V : Type*}
+    (center : V → R2) (radius : V → ℝ) (i j : V) :
+    circleIntriguing center radius i j ↔
+      distSq2 (center i) (center j) ≤ radius i ^ 2 + radius j ^ 2 ∨
+        (radius i + radius j) ^ 2 ≤ distSq2 (center i) (center j) := by
+  exact
+    circleIntriguingPair_iff_distSq2_le_or_radius_add_sq_le
+      (radius i) (radius j) (center i) (center j)
+
 /-- Paulsen's symmetric bilinear form on `R^4`, written as
 `(α, β, x₁, x₂)`. -/
 noncomputable def lorentzForm (x y : R4) : ℝ :=
