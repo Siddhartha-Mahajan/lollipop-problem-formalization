@@ -91,6 +91,20 @@ structure IndexedPointLowerGeometryCertificates
     TheoremOneManuscript.ConstructionFormalization.StepwiseCanonicalKarlssonIndexedPointLowerCertificate
       P.toProblemFamily
 
+/-- Component-indexed constructive lower-bound-facing geometry boundary.
+
+The lower field lets the Karlsson construction provide separate indexed
+point families for the four primitive component intersections.  Lean assembles
+their disjoint union into the monolithic indexed lower-point certificate. -/
+structure ComponentIndexedPointLowerGeometryCertificates
+    (P : TheoremOne.MaxProblemFamily.{u}) : Type u where
+  upper :
+    TheoremOneManuscript.PrimitiveGeometry.PrimitiveCarrierDirectSavingsUpperGeometryData
+      P.toProblemFamily
+  lower :
+    TheoremOneManuscript.ConstructionFormalization.StepwiseCanonicalKarlssonComponentIndexedPointLowerCertificate
+      P.toProblemFamily
+
 /-- Most construction-facing public boundary currently exposed.
 
 The upper field asks for primitive coordinate overlap witnesses for the
@@ -104,6 +118,20 @@ structure PrimitiveOverlapIndexedPointGeometryCertificates
       P.toProblemFamily
   lower :
     TheoremOneManuscript.ConstructionFormalization.StepwiseCanonicalKarlssonIndexedPointLowerCertificate
+      P.toProblemFamily
+
+/-- Primitive-overlap upper plus component-indexed lower boundary.
+
+This is the most coordinate-facing public certificate boundary: the upper side
+is given by raw primitive overlap witnesses, and the lower side is given by
+separate component-indexed Karlsson point families. -/
+structure PrimitiveOverlapComponentIndexedPointGeometryCertificates
+    (P : TheoremOne.MaxProblemFamily.{u}) : Type u where
+  upper :
+    TheoremOneManuscript.EndToEndFormalization.OverlapUpper.PrimitiveFlexibleOverlapSavingsStepwiseCertificate
+      P.toProblemFamily
+  lower :
+    TheoremOneManuscript.ConstructionFormalization.StepwiseCanonicalKarlssonComponentIndexedPointLowerCertificate
       P.toProblemFamily
 
 namespace GeometryCertificates
@@ -150,6 +178,19 @@ noncomputable def toMonotoneGeometryCertificates
 
 end IndexedPointLowerGeometryCertificates
 
+namespace ComponentIndexedPointLowerGeometryCertificates
+
+/-- Convert component-indexed lower points to the indexed lower public
+certificate boundary. -/
+noncomputable def toIndexedPointLowerGeometryCertificates
+    {P : TheoremOne.MaxProblemFamily.{u}}
+    (h : ComponentIndexedPointLowerGeometryCertificates P) :
+    IndexedPointLowerGeometryCertificates P where
+  upper := h.upper
+  lower := h.lower.toStepwiseCanonicalKarlssonIndexedPointLowerCertificate
+
+end ComponentIndexedPointLowerGeometryCertificates
+
 namespace PrimitiveOverlapIndexedPointGeometryCertificates
 
 /-- Convert primitive overlap witnesses and indexed lower points to the
@@ -166,6 +207,32 @@ noncomputable def toIndexedPointLowerGeometryCertificates
   lower := h.lower
 
 end PrimitiveOverlapIndexedPointGeometryCertificates
+
+namespace PrimitiveOverlapComponentIndexedPointGeometryCertificates
+
+/-- Convert primitive overlap witnesses and component-indexed lower points to
+the primitive-overlap/indexed-lower public certificate boundary. -/
+noncomputable def toPrimitiveOverlapIndexedPointGeometryCertificates
+    {P : TheoremOne.MaxProblemFamily.{u}}
+    (h : PrimitiveOverlapComponentIndexedPointGeometryCertificates P) :
+    PrimitiveOverlapIndexedPointGeometryCertificates P where
+  upper := h.upper
+  lower := h.lower.toStepwiseCanonicalKarlssonIndexedPointLowerCertificate
+
+/-- Forget primitive overlap witnesses after converting them to direct upper
+savings, retaining the component-indexed lower boundary. -/
+noncomputable def toComponentIndexedPointLowerGeometryCertificates
+    {P : TheoremOne.MaxProblemFamily.{u}}
+    (h : PrimitiveOverlapComponentIndexedPointGeometryCertificates P) :
+    ComponentIndexedPointLowerGeometryCertificates P where
+  upper :=
+    h.upper
+      |>.toOverlapSavingsStepwiseCertificate
+      |>.toDirectSavingsStepwiseCertificate
+      |>.toDirectSavingsUpperGeometryData
+  lower := h.lower
+
+end PrimitiveOverlapComponentIndexedPointGeometryCertificates
 
 /-! ## Theorem 1 -/
 
@@ -192,6 +259,13 @@ theorem theorem_one_from_indexed_lower
     TheoremOneStatement P :=
   theorem_one_from_monotone P h.toMonotoneGeometryCertificates
 
+/-- Manuscript Theorem 1 from component-indexed explicit lower points. -/
+theorem theorem_one_from_component_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : ComponentIndexedPointLowerGeometryCertificates P) :
+    TheoremOneStatement P :=
+  theorem_one_from_indexed_lower P h.toIndexedPointLowerGeometryCertificates
+
 /-- Manuscript Theorem 1 from primitive upper overlap witnesses and explicit
 indexed lower points. -/
 theorem theorem_one_from_primitive_overlap_indexed_lower
@@ -199,6 +273,15 @@ theorem theorem_one_from_primitive_overlap_indexed_lower
     (h : PrimitiveOverlapIndexedPointGeometryCertificates P) :
     TheoremOneStatement P :=
   theorem_one_from_indexed_lower P h.toIndexedPointLowerGeometryCertificates
+
+/-- Manuscript Theorem 1 from primitive upper overlap witnesses and
+component-indexed explicit lower points. -/
+theorem theorem_one_from_primitive_overlap_component_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : PrimitiveOverlapComponentIndexedPointGeometryCertificates P) :
+    TheoremOneStatement P :=
+  theorem_one_from_primitive_overlap_indexed_lower P
+    h.toPrimitiveOverlapIndexedPointGeometryCertificates
 
 /-- Single-size Theorem 1 from the final geometric certificate boundary. -/
 theorem theorem_one_at
@@ -224,6 +307,14 @@ theorem theorem_one_at_from_indexed_lower
     TheoremOneAtStatement P n :=
   theorem_one_from_indexed_lower P h n
 
+/-- Single-size Theorem 1 from component-indexed explicit lower points. -/
+theorem theorem_one_at_from_component_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : ComponentIndexedPointLowerGeometryCertificates P)
+    (n : Nat) :
+    TheoremOneAtStatement P n :=
+  theorem_one_from_component_indexed_lower P h n
+
 /-- Single-size Theorem 1 from primitive upper overlap witnesses and explicit
 indexed lower points. -/
 theorem theorem_one_at_from_primitive_overlap_indexed_lower
@@ -232,6 +323,15 @@ theorem theorem_one_at_from_primitive_overlap_indexed_lower
     (n : Nat) :
     TheoremOneAtStatement P n :=
   theorem_one_from_primitive_overlap_indexed_lower P h n
+
+/-- Single-size Theorem 1 from primitive upper overlap witnesses and
+component-indexed explicit lower points. -/
+theorem theorem_one_at_from_primitive_overlap_component_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : PrimitiveOverlapComponentIndexedPointGeometryCertificates P)
+    (n : Nat) :
+    TheoremOneAtStatement P n :=
+  theorem_one_from_primitive_overlap_component_indexed_lower P h n
 
 /-- The fully unfolded single-size displayed formula:
 `a_Lop(n) = 4 * binom(n,2) + S(n) + n + 1`. -/
@@ -266,6 +366,17 @@ theorem displayed_formula_from_indexed_lower
         TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
   theorem_one_at_from_indexed_lower P h n
 
+/-- Fully unfolded single-size displayed formula from component-indexed
+explicit lower points. -/
+theorem displayed_formula_from_component_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : ComponentIndexedPointLowerGeometryCertificates P)
+    (n : Nat) :
+    P.aLop n =
+      4 * ((n.choose 2 : Nat) : Rat) +
+        TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
+  theorem_one_at_from_component_indexed_lower P h n
+
 /-- Fully unfolded single-size displayed formula from primitive upper overlap
 witnesses and explicit indexed lower points. -/
 theorem displayed_formula_from_primitive_overlap_indexed_lower
@@ -276,6 +387,17 @@ theorem displayed_formula_from_primitive_overlap_indexed_lower
       4 * ((n.choose 2 : Nat) : Rat) +
         TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
   theorem_one_at_from_primitive_overlap_indexed_lower P h n
+
+/-- Fully unfolded single-size displayed formula from primitive upper overlap
+witnesses and component-indexed explicit lower points. -/
+theorem displayed_formula_from_primitive_overlap_component_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : PrimitiveOverlapComponentIndexedPointGeometryCertificates P)
+    (n : Nat) :
+    P.aLop n =
+      4 * ((n.choose 2 : Nat) : Rat) +
+        TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
+  theorem_one_at_from_primitive_overlap_component_indexed_lower P h n
 
 end Final
 end Lollipop
