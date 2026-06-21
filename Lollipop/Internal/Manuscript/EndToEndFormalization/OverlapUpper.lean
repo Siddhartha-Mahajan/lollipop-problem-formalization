@@ -1374,6 +1374,22 @@ noncomputable def toOverlapSavingsStepwiseCertificate
   region_increment := h.region_increment
   radial_outward := h.radial_outward
 
+/-- Primitive coordinate overlap certificates convert to the direct-savings
+automatic upper certificate used by the final proof stack. -/
+noncomputable def toDirectSavingsStepwiseCertificate
+    {P : TheoremOne.ProblemFamily.{u}}
+    (h : PrimitiveOverlapSavingsStepwiseCertificate P) :
+    CompleteFormalization.AutomaticUpper.DirectSavingsStepwiseCertificate P :=
+  h.toOverlapSavingsStepwiseCertificate.toDirectSavingsStepwiseCertificate
+
+/-- Primitive coordinate overlap certificates assemble all the way to the
+theorem-facing primitive-carrier upper-geometry datum. -/
+noncomputable def toDirectSavingsUpperGeometryData
+    {P : TheoremOne.ProblemFamily.{u}}
+    (h : PrimitiveOverlapSavingsStepwiseCertificate P) :
+    PrimitiveCarrierDirectSavingsUpperGeometryData P :=
+  h.toDirectSavingsStepwiseCertificate.toDirectSavingsUpperGeometryData
+
 end PrimitiveOverlapSavingsStepwiseCertificate
 
 /-- Primitive upper certificate whose close-and-intriguing branch may be any
@@ -1456,6 +1472,22 @@ noncomputable def toOverlapSavingsStepwiseCertificate
     (h : PrimitiveFlexibleOverlapSavingsStepwiseCertificate P) :
     OverlapSavingsStepwiseCertificate P :=
   h.toPrimitiveOverlapSavingsStepwiseCertificate.toOverlapSavingsStepwiseCertificate
+
+/-- Flexible primitive overlap certificates convert to the direct-savings
+automatic upper certificate used by the final proof stack. -/
+noncomputable def toDirectSavingsStepwiseCertificate
+    {P : TheoremOne.ProblemFamily.{u}}
+    (h : PrimitiveFlexibleOverlapSavingsStepwiseCertificate P) :
+    CompleteFormalization.AutomaticUpper.DirectSavingsStepwiseCertificate P :=
+  h.toOverlapSavingsStepwiseCertificate.toDirectSavingsStepwiseCertificate
+
+/-- Flexible primitive overlap certificates assemble all the way to the
+theorem-facing primitive-carrier upper-geometry datum. -/
+noncomputable def toDirectSavingsUpperGeometryData
+    {P : TheoremOne.ProblemFamily.{u}}
+    (h : PrimitiveFlexibleOverlapSavingsStepwiseCertificate P) :
+    PrimitiveCarrierDirectSavingsUpperGeometryData P :=
+  h.toDirectSavingsStepwiseCertificate.toDirectSavingsUpperGeometryData
 
 end PrimitiveFlexibleOverlapSavingsStepwiseCertificate
 
@@ -1554,6 +1586,22 @@ noncomputable def toOverlapSavingsStepwiseCertificate
     OverlapSavingsStepwiseCertificate P :=
   h.toPrimitiveFlexibleOverlapSavingsStepwiseCertificate
     |>.toOverlapSavingsStepwiseCertificate
+
+/-- Either-order primitive overlap certificates convert to the direct-savings
+automatic upper certificate used by the final proof stack. -/
+noncomputable def toDirectSavingsStepwiseCertificate
+    {P : TheoremOne.ProblemFamily.{u}}
+    (h : PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate P) :
+    CompleteFormalization.AutomaticUpper.DirectSavingsStepwiseCertificate P :=
+  h.toOverlapSavingsStepwiseCertificate.toDirectSavingsStepwiseCertificate
+
+/-- Either-order primitive overlap certificates assemble all the way to the
+theorem-facing primitive-carrier upper-geometry datum. -/
+noncomputable def toDirectSavingsUpperGeometryData
+    {P : TheoremOne.ProblemFamily.{u}}
+    (h : PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate P) :
+    PrimitiveCarrierDirectSavingsUpperGeometryData P :=
+  h.toDirectSavingsStepwiseCertificate.toDirectSavingsUpperGeometryData
 
 end PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate
 
