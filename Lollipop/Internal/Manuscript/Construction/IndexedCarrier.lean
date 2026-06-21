@@ -271,6 +271,217 @@ theorem componentCarrierFinset_card_eq_of_disjoint
     _ = cc + cr + rc + rr := by
       omega
 
+/-- Four component-indexed point families give a local lower subset once
+their indexed images are pairwise disjoint and their component sizes add to
+the target bound.  Coverage of the whole carrier is not needed for this
+lower-bound direction. -/
+noncomputable def component_indexed_lower_subset
+    {n cc cr rc rr bound : Nat} {A : EuclideanLollipopArrangement n}
+    {i j : Fin n} (hij : i < j)
+    (circleCirclePoints : Fin cc → R2)
+    (circleRayPoints : Fin cr → R2)
+    (rayCirclePoints : Fin rc → R2)
+    (rayRayPoints : Fin rr → R2)
+    (circleCircleInjective : Function.Injective circleCirclePoints)
+    (circleRayInjective : Function.Injective circleRayPoints)
+    (rayCircleInjective : Function.Injective rayCirclePoints)
+    (rayRayInjective : Function.Injective rayRayPoints)
+    (circleCircleMem :
+      ∀ k : Fin cc,
+        circleCirclePoints k ∈
+            circleSet (A.lollipop i).center (A.lollipop i).radius ∧
+          circleCirclePoints k ∈
+            circleSet (A.lollipop j).center (A.lollipop j).radius)
+    (circleRayMem :
+      ∀ k : Fin cr,
+        circleRayPoints k ∈
+            circleSet (A.lollipop i).center (A.lollipop i).radius ∧
+          circleRayPoints k ∈
+            raySet (A.lollipop j).anchor (A.lollipop j).rayDirection)
+    (rayCircleMem :
+      ∀ k : Fin rc,
+        rayCirclePoints k ∈
+            raySet (A.lollipop i).anchor (A.lollipop i).rayDirection ∧
+          rayCirclePoints k ∈
+            circleSet (A.lollipop j).center (A.lollipop j).radius)
+    (rayRayMem :
+      ∀ k : Fin rr,
+        rayRayPoints k ∈
+            raySet (A.lollipop i).anchor (A.lollipop i).rayDirection ∧
+          rayRayPoints k ∈
+            raySet (A.lollipop j).anchor (A.lollipop j).rayDirection)
+    (hcc_cr :
+      Disjoint (indexedCarrierFinset circleCirclePoints)
+        (indexedCarrierFinset circleRayPoints))
+    (hcc_rc :
+      Disjoint (indexedCarrierFinset circleCirclePoints)
+        (indexedCarrierFinset rayCirclePoints))
+    (hcc_rr :
+      Disjoint (indexedCarrierFinset circleCirclePoints)
+        (indexedCarrierFinset rayRayPoints))
+    (hcr_rc :
+      Disjoint (indexedCarrierFinset circleRayPoints)
+        (indexedCarrierFinset rayCirclePoints))
+    (hcr_rr :
+      Disjoint (indexedCarrierFinset circleRayPoints)
+        (indexedCarrierFinset rayRayPoints))
+    (hrc_rr :
+      Disjoint (indexedCarrierFinset rayCirclePoints)
+        (indexedCarrierFinset rayRayPoints))
+    (hsum : cc + cr + rc + rr = bound) :
+    LocalPairCarrierLowerSubsetData A i j hij bound := by
+  classical
+  refine
+    { lowerPoints :=
+        componentCarrierFinset
+          (indexedCarrierFinset circleCirclePoints)
+          (indexedCarrierFinset circleRayPoints)
+          (indexedCarrierFinset rayCirclePoints)
+          (indexedCarrierFinset rayRayPoints)
+      lowerPoints_subset := ?_
+      bound_le_card := ?_ }
+  · exact
+      componentCarrierFinset_mem_pairIntersectionSet
+        (A := A) (i := i) (j := j)
+        (indexedCarrierFinset circleCirclePoints)
+        (indexedCarrierFinset circleRayPoints)
+        (indexedCarrierFinset rayCirclePoints)
+        (indexedCarrierFinset rayRayPoints)
+        (by
+          intro p hp
+          rcases
+              (by
+                simpa [indexedCarrierFinset] using hp :
+                ∃ k : Fin cc, circleCirclePoints k = p) with
+            ⟨k, rfl⟩
+          exact circleCircleMem k)
+        (by
+          intro p hp
+          rcases
+              (by
+                simpa [indexedCarrierFinset] using hp :
+                ∃ k : Fin cr, circleRayPoints k = p) with
+            ⟨k, rfl⟩
+          exact circleRayMem k)
+        (by
+          intro p hp
+          rcases
+              (by
+                simpa [indexedCarrierFinset] using hp :
+                ∃ k : Fin rc, rayCirclePoints k = p) with
+            ⟨k, rfl⟩
+          exact rayCircleMem k)
+        (by
+          intro p hp
+          rcases
+              (by
+                simpa [indexedCarrierFinset] using hp :
+                ∃ k : Fin rr, rayRayPoints k = p) with
+            ⟨k, rfl⟩
+          exact rayRayMem k)
+  · have hcard :
+        (componentCarrierFinset
+          (indexedCarrierFinset circleCirclePoints)
+          (indexedCarrierFinset circleRayPoints)
+          (indexedCarrierFinset rayCirclePoints)
+          (indexedCarrierFinset rayRayPoints)).card = bound := by
+      calc
+        (componentCarrierFinset
+          (indexedCarrierFinset circleCirclePoints)
+          (indexedCarrierFinset circleRayPoints)
+          (indexedCarrierFinset rayCirclePoints)
+          (indexedCarrierFinset rayRayPoints)).card = cc + cr + rc + rr := by
+          exact
+            componentCarrierFinset_card_eq_of_disjoint
+              (indexedCarrierFinset circleCirclePoints)
+              (indexedCarrierFinset circleRayPoints)
+              (indexedCarrierFinset rayCirclePoints)
+              (indexedCarrierFinset rayRayPoints)
+              hcc_cr hcc_rc hcc_rr hcr_rc hcr_rr hrc_rr
+              (indexedCarrierFinset_card circleCirclePoints
+                circleCircleInjective)
+              (indexedCarrierFinset_card circleRayPoints
+                circleRayInjective)
+              (indexedCarrierFinset_card rayCirclePoints
+                rayCircleInjective)
+              (indexedCarrierFinset_card rayRayPoints rayRayInjective)
+        _ = bound := hsum
+    exact le_of_eq hcard.symm
+
+/-- Component-indexed points whose component sizes add to the Karlsson local
+table value give the local monotone cluster-pair lower certificate. -/
+noncomputable def
+    localClusterPairLowerBoundData_of_component_indexed_karlsson_points
+    {n cc cr rc rr : Nat} {A : EuclideanLollipopArrangement n}
+    {pairCross : Fin n → Fin n → Rat}
+    {cluster : Fin n → Fin 4} {i j : Fin n}
+    (hij : i < j)
+    (circleCirclePoints : Fin cc → R2)
+    (circleRayPoints : Fin cr → R2)
+    (rayCirclePoints : Fin rc → R2)
+    (rayRayPoints : Fin rr → R2)
+    (circleCircleInjective : Function.Injective circleCirclePoints)
+    (circleRayInjective : Function.Injective circleRayPoints)
+    (rayCircleInjective : Function.Injective rayCirclePoints)
+    (rayRayInjective : Function.Injective rayRayPoints)
+    (circleCircleMem :
+      ∀ k : Fin cc,
+        circleCirclePoints k ∈
+            circleSet (A.lollipop i).center (A.lollipop i).radius ∧
+          circleCirclePoints k ∈
+            circleSet (A.lollipop j).center (A.lollipop j).radius)
+    (circleRayMem :
+      ∀ k : Fin cr,
+        circleRayPoints k ∈
+            circleSet (A.lollipop i).center (A.lollipop i).radius ∧
+          circleRayPoints k ∈
+            raySet (A.lollipop j).anchor (A.lollipop j).rayDirection)
+    (rayCircleMem :
+      ∀ k : Fin rc,
+        rayCirclePoints k ∈
+            raySet (A.lollipop i).anchor (A.lollipop i).rayDirection ∧
+          rayCirclePoints k ∈
+            circleSet (A.lollipop j).center (A.lollipop j).radius)
+    (rayRayMem :
+      ∀ k : Fin rr,
+        rayRayPoints k ∈
+            raySet (A.lollipop i).anchor (A.lollipop i).rayDirection ∧
+          rayRayPoints k ∈
+            raySet (A.lollipop j).anchor (A.lollipop j).rayDirection)
+    (hcc_cr :
+      Disjoint (indexedCarrierFinset circleCirclePoints)
+        (indexedCarrierFinset circleRayPoints))
+    (hcc_rc :
+      Disjoint (indexedCarrierFinset circleCirclePoints)
+        (indexedCarrierFinset rayCirclePoints))
+    (hcc_rr :
+      Disjoint (indexedCarrierFinset circleCirclePoints)
+        (indexedCarrierFinset rayRayPoints))
+    (hcr_rc :
+      Disjoint (indexedCarrierFinset circleRayPoints)
+        (indexedCarrierFinset rayCirclePoints))
+    (hcr_rr :
+      Disjoint (indexedCarrierFinset circleRayPoints)
+        (indexedCarrierFinset rayRayPoints))
+    (hrc_rr :
+      Disjoint (indexedCarrierFinset rayCirclePoints)
+        (indexedCarrierFinset rayRayPoints))
+    (hsum :
+      cc + cr + rc + rr =
+        ExplicitInputs.karlssonClusterPairCrossingNat
+          (cluster i) (cluster j))
+    (C : LocalPairCarrierCrossingData A pairCross i j hij) :
+    ExplicitInputs.LocalClusterPairLowerBoundData
+      cluster pairCross i j hij :=
+  (component_indexed_lower_subset
+      hij circleCirclePoints circleRayPoints rayCirclePoints rayRayPoints
+      circleCircleInjective circleRayInjective rayCircleInjective
+      rayRayInjective circleCircleMem circleRayMem rayCircleMem rayRayMem
+      hcc_cr hcc_rc hcc_rr hcr_rc hcr_rr hrc_rr hsum)
+    |>.toLocalClusterPairLowerBoundData C
+      (by
+        rw [ExplicitInputs.karlssonClusterPairCrossing_eq_nat])
+
 /-- Component-wise coverage proves that a finite carrier set is the whole
 primitive pair carrier. -/
 theorem carrierFinset_spec_of_component_covers
