@@ -112,9 +112,10 @@ The remaining geometry gap is isolated in:
 
 ```lean
 expected_fail/MissingGeometryCertificates.lean
+expected_fail/MissingMonotoneGeometryCertificates.lean
 ```
 
-It intentionally fails at exactly these names:
+The exact lower endpoint intentionally fails at exactly these names:
 
 ```lean
 unformalized_direct_savings_upper_geometry
@@ -129,13 +130,25 @@ Lollipop.Final.theorem_one_without_missing_geometry
 Lollipop.Final.displayed_formula_without_missing_geometry
 ```
 
+The monotone lower endpoint intentionally fails at:
+
+```lean
+unformalized_direct_savings_upper_geometry
+unformalized_monotone_pairwise_karlsson_lower_geometry
+```
+
+That second lower constructor is weaker than the exact Karlsson-base
+constructor: it only has to produce pairwise lower bounds and ordered
+region-increment data.
+
 Run it with:
 
 ```sh
 lake env lean expected_fail/MissingGeometryCertificates.lean
+lake env lean expected_fail/MissingMonotoneGeometryCertificates.lean
 ```
 
-The expected result is two unknown-identifier errors at the names above.
+The expected result is unknown-identifier errors at the names above.
 
 ## Repository Layout
 
@@ -147,6 +160,7 @@ Lollipop/Final/Geometry.lean
 Lollipop/Final/GeometryObstruction.lean
 Lollipop/Internal/
 expected_fail/MissingGeometryCertificates.lean
+expected_fail/MissingMonotoneGeometryCertificates.lean
 manuscript/
 references/
 lakefile.lean
