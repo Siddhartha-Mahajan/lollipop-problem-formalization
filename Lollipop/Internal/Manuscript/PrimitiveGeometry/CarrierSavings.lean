@@ -92,6 +92,62 @@ def pairCarrierSavingsGenericSeven
     PairCarrierSavings L M 7 :=
   (pairComponentSavingsGenericSeven hLM hline).toPairCarrierSavings
 
+/-- If the two primitive circles are disjoint, and the ray supporting lines
+are not the same line, the existing component-count proof gives the direct
+whole-carrier `<= 5` savings interface. -/
+def pairCarrierSavingsFiveOfCircleCircleNoMeetData
+    {L M : EuclideanLollipop}
+    (hline : euclideanRayLine L ≠ euclideanRayLine M)
+    (D : CircleCircleNoMeetData L M) :
+    PairCarrierSavings L M 5 :=
+  (pairComponentSavingsFiveOfCircleCircleNoMeet hline D).toPairCarrierSavings
+
+/-- A circle-ray no-meet certificate gives direct whole-carrier `<= 5`
+savings under the standard noncoincidence assumptions. -/
+def pairCarrierSavingsFiveOfCircleRayNoMeetData
+    {L M : EuclideanLollipop}
+    (hLM :
+      euclideanSphere L.center L.radius ≠ euclideanSphere M.center M.radius)
+    (hline : euclideanRayLine L ≠ euclideanRayLine M)
+    (D : CircleRayNoMeetData L M) :
+    PairCarrierSavings L M 5 :=
+  (pairComponentSavingsFiveOfCircleRayNoMeet hLM hline D).toPairCarrierSavings
+
+/-- A ray-circle no-meet certificate gives direct whole-carrier `<= 5`
+savings under the standard noncoincidence assumptions. -/
+def pairCarrierSavingsFiveOfRayCircleNoMeetData
+    {L M : EuclideanLollipop}
+    (hLM :
+      euclideanSphere L.center L.radius ≠ euclideanSphere M.center M.radius)
+    (hline : euclideanRayLine L ≠ euclideanRayLine M)
+    (D : RayCircleNoMeetData L M) :
+    PairCarrierSavings L M 5 :=
+  (pairComponentSavingsFiveOfRayCircleNoMeet hLM hline D).toPairCarrierSavings
+
+/-- Simultaneous circle-circle and ray-ray no-meet certificates give the
+direct whole-carrier `<= 4` savings interface. -/
+def pairCarrierSavingsFourOfCircleCircleNoMeetAndRayRayNoMeetData
+    {L M : EuclideanLollipop}
+    (Dcc : CircleCircleNoMeetData L M)
+    (Drr : RayRayNoMeetData L M) :
+    PairCarrierSavings L M 4 :=
+  (pairComponentSavingsFourOfCircleCircleNoMeetAndRayRayNoMeet Dcc Drr)
+    |>.toPairCarrierSavings
+
+/-- Simultaneous mixed circle-ray and ray-circle no-meet certificates give the
+direct whole-carrier `<= 4` savings interface under the standard
+noncoincidence assumptions. -/
+def pairCarrierSavingsFourOfMixedRayComponentsNoMeetData
+    {L M : EuclideanLollipop}
+    (hLM :
+      euclideanSphere L.center L.radius ≠ euclideanSphere M.center M.radius)
+    (hline : euclideanRayLine L ≠ euclideanRayLine M)
+    (Dcr : CircleRayNoMeetData L M)
+    (Drc : RayCircleNoMeetData L M) :
+    PairCarrierSavings L M 4 :=
+  (pairComponentSavingsFourOfMixedRayComponentsNoMeet hLM hline Dcr Drc)
+    |>.toPairCarrierSavings
+
 /-- A named five-route supplies a direct whole-carrier `<= 5` savings
 certificate. -/
 noncomputable def PairComponentSavingsFiveRoute.toPairCarrierSavings

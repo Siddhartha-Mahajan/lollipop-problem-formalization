@@ -679,6 +679,17 @@ theorem circleIntriguingPair
 
 end CircleCircleNoMeetData
 
+/-- Arrangement-indexed form: a no-meet certificate for the two primitive
+circles is one formal way to prove the pair is circle-intriguing. -/
+theorem circleIntriguing_of_circleCircleNoMeetData
+    {n : Nat} {A : EuclideanLollipopArrangement n} {i j : Fin n}
+    (D : CircleCircleNoMeetData (A.lollipop i) (A.lollipop j)) :
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.circleIntriguing
+      (fun k : Fin n => A.center k) (fun k : Fin n => A.radius k) i j := by
+  simpa [TheoremOneEndToEnd.PaulsenLinearAlgebra.circleIntriguing,
+    EuclideanLollipopArrangement.center, EuclideanLollipopArrangement.radius]
+    using D.circleIntriguingPair
+
 /-- The primitive carrier is exactly the preimage of the lifted Euclidean
 carrier. -/
 theorem carrier_eq_preimage_euclideanCarrier (L : EuclideanLollipop) :
