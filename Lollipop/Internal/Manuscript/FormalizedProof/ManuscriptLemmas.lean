@@ -594,6 +594,17 @@ theorem circle_intriguing_from_no_meet_certificate
       L.radius M.radius L.center M.center :=
   D.circleIntriguingPair
 
+/-- Algebraic case split for the manuscript's formal intriguing-circle
+relation: an intriguing pair lies on one of the two closed sides of the strict
+obtuse-distance interval. -/
+theorem circle_intriguing_distance_cases
+    (r s : ℝ) (x y : PaulsenLinearAlgebra.R2) :
+    PaulsenLinearAlgebra.circleIntriguingPair r s x y ↔
+      PaulsenLinearAlgebra.distSq2 x y ≤ r ^ 2 + s ^ 2 ∨
+        (r + s) ^ 2 ≤ PaulsenLinearAlgebra.distSq2 x y :=
+  PaulsenLinearAlgebra.circleIntriguingPair_iff_distSq2_le_or_radius_add_sq_le
+    r s x y
+
 /-- Local one-pair primitive carrier-intersection certificates assemble into the
 global pairwise carrier-crossing certificate used by the upper-bound stack. -/
 noncomputable def pairwise_carrier_crossing_data_from_local
