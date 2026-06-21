@@ -5,6 +5,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
 \usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{microtype}
@@ -41,31 +42,46 @@
 \newcommand{\floor}[1]{\left\lfloor #1\right\rfloor}
 \newcommand{\ceil}[1]{\left\lceil #1\right\rceil}
 \newcommand{\supp}{\operatorname{supp}}
+\newcommand{\R}{\mathbb R}
 
 \begin{document}
 
 \title{%
-\includegraphics[width=0.33\linewidth]{lossfunk-logo.jpg}\\[0.85cm]
-A Colored Turan Proof of the Lollipop Formula}
-\author{Siddhartha Mahajan \and Paras Chopra}
-\date{\today}
+% \includegraphics[width=0.33\linewidth]{lossfunk-logo.jpg}\\[0.85cm]
+A Colored Tur\'an Proof of the Lollipop Formula}
+
+\author{%
+Siddhartha Mahajan\\
+Research Fellow, Lossfunk\\
+\texttt{siddharthamahajan03@gmail.com}
+\and Matthias
+Paulsen \and
+Paras Chopra\\
+Lossfunk\\
+\texttt{paras@lossfunk.com}
+}
+
+\date{}
 \maketitle
 
 \begin{abstract}
 Let \(a_{\Lop}(n)\) be the maximum number of connected regions into which
-\(n\) lollipops can divide the plane.  We prove, from Paulsen's two geometric
-obstructions, the exact four-cluster formula
+\(n\) lollipops can divide the plane.  Using Paulsen's two geometric
+obstructions and Karlsson's four-lollipop construction, we prove the exact
+four-cluster formula
 \[
   a_{\Lop}(n)=4\binom n2+S(n)+n+1,
 \]
 where
 \[
+\begin{gathered}
   S(n)=\max_{a+b+c+d=n,\;0\le a\le b\le c\le d}
-  \left(3\sum_{1\le i<j\le4}m_i m_j-2ab\right),
-  \qquad (m_1,m_2,m_3,m_4)=(a,b,c,d).
+  \left(3\sum_{1\le i<j\le4}m_i m_j-2ab\right),\\
+  (m_1,m_2,m_3,m_4)=(a,b,c,d).
+\end{gathered}
 \]
-The proof is entirely combinatorial after the geometric reduction.  It uses a
-colored Zykov symmetrization, a weighted blocker lemma, and an exact
+After the geometric reduction, the upper bound is entirely combinatorial.  It
+uses a colored Zykov symmetrization, a weighted blocker lemma, and an exact
 \(3\times4\) matrix inequality.  The matrix inequality is proved by support
 compression: alternating four-edge path compressions and double-star
 compressions reduce every integer matrix to star-forest normal form, where the
@@ -87,7 +103,14 @@ of regions.
 
 Let \(C\) be the total number of crossings between distinct lollipops.  Adding
 one generic lollipop with \(k\) crossings increases the number of regions by
-\(k+1\), and hence
+\(k+1\).  Indeed, compactify the plane by a point at infinity, so that all rays
+end at the same point.  When the new lollipop is added, its \(k\) crossings
+subdivide \(k\) old edges and contribute \(k\) new vertices.  The new anchor is
+one further vertex.  The circle part contributes one more edge than the number
+of new vertices on the circle, and the ray part contributes one more edge than
+the number of new vertices on the ray.  Thus \(\Delta V=k+1\) and
+\(\Delta E=2k+2\), whence Euler's formula gives \(\Delta F=\Delta E-\Delta V=k+1\).
+Consequently
 \begin{equation}\label{eq:regions}
   \#\hbox{regions}=C+n+1.
 \end{equation}
@@ -126,12 +149,13 @@ angle between the two stem directions is at most \(90^\circ\).  A pair is
 most \(90^\circ\), after orienting the two circles in the same direction.
 
 The following geometric facts are due to Cutler--Karlsson--Sloane and Paulsen.
-The present paper is a self-contained proof of the combinatorial extremal step
-that follows from these facts.
+The present paper proves the exact combinatorial extremal step that follows
+from these facts.
 
 \begin{lemma}[geometric lollipop input]\label{lem:geometry}
 For a generic pair of lollipops:
 \begin{enumerate}[label=(\roman*)]
+  \item any pair has at most \(7\) crossings;
   \item a close pair has at most \(5\) crossings;
   \item an intriguing pair has at most \(5\) crossings;
   \item a pair that is both close and intriguing has at most \(4\) crossings.
@@ -139,6 +163,11 @@ For a generic pair of lollipops:
 Furthermore, among any four lollipops there is a close pair, and among any five
 lollipops there is an intriguing pair.
 \end{lemma}
+
+For (i), two circles meet at most twice, each stem meets the other circle at
+most twice, and the two stems meet at most once.  The remaining assertions are
+the geometric obstructions quoted above; Appendix \ref{app:paulsen} recalls
+Paulsen's linear-algebra proof of the forced intriguing pair.
 
 Given an arrangement of \(n\) lollipops, define graphs \(D,E\) on the same
 vertex set by
@@ -157,16 +186,18 @@ For a pair \(ij\), Lemma \ref{lem:geometry} gives the pointwise estimate
   c_{ij}\le
   4+\mathbf 1_{ij\in D}+\mathbf 1_{ij\in E}+\mathbf 1_{ij\in D\cap E}.
 \end{equation}
-Therefore
+Indeed, the four cases are respectively: close and intriguing, close only,
+intriguing only, and neither; the corresponding upper bounds are
+\(4,5,5,7\).  Therefore
 \begin{equation}\label{eq:two-graph-bound}
   C\le 4\binom n2+\sigma(D,E),
   \qquad
   \sigma(D,E):=|D|+|E|+|D\cap E|.
 \end{equation}
 Theorem \ref{thm:lollipop-formula} is now reduced to the following colored
-Turan theorem.
+Tur\'an theorem.
 
-\begin{theorem}[colored Turan theorem]\label{thm:colored-turan}
+\begin{theorem}[colored Tur\'an theorem]\label{thm:colored-turan}
 If \(D\) is \(K_4\)-free and \(E\) is \(K_5\)-free on the same \(n\)-vertex
 set, then
 \begin{equation}\label{eq:sigma-upper}
@@ -194,7 +225,7 @@ Color every unordered pair of vertices with one of four colors:
 \]
 These colors have weights
 \[
-  w(0)=0,\\quad w(A)=1,
+  w(0)=0,\quad w(A)=1,
   \quad w(B)=1,
   \quad w(X)=3,
 \]
@@ -209,25 +240,36 @@ particular, there are no color-\(0\) pairs between distinct classes.
 \end{lemma}
 
 \begin{proof}
-Suppose \(uv\) has color \(0\).  Let \(d_w(v)\) be the total color-weight from
-\(v\) to all vertices other than \(u,v\).  If \(d_w(u)\le d_w(v)\), replace
-\(u\) by a clone of \(v\): for every \(z\ne u,v\), give \(uz\) the same color
-as \(vz\), while keeping \(uv\) color \(0\).  This operation changes \(\sigma\)
-by \(d_w(v)-d_w(u)\ge0\).
+Call two vertices \emph{zero-twins} if either they are equal, or their pair has
+color \(0\) and they have the same colored neighborhood outside the pair.  This
+is an equivalence relation.  Among all feasible colorings attaining the maximum
+value of \(\sigma\), choose one maximizing the sum of squares of the zero-twin
+class sizes.
 
-It cannot create a \(K_4\) in \(D\).  Indeed, a new \(D\)-clique using the
-clone \(u\) and not \(v\) corresponds to the same clique with \(v\) in place of
-\(u\), while a clique using both \(u\) and \(v\) is impossible because \(uv\) is
-not a \(D\)-edge.  The same argument forbids creation of a \(K_5\) in \(E\).
-Thus the operation preserves \eqref{eq:forbidden-DE} and does not decrease
-\(\sigma\).
+For a zero-twin class \(P\), let \(d_w(P)\) be the total color-weight from any
+vertex of \(P\) to vertices outside the two classes under comparison; this is
+well-defined because vertices in \(P\) are twins.  Suppose two distinct
+zero-twin classes \(P,Q\) have a color-\(0\) edge between them.  Then all edges
+between \(P\) and \(Q\) have color \(0\).  If \(d_w(P)\le d_w(Q)\), clone every
+vertex of \(P\) to a representative of \(Q\): keep all pairs inside
+\(P\cup Q\) color \(0\), and give each vertex of \(P\) the same colors to the
+outside as a vertex of \(Q\).  The change in \(\sigma\) is
+\(|P|(d_w(Q)-d_w(P))\ge0\).
 
-Repeating this operation, with the standard tie-breaker of maximizing the sum
-of squares of the resulting clone-class sizes among all extremal pairs,
-terminates in a configuration in which color-\(0\) is an equivalence relation
-whose classes are twins.  Between two distinct equivalence classes all pairs
-have one nonzero color; otherwise a further cloning or tie-breaking step would
-be possible.  This is the claimed quotient form.
+This operation cannot create a \(K_4\) in \(D\).  Indeed, a new \(D\)-clique
+using a cloned vertex from \(P\) and no vertex of \(Q\) corresponds to the old
+clique obtained by replacing that vertex by a representative of \(Q\), while a
+clique using vertices from both \(P\) and \(Q\) is impossible because all pairs
+inside \(P\cup Q\) have color \(0\).  The same argument forbids creation of a
+\(K_5\) in \(E\).  Thus feasibility is preserved.  If \(d_w(P)<d_w(Q)\), this
+contradicts extremality of \(\sigma\); if \(d_w(P)=d_w(Q)\), it preserves
+\(\sigma\) but merges \(P\) and \(Q\) into one larger zero-twin class,
+contradicting the tie-breaker.  The case \(d_w(Q)<d_w(P)\) is symmetric.
+
+Hence no color-\(0\) edge joins two distinct zero-twin classes.  Between two
+classes all edges have one fixed nonzero color, because vertices within each
+class have identical colored neighborhoods.  This is precisely the claimed
+quotient form.
 \end{proof}
 
 Let the quotient class sizes be \(x_1,\ldots,x_k\), with
@@ -279,7 +321,7 @@ For \(r\ge1\), let
 where the minimum is over all partitions of \([k]\) into \(r\) possibly empty
 parts.
 
-\begin{lemma}[weighted Turan theorem]\label{lem:weighted-turan}
+\begin{lemma}[weighted Tur\'an theorem]\label{lem:weighted-turan}
 If \(G\) is \(K_{r+1}\)-free, then
 \begin{equation}\label{eq:weighted-turan}
   w(G)\le\frac12\bigl(n^2-\rho_r(x)\bigr).
@@ -287,12 +329,15 @@ If \(G\) is \(K_{r+1}\)-free, then
 \end{lemma}
 
 \begin{proof}
-The usual Zykov symmetrization works with vertex weights: if two nonadjacent
-vertices have different weighted neighborhoods, clone the smaller weighted
-neighborhood to the larger one.  This preserves \(K_{r+1}\)-freeness and does
-not decrease \(w(G)\).  An extremal weighted graph is therefore a complete
-multipartite graph with at most \(r\) parts.  For a partition with part weights
-\(s_1,\ldots,s_r\), its edge weight is
+The usual Zykov symmetrization works with vertex weights.  If two nonadjacent
+vertices \(u,v\) have weighted neighborhoods
+\(d_w(u)=\sum_{z\sim u}x_z\) and \(d_w(v)=\sum_{z\sim v}x_z\), and
+\(d_w(u)\le d_w(v)\), then replacing \(u\) by a clone of \(v\) changes
+\(w(G)\) by \(x_u(d_w(v)-d_w(u))\ge0\).  It also preserves
+\(K_{r+1}\)-freeness, for the same reason as in Lemma \ref{lem:zykov}.
+After the standard finite tie-breaking, an extremal weighted graph is complete
+multipartite.  Since it is \(K_{r+1}\)-free, it has at most \(r\) parts.  For a
+partition with part weights \(s_1,\ldots,s_r\), its edge weight is
 \[
   \sum_{i<j}s_i s_j=\frac12\left(n^2-\sum_i s_i^2\right),
 \]
@@ -515,9 +560,12 @@ list is not \((2,1,1)\), then
 \begin{equation}\label{eq:Gamma-bound}
   \Gamma:=\sum_\nu \eta_{t_\nu}\le2.
 \end{equation}
-Indeed, one or two components give \(\Gamma<2\), since each \(\eta_t<1\).  If
-there are three components, then the seven vertices of \(K_{3,4}\) allow only
-\((2,1,1)\) or \((1,1,1)\); excluding \((2,1,1)\) leaves \((1,1,1)\), for
+Indeed, a star forest in \(K_{3,4}\) has at most three nontrivial components,
+because each such component uses at least one of the three row vertices.  One
+or two components give \(\Gamma<2\), since each \(\eta_t<1\).  If there are
+three components, then the seven vertices of \(K_{3,4}\) give
+\(\sum_\nu(t_\nu+1)\le7\), so the only possible degree lists are
+\((2,1,1)\) and \((1,1,1)\).  Excluding \((2,1,1)\) leaves \((1,1,1)\), for
 which \(\Gamma=3\cdot(2/3)=2\).
 
 By \eqref{eq:star-efficiency} and Cauchy's inequality,
@@ -568,9 +616,25 @@ Apply Lemma \ref{lem:compression} to replace \(U\) by a star-forest matrix
 
 \section{The lower construction}\label{sec:lower}
 
-The lower construction is the standard blow-up of Karlsson's optimal
-four-lollipop configuration.  Label the four base lollipops so that their
-pairwise crossing table is
+The lower construction is a blow-up of Karlsson's optimal four-lollipop
+configuration.  We record explicit parameters to make the construction
+reproducible.  Write \(Q_{\rm anch}(x,y,r,\theta)\) for the lollipop with
+anchor \((x,y)\), radius \(r\), and stem direction
+\((\cos\theta,\sin\theta)\); its center is
+\((x,y)-r(\cos\theta,\sin\theta)\).  Write
+\(Q_{\rm cent}(x,y,r,\theta)\) for the same object specified by center
+\((x,y)\).  Let
+\begin{align*}
+L_1&=Q_{\rm anch}(0,0,200,0),\\
+L_2&=Q_{\rm cent}(0.45,0.4,0.55,-0.01),\\
+L_3&=Q_{\rm anch}\left(1.15,0.65,100,-\frac{\pi}{2}-\frac{2\pi}{15}\right),\\
+L_4&=Q_{\rm anch}\left(1.0488116827495215,-0.05,100,
+        \frac{\pi}{2}+\frac{\pi}{30}\right).
+\end{align*}
+These coordinates are Karlsson's four-lollipop arrangement, as listed with the
+OEIS entry A389624.  Solving the elementary pairwise equations for
+circle--circle, circle--ray, and ray--ray intersections gives the crossing
+table
 \[
 \begin{array}{c|cccc}
  &1&2&3&4\\
@@ -581,8 +645,9 @@ pairwise crossing table is
 4&&&&*
 \end{array}
 \]
-Thus the pair \((1,2)\) contributes \(5\) crossings and the other five pairs
-contribute \(7\) crossings.
+and all listed intersections are transverse, away from anchors, and away from
+parallel stem degeneracies.  Hence the table is stable under sufficiently
+small independent perturbations of the four lollipops.
 
 \begin{lemma}[blow-up stability]\label{lem:blowup}
 For any nonnegative integers \(m_1,m_2,m_3,m_4\), there is a generic
@@ -596,21 +661,57 @@ arrangement of \(m_1+m_2+m_3+m_4\) lollipops whose crossing number is
 \end{lemma}
 
 \begin{proof}
-Replace the \(i\)-th base lollipop by \(m_i\) sufficiently small, mutually
-generic perturbations.  Transverse crossings between two distinct base
-lollipops persist under sufficiently small perturbation, and no new
-inter-cluster crossing can appear away from a small neighborhood of an old one.
-Thus every pair from two different clusters has the same crossing number as
-the corresponding base pair.
+Because the base configuration above is generic and all stem directions in
+distinct base pairs are nonparallel, there are parameter neighborhoods
+\(\mathcal U_i\) of \(L_i\) such that any lollipop in \(\mathcal U_i\) and any
+lollipop in \(\mathcal U_j\), \(i\ne j\), have the same number of crossings as
+\(L_i\) and \(L_j\).  This is immediate from the explicit intersection
+equations: circle--circle intersections are governed by strict inequalities
+between center distance and sums or differences of radii, circle--ray
+intersections by a quadratic whose accepted roots have ray parameter strictly
+positive, and ray--ray intersections by a nonsingular linear system whose ray
+parameters are either strictly positive or strictly outside the ray.
 
-Inside one cluster, choose the copies in a tiny one-parameter family obtained
-by small translations and small independent rotations of the stem direction.
-For two sufficiently close copies of one lollipop, the two circles meet in two
-points, each stem meets the other circle once, and the two stems do not meet;
-these four intersections are transverse and persist under a generic small
-perturbation.  Therefore every intra-cluster pair contributes exactly \(4\)
-crossings.  A final arbitrarily small perturbation removes accidental triple
-points without changing any pairwise crossing count.
+It remains to choose, inside each \(\mathcal U_i\), as many copies as desired
+so that every intra-cluster pair has exactly four crossings.  By applying a
+similarity, it suffices to do this for the unit lollipop \(\Lambda\) with
+center \((0,0)\), radius \(1\), and stem \(\{(1+s,0):s\ge0\}\).  Compare
+\(\Lambda\) with the lollipop \(\Lambda_t\) of radius \(1\), center \((t,t)\),
+and stem direction angle \(-t\).  For all sufficiently small \(t>0\), the two
+circles meet twice.  The stem of \(\Lambda\) meets the circle of \(\Lambda_t\)
+exactly once, since the intersections with the line \(y=0\) have
+\(x=t\pm\sqrt{1-t^2}\), and exactly the plus root is greater than \(1\).  The
+stem of \(\Lambda_t\) meets the circle of \(\Lambda\) in no ray point: the
+positive line-intersection root is \(1-t+O(t^2)<1\), while the other root is
+negative.  Finally, the two stems meet once, because the stem of \(\Lambda_t\)
+has the form \((t,t)+q(\cos t,-\sin t)\), \(q\ge1\), and meets the
+\(x\)-axis at \(q=t/\sin t>1\) and \(x=1+t+O(t^2)>1\).  These four crossings
+are transverse.
+
+The preceding inequalities are strict, so the same four-crossing conclusion
+holds throughout a small open chamber in the relative local parameter space.
+To obtain arbitrarily many pairwise four-crossing copies, choose a small
+one-parameter motion contained in this chamber.  For instance, if \(R_\alpha\)
+denotes rotation by \(\alpha\), set
+\[
+  \Phi_t(x)=R_{-t}x+\int_0^t R_{-\tau}(1,1)\,d\tau .
+\]
+Then \(\Phi_{s+t}=\Phi_s\circ\Phi_t\), and \(\Phi_t\Lambda\) has center
+\((t,t)+O(t^2)\) and stem direction angle \(-t\).  Hence, for all
+sufficiently small \(t>0\), the pair \(\Lambda,\Phi_t\Lambda\) lies in the
+same four-crossing chamber as the model pair \(\Lambda,\Lambda_t\).  It follows
+from the group law that any two distinct members \(\Phi_s\Lambda\) and
+\(\Phi_t\Lambda\), with \(0<s<t\) sufficiently small, have the same crossing
+number as \(\Lambda,\Phi_{t-s}\Lambda\), namely four.
+
+Applying a similarity to this local family at each base lollipop and taking the
+parameters sufficiently small, we may choose \(m_i\) distinct copies inside
+\(\mathcal U_i\).  Then every pair inside the \(i\)-th cluster has exactly
+four crossings, while every pair from two different clusters has the base
+crossing number.  A final arbitrarily small perturbation, still within the
+same open chambers, removes accidental triple intersection points and anchor
+incidences without changing any pairwise crossing count.  This gives
+\eqref{eq:lower-L}.
 \end{proof}
 
 Subtracting \(4\binom n2\) from \eqref{eq:lower-L}, with
@@ -649,7 +750,7 @@ and
   =\frac{97}{32}n^2-n+O(1).
 \]
 
-\begin{table}[htbp]
+\begin{table}[!htbp]
 \centering
 \begin{tabular}{@{}c c r r@{}}
 \toprule
@@ -690,12 +791,13 @@ and
 \end{tabular}
 \caption{Values from the closed formula.}
 \end{table}
+
+\clearpage
 \section*{Acknowledgments}
 
-We thank David O. H. Cutler, Jonas Karlsson, Neil J. A. Sloane, and Matthias
-Paulsen for the lollipop problem and for the geometric ideas on which this
-note builds.  OpenAI's ChatGPT was used during exploratory algebra checking,
-finite-case audit organization, and drafting assistance.
+We thank David O. H. Cutler, Jonas Karlsson, and Neil J. A. Sloane for the lollipop problem and for the geometric ideas and constructions
+on which this note builds.
+
 \begin{thebibliography}{9}
 
 \bibitem{CKS}
@@ -716,8 +818,14 @@ OEIS Foundation Inc.,
 \(n\) lollipop (or qoppa) shapes of any size and orientation.''
 \url{https://oeis.org/A389624}.
 
+\bibitem{KarlssonCoords}
+Jonas Karlsson,
+\emph{Coordinates for a four-lollipop arrangement with 40 intersections},
+ancillary file for OEIS A389624.
+\url{https://oeis.org/A389624/a389624_1.txt}.
+
 \bibitem{Turan}
-P. Turan,
+P. Tur\'an,
 On an extremal problem in graph theory,
 \emph{Matematikai es Fizikai Lapok} \textbf{48} (1941), 436--452.
 
@@ -734,7 +842,7 @@ On some properties of linear complexes,
 \section{Paulsen's forced intriguing pair}\label{app:paulsen}
 
 We recall the short linear-algebra proof that among five circles some pair is
-intriguing.  Suppose five circles with centers \(x_i\in\mathbb R^2\) and radii
+intriguing.  Suppose five circles with centers \(x_i\in\R^2\) and radii
 \(r_i>0\) are pairwise non-intriguing.  Then every pair intersects at an
 obtuse angle, equivalently
 \begin{equation}\label{eq:obtuse}
@@ -742,9 +850,9 @@ obtuse angle, equivalently
 \end{equation}
 For each circle set
 \[
-  v_i=\frac1{r_i}(1,\,r_i^2-|x_i|^2,\,x_i)\in\mathbb R^4,
+  v_i=\frac1{r_i}(1,\,r_i^2-|x_i|^2,\,x_i)\in\R^4,
 \]
-and endow \(\mathbb R^4\), written as triples \((\alpha,\beta,x)\), with the
+and endow \(\R^4\), written as triples \((\alpha,\beta,x)\), with the
 symmetric bilinear form
 \[
   \langle(\alpha,\beta,x),(\alpha',\beta',x')\rangle
@@ -756,8 +864,10 @@ A direct calculation using \eqref{eq:obtuse} gives
   \qquad
   -1<\langle v_i,v_j\rangle<0\quad(i\ne j).
 \]
-Five vectors in \(\mathbb R^4\) are linearly dependent.  Move the negative
-terms in a nontrivial relation to the other side:
+Five vectors in \(\R^4\) are linearly dependent.  In a nontrivial relation
+\(\sum_i\lambda_i v_i=0\), the coefficients cannot all have the same sign,
+because the first coordinate of every \(v_i\) is \(1/r_i>0\).  Therefore we may
+move the negative terms to the other side and write
 \[
   \sum_{i\in P}a_i v_i=\sum_{j\in N}b_j v_j,
   \qquad a_i,b_j>0,
