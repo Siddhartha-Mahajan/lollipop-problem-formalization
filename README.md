@@ -134,6 +134,12 @@ four primitive components: circle-circle, circle-ray, ray-circle, and ray-ray.
 Lean proves that the disjoint union has the canonical Karlsson lower size and
 converts it to the indexed lower-point endpoint.
 
+Internally, the stronger exact component-coverage certificate
+`StepwiseCanonicalKarlssonIndexedDisjointComponentFinsetLowerCertificate`
+also converts to this component-indexed lower endpoint.  Thus a coordinate
+proof may either provide enough disjoint component lower points, or provide
+exact component coverage and let Lean forget down to the lower-bound boundary.
+
 The primitive-overlap/indexed-point endpoint is:
 
 ```lean

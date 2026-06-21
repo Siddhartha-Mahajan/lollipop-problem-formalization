@@ -2136,6 +2136,58 @@ noncomputable def toStepwiseCanonicalKarlssonFinsetExactCarrierLowerCertificate
   h.toStepwiseCanonicalKarlssonDisjointComponentFinsetLowerCertificate
     |>.toStepwiseCanonicalKarlssonFinsetExactCarrierLowerCertificate
 
+/-- Exact indexed disjoint component data also give the weaker
+component-indexed lower-point boundary.
+
+The component point families, membership, injectivity, disjointness, and size
+sum are copied directly.  The automatic pair-table equality is inherited from
+the exact component-coverage route. -/
+noncomputable def toStepwiseCanonicalKarlssonComponentIndexedPointLowerCertificate
+    {P : TheoremOne.ProblemFamily.{u}}
+    (h :
+      StepwiseCanonicalKarlssonIndexedDisjointComponentFinsetLowerCertificate
+        P) :
+    StepwiseCanonicalKarlssonComponentIndexedPointLowerCertificate P where
+  arrangement := h.arrangement
+  primitive_arrangement := h.primitive_arrangement
+  spheres_distinct := h.spheres_distinct
+  rayLines_distinct := h.rayLines_distinct
+  pair_cross := h.pair_cross
+  pair_cross_eq_automatic :=
+    h.toStepwiseCanonicalKarlssonFinsetExactCarrierLowerCertificate
+      |>.toStepwiseCanonicalKarlssonCarrierCardLowerCertificate
+      |>.pair_cross_eq_automatic
+  circle_circle_size := h.circle_circle_size
+  circle_ray_size := h.circle_ray_size
+  ray_circle_size := h.ray_circle_size
+  ray_ray_size := h.ray_ray_size
+  circle_circle_points := h.circle_circle_points
+  circle_ray_points := h.circle_ray_points
+  ray_circle_points := h.ray_circle_points
+  ray_ray_points := h.ray_ray_points
+  circle_circle_injective := h.circle_circle_injective
+  circle_ray_injective := h.circle_ray_injective
+  ray_circle_injective := h.ray_circle_injective
+  ray_ray_injective := h.ray_ray_injective
+  circle_circle_mem := h.circle_circle_mem
+  circle_ray_mem := h.circle_ray_mem
+  ray_circle_mem := h.ray_circle_mem
+  ray_ray_mem := h.ray_ray_mem
+  disjoint_circle_circle_circle_ray :=
+    h.disjoint_circle_circle_circle_ray
+  disjoint_circle_circle_ray_circle :=
+    h.disjoint_circle_circle_ray_circle
+  disjoint_circle_circle_ray_ray :=
+    h.disjoint_circle_circle_ray_ray
+  disjoint_circle_ray_ray_circle :=
+    h.disjoint_circle_ray_ray_circle
+  disjoint_circle_ray_ray_ray :=
+    h.disjoint_circle_ray_ray_ray
+  disjoint_ray_circle_ray_ray :=
+    h.disjoint_ray_circle_ray_ray
+  component_size_sum := h.component_size_sum
+  region_increment := h.region_increment
+
 /-- Indexed disjoint component data give the canonical automatic
 carrier-cardinality lower certificate. -/
 noncomputable def toStepwiseCanonicalKarlssonCarrierCardLowerCertificate
