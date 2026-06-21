@@ -69,6 +69,35 @@ theorem bound_le_pair_cross_of_indexed_mem_pairIntersectionSet
   (indexed_lower_subset_of_mem_pairIntersectionSet
       hij points hinj hmem).bound_le_pair_cross C
 
+/-- Indexed carrier-intersection points of exactly the Karlsson local table
+size give the local monotone cluster-pair lower certificate.
+
+This is the intended direct interface for perturbation/blow-up geometry:
+construct `4`, `5`, or `7` distinct points in the pair carrier according to
+the two cluster labels, and combine them with the finite carrier-count
+certificate for the same pair. -/
+def localClusterPairLowerBoundData_of_indexed_karlsson_points
+    {n : Nat} {A : EuclideanLollipopArrangement n}
+    {pairCross : Fin n → Fin n → Rat}
+    {cluster : Fin n → Fin 4} {i j : Fin n}
+    (hij : i < j)
+    (points :
+      Fin (ExplicitInputs.karlssonClusterPairCrossingNat
+        (cluster i) (cluster j)) → R2)
+    (hinj : Function.Injective points)
+    (hmem :
+      ∀ k : Fin (ExplicitInputs.karlssonClusterPairCrossingNat
+        (cluster i) (cluster j)),
+        points k ∈ A.pairIntersectionSet i j)
+    (C : LocalPairCarrierCrossingData A pairCross i j hij) :
+    ExplicitInputs.LocalClusterPairLowerBoundData
+      cluster pairCross i j hij :=
+  (indexed_lower_subset_of_mem_pairIntersectionSet
+      hij points hinj hmem)
+    |>.toLocalClusterPairLowerBoundData C
+      (by
+        rw [ExplicitInputs.karlssonClusterPairCrossing_eq_nat])
+
 end
 
 end ConstructionFormalization
