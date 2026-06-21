@@ -539,6 +539,20 @@ structure PrimitivePairAllFourOverlap
 
 namespace PrimitivePairAllFourOverlap
 
+/-- If two primitive lollipops share their anchor, that common primitive
+point lies on both circles and both rays. -/
+def of_common_anchor
+    {L M : EuclideanLollipop}
+    (hanchor : L.anchor = M.anchor) :
+    PrimitivePairAllFourOverlap L M where
+  point := L.anchor
+  leftCircle := L.anchor_on_circle
+  rightCircle := by
+    simpa [hanchor] using M.anchor_on_circle
+  leftRay := anchor_mem_raySet L.anchor L.rayDirection
+  rightRay := by
+    simpa [hanchor] using anchor_mem_raySet M.anchor M.rayDirection
+
 /-- Raw coordinate all-four data give the existing lifted all-four component
 overlap witness. -/
 def toPairComponentAllFourOverlap
@@ -679,6 +693,14 @@ inductive PrimitivePairFourOverlap
       (hpMray : p ∈ raySet M.anchor M.rayDirection)
 
 namespace PrimitivePairFourOverlap
+
+/-- A shared primitive anchor gives raw primitive four-overlap data. -/
+def of_common_anchor
+    {L M : EuclideanLollipop}
+    (hanchor : L.anchor = M.anchor) :
+    PrimitivePairFourOverlap L M :=
+  PrimitivePairFourOverlap.allFour
+    (PrimitivePairAllFourOverlap.of_common_anchor hanchor)
 
 /-- Raw primitive four-overlap data imply raw all-four overlap data. -/
 def toPrimitivePairAllFourOverlap
@@ -846,9 +868,25 @@ def of_four
     PrimitivePairFiveOverlap L M :=
   PrimitivePairFiveOverlap.of_all_four H.toPrimitivePairAllFourOverlap
 
+/-- A shared primitive anchor gives raw primitive five-overlap data. -/
+def of_common_anchor
+    {L M : EuclideanLollipop}
+    (hanchor : L.anchor = M.anchor) :
+    PrimitivePairFiveOverlap L M :=
+  PrimitivePairFiveOverlap.of_all_four
+    (PrimitivePairAllFourOverlap.of_common_anchor hanchor)
+
 end PrimitivePairFiveOverlap
 
 namespace PrimitivePairAllFourOverlap
+
+/-- Raw all-four coordinate data also give the primitive four-overlap witness
+needed by the close-and-intriguing branch. -/
+def toPrimitivePairFourOverlap
+    {L M : EuclideanLollipop}
+    (H : PrimitivePairAllFourOverlap L M) :
+    PrimitivePairFourOverlap L M :=
+  PrimitivePairFourOverlap.allFour H
 
 /-- Raw all-four coordinate data also give the primitive five-overlap witness
 needed by the close-only and intriguing-only branches. -/
