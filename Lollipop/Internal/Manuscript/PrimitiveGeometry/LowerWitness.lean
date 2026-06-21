@@ -141,6 +141,96 @@ def toLocalClusterPairLowerBoundData
 
 end LocalPairCarrierLowerWitnessData
 
+/-- Four distinct component witnesses give a four-point lower subset of one
+primitive carrier intersection.
+
+This is the local shape needed for an intra-cluster Karlsson blow-up pair:
+one certified point in each of the circle-circle, circle-ray, ray-circle, and
+ray-ray components. -/
+noncomputable def four_component_lower_subset
+    {n : Nat} {A : EuclideanLollipopArrangement n}
+    {i j : Fin n} (hij : i < j)
+    {pcc pcr prc prr : R2}
+    (hcc :
+      pcc ∈ circleSet (A.lollipop i).center (A.lollipop i).radius ∧
+        pcc ∈ circleSet (A.lollipop j).center (A.lollipop j).radius)
+    (hcr :
+      pcr ∈ circleSet (A.lollipop i).center (A.lollipop i).radius ∧
+        pcr ∈ raySet (A.lollipop j).anchor (A.lollipop j).rayDirection)
+    (hrc :
+      prc ∈ raySet (A.lollipop i).anchor (A.lollipop i).rayDirection ∧
+        prc ∈ circleSet (A.lollipop j).center (A.lollipop j).radius)
+    (hrr :
+      prr ∈ raySet (A.lollipop i).anchor (A.lollipop i).rayDirection ∧
+        prr ∈ raySet (A.lollipop j).anchor (A.lollipop j).rayDirection)
+    (hcc_cr : pcc ≠ pcr)
+    (hcc_rc : pcc ≠ prc)
+    (hcc_rr : pcc ≠ prr)
+    (hcr_rc : pcr ≠ prc)
+    (hcr_rr : pcr ≠ prr)
+    (hrc_rr : prc ≠ prr) :
+    LocalPairCarrierLowerSubsetData A i j hij 4 := by
+  classical
+  refine
+    { lowerPoints := {pcc, pcr, prc, prr}
+      lowerPoints_subset := ?_
+      bound_le_card := ?_ }
+  · intro p hp
+    simp at hp
+    rcases hp with rfl | rfl | rfl | rfl
+    · simpa [EuclideanLollipopArrangement.pairIntersectionSet] using
+        mem_pairIntersectionSet_of_mem_circleSets
+          (L := A.lollipop i) (M := A.lollipop j) hcc.1 hcc.2
+    · simpa [EuclideanLollipopArrangement.pairIntersectionSet] using
+        mem_pairIntersectionSet_of_mem_circleSet_of_mem_raySet
+          (L := A.lollipop i) (M := A.lollipop j) hcr.1 hcr.2
+    · simpa [EuclideanLollipopArrangement.pairIntersectionSet] using
+        mem_pairIntersectionSet_of_mem_raySet_of_mem_circleSet
+          (L := A.lollipop i) (M := A.lollipop j) hrc.1 hrc.2
+    · simpa [EuclideanLollipopArrangement.pairIntersectionSet] using
+        mem_pairIntersectionSet_of_mem_raySets
+          (L := A.lollipop i) (M := A.lollipop j) hrr.1 hrr.2
+  · have hcard : ({pcc, pcr, prc, prr} : Finset R2).card = 4 := by
+      rw [Finset.card_insert_of_notMem]
+      · rw [Finset.card_insert_of_notMem]
+        · rw [Finset.card_insert_of_notMem]
+          · simp
+          · simp [hrc_rr]
+        · simp [hcr_rc, hcr_rr]
+      · simp [hcc_cr, hcc_rc, hcc_rr]
+    exact le_of_eq hcard.symm
+
+/-- Four distinct component witnesses plus a local finite-carrier certificate
+force the local crossing table to count at least four points. -/
+theorem four_le_pair_cross_of_component_witnesses
+    {n : Nat} {A : EuclideanLollipopArrangement n}
+    {pairCross : Fin n → Fin n → Rat} {i j : Fin n}
+    (hij : i < j)
+    {pcc pcr prc prr : R2}
+    (hcc :
+      pcc ∈ circleSet (A.lollipop i).center (A.lollipop i).radius ∧
+        pcc ∈ circleSet (A.lollipop j).center (A.lollipop j).radius)
+    (hcr :
+      pcr ∈ circleSet (A.lollipop i).center (A.lollipop i).radius ∧
+        pcr ∈ raySet (A.lollipop j).anchor (A.lollipop j).rayDirection)
+    (hrc :
+      prc ∈ raySet (A.lollipop i).anchor (A.lollipop i).rayDirection ∧
+        prc ∈ circleSet (A.lollipop j).center (A.lollipop j).radius)
+    (hrr :
+      prr ∈ raySet (A.lollipop i).anchor (A.lollipop i).rayDirection ∧
+        prr ∈ raySet (A.lollipop j).anchor (A.lollipop j).rayDirection)
+    (hcc_cr : pcc ≠ pcr)
+    (hcc_rc : pcc ≠ prc)
+    (hcc_rr : pcc ≠ prr)
+    (hcr_rc : pcr ≠ prc)
+    (hcr_rr : pcr ≠ prr)
+    (hrc_rr : prc ≠ prr)
+    (C : LocalPairCarrierCrossingData A pairCross i j hij) :
+    (4 : Rat) ≤ pairCross i j :=
+  (four_component_lower_subset
+      hij hcc hcr hrc hrr hcc_cr hcc_rc hcc_rr hcr_rc hcr_rr hrc_rr)
+    |>.bound_le_pair_cross C
+
 end PrimitiveGeometry
 end TheoremOneManuscript
 end Lollipop
