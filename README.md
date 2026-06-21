@@ -19,12 +19,15 @@ Lollipop.Final.TheoremOneAtStatement
 Lollipop.Final.GeometryCertificates
 Lollipop.Final.MonotoneGeometryCertificates
 Lollipop.Final.IndexedPointLowerGeometryCertificates
+Lollipop.Final.PrimitiveOverlapIndexedPointGeometryCertificates
 Lollipop.Final.theorem_one
 Lollipop.Final.displayed_formula
 Lollipop.Final.theorem_one_from_monotone
 Lollipop.Final.displayed_formula_from_monotone
 Lollipop.Final.theorem_one_from_indexed_lower
 Lollipop.Final.displayed_formula_from_indexed_lower
+Lollipop.Final.theorem_one_from_primitive_overlap_indexed_lower
+Lollipop.Final.displayed_formula_from_primitive_overlap_indexed_lower
 ```
 
 The theorem endpoint is:
@@ -109,6 +112,22 @@ intersection, plus injectivity, membership, noncoincidence, automatic
 pair-table agreement, and ordered insertion data.  Lean converts those points
 to the monotone pairwise lower boundary.
 
+The most construction-facing endpoint currently exposed is:
+
+```lean
+structure Lollipop.Final.PrimitiveOverlapIndexedPointGeometryCertificates
+    (P : TheoremOne.MaxProblemFamily) where
+  upper :
+    PrimitiveFlexibleOverlapSavingsStepwiseCertificate P.toProblemFamily
+  lower :
+    StepwiseCanonicalKarlssonIndexedPointLowerCertificate P.toProblemFamily
+```
+
+Here the upper construction supplies raw primitive coordinate overlap
+witnesses for the close, intriguing, and close-plus-intriguing branches, and
+the lower construction supplies explicit indexed carrier-intersection points.
+Lean converts this package to the final theorem.
+
 ## What Is Already Certified Geometrically
 
 The proved base geometry is in:
@@ -133,6 +152,7 @@ The remaining geometry gap is isolated in:
 expected_fail/MissingGeometryCertificates.lean
 expected_fail/MissingMonotoneGeometryCertificates.lean
 expected_fail/MissingIndexedPointGeometryCertificates.lean
+expected_fail/MissingPrimitiveOverlapIndexedPointGeometryCertificates.lean
 ```
 
 The exact lower endpoint intentionally fails at exactly these names:
@@ -171,12 +191,23 @@ unformalized_indexed_point_karlsson_lower_geometry
 This is the constructive lower target for formalizing Karlsson's perturbation
 argument by explicit carrier-intersection points.
 
+The primitive-overlap/indexed-point endpoint intentionally fails at:
+
+```lean
+unformalized_primitive_overlap_upper_geometry
+unformalized_indexed_point_karlsson_lower_geometry
+```
+
+This is the closest public boundary to a coordinate-by-coordinate completion:
+prove Paulsen-style upper overlap witnesses and Karlsson indexed lower points.
+
 Run it with:
 
 ```sh
 lake env lean expected_fail/MissingGeometryCertificates.lean
 lake env lean expected_fail/MissingMonotoneGeometryCertificates.lean
 lake env lean expected_fail/MissingIndexedPointGeometryCertificates.lean
+lake env lean expected_fail/MissingPrimitiveOverlapIndexedPointGeometryCertificates.lean
 ```
 
 The expected result is unknown-identifier errors at the names above.
@@ -193,6 +224,7 @@ Lollipop/Internal/
 expected_fail/MissingGeometryCertificates.lean
 expected_fail/MissingMonotoneGeometryCertificates.lean
 expected_fail/MissingIndexedPointGeometryCertificates.lean
+expected_fail/MissingPrimitiveOverlapIndexedPointGeometryCertificates.lean
 manuscript/
 references/
 lakefile.lean

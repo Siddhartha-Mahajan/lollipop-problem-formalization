@@ -1,4 +1,5 @@
 import Lollipop.Internal.Manuscript.Construction.AutomaticCardinalityWitness
+import Lollipop.Internal.Manuscript.EndToEndFormalization.OverlapUpper
 import Lollipop.Internal.Manuscript.FormalizedProof.FinalTheorem
 
 /-!
@@ -90,6 +91,21 @@ structure IndexedPointLowerGeometryCertificates
     TheoremOneManuscript.ConstructionFormalization.StepwiseCanonicalKarlssonIndexedPointLowerCertificate
       P.toProblemFamily
 
+/-- Most construction-facing public boundary currently exposed.
+
+The upper field asks for primitive coordinate overlap witnesses for the
+close/intriguing savings branches.  The lower field asks for explicit indexed
+carrier-intersection points.  Lean converts both to the direct-savings plus
+monotone lower endpoint. -/
+structure PrimitiveOverlapIndexedPointGeometryCertificates
+    (P : TheoremOne.MaxProblemFamily.{u}) : Type u where
+  upper :
+    TheoremOneManuscript.EndToEndFormalization.OverlapUpper.PrimitiveFlexibleOverlapSavingsStepwiseCertificate
+      P.toProblemFamily
+  lower :
+    TheoremOneManuscript.ConstructionFormalization.StepwiseCanonicalKarlssonIndexedPointLowerCertificate
+      P.toProblemFamily
+
 namespace GeometryCertificates
 
 /-- Convert the public certificate boundary to the internal theorem package. -/
@@ -134,6 +150,23 @@ noncomputable def toMonotoneGeometryCertificates
 
 end IndexedPointLowerGeometryCertificates
 
+namespace PrimitiveOverlapIndexedPointGeometryCertificates
+
+/-- Convert primitive overlap witnesses and indexed lower points to the
+indexed lower public certificate boundary. -/
+noncomputable def toIndexedPointLowerGeometryCertificates
+    {P : TheoremOne.MaxProblemFamily.{u}}
+    (h : PrimitiveOverlapIndexedPointGeometryCertificates P) :
+    IndexedPointLowerGeometryCertificates P where
+  upper :=
+    h.upper
+      |>.toOverlapSavingsStepwiseCertificate
+      |>.toDirectSavingsStepwiseCertificate
+      |>.toDirectSavingsUpperGeometryData
+  lower := h.lower
+
+end PrimitiveOverlapIndexedPointGeometryCertificates
+
 /-! ## Theorem 1 -/
 
 /-- Manuscript Theorem 1 from the final geometric certificate boundary. -/
@@ -159,6 +192,14 @@ theorem theorem_one_from_indexed_lower
     TheoremOneStatement P :=
   theorem_one_from_monotone P h.toMonotoneGeometryCertificates
 
+/-- Manuscript Theorem 1 from primitive upper overlap witnesses and explicit
+indexed lower points. -/
+theorem theorem_one_from_primitive_overlap_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : PrimitiveOverlapIndexedPointGeometryCertificates P) :
+    TheoremOneStatement P :=
+  theorem_one_from_indexed_lower P h.toIndexedPointLowerGeometryCertificates
+
 /-- Single-size Theorem 1 from the final geometric certificate boundary. -/
 theorem theorem_one_at
     (P : TheoremOne.MaxProblemFamily.{u})
@@ -182,6 +223,15 @@ theorem theorem_one_at_from_indexed_lower
     (n : Nat) :
     TheoremOneAtStatement P n :=
   theorem_one_from_indexed_lower P h n
+
+/-- Single-size Theorem 1 from primitive upper overlap witnesses and explicit
+indexed lower points. -/
+theorem theorem_one_at_from_primitive_overlap_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : PrimitiveOverlapIndexedPointGeometryCertificates P)
+    (n : Nat) :
+    TheoremOneAtStatement P n :=
+  theorem_one_from_primitive_overlap_indexed_lower P h n
 
 /-- The fully unfolded single-size displayed formula:
 `a_Lop(n) = 4 * binom(n,2) + S(n) + n + 1`. -/
@@ -215,6 +265,17 @@ theorem displayed_formula_from_indexed_lower
       4 * ((n.choose 2 : Nat) : Rat) +
         TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
   theorem_one_at_from_indexed_lower P h n
+
+/-- Fully unfolded single-size displayed formula from primitive upper overlap
+witnesses and explicit indexed lower points. -/
+theorem displayed_formula_from_primitive_overlap_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : PrimitiveOverlapIndexedPointGeometryCertificates P)
+    (n : Nat) :
+    P.aLop n =
+      4 * ((n.choose 2 : Nat) : Rat) +
+        TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
+  theorem_one_at_from_primitive_overlap_indexed_lower P h n
 
 end Final
 end Lollipop
