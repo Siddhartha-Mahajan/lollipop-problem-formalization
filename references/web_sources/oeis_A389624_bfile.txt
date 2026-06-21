@@ -1,0 +1,6 @@
+# A389624 (b-file synthesized from sequence entry)
+0 1
+1 2
+2 10
+3 25
+4 45
