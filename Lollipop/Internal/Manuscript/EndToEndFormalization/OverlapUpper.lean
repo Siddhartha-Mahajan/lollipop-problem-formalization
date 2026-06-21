@@ -564,6 +564,17 @@ def symm
   leftRay := H.rightRay
   rightRay := H.leftRay
 
+/-- Canonicalize raw all-four overlap data supplied in either lollipop order. -/
+def ofEither
+    {L M : EuclideanLollipop}
+    (H :
+      PrimitivePairAllFourOverlap L M ⊕
+        PrimitivePairAllFourOverlap M L) :
+    PrimitivePairAllFourOverlap L M := by
+  cases H with
+  | inl H => exact H
+  | inr H => exact H.symm
+
 /-- Raw coordinate all-four data give the existing lifted all-four component
 overlap witness. -/
 def toPairComponentAllFourOverlap
@@ -640,6 +651,17 @@ def symm
       exact
         PrimitivePairTripleOverlap.withoutRayRay
           p hMcircle hLcircle hLray hMray
+
+/-- Canonicalize raw triple-overlap data supplied in either lollipop order. -/
+def ofEither
+    {L M : EuclideanLollipop}
+    (H :
+      PrimitivePairTripleOverlap L M ⊕
+        PrimitivePairTripleOverlap M L) :
+    PrimitivePairTripleOverlap L M := by
+  cases H with
+  | inl H => exact H
+  | inr H => exact H.symm
 
 /-- Raw primitive triple-overlap data imply raw all-four overlap data. -/
 def toPrimitivePairAllFourOverlap
@@ -771,6 +793,18 @@ def symm
             leftRay := hpMray
             rightRay := hpLray }
 
+/-- Canonicalize raw primitive four-overlap data supplied in either lollipop
+order. -/
+def ofEither
+    {L M : EuclideanLollipop}
+    (H :
+      PrimitivePairFourOverlap L M ⊕
+        PrimitivePairFourOverlap M L) :
+    PrimitivePairFourOverlap L M := by
+  cases H with
+  | inl H => exact H
+  | inr H => exact H.symm
+
 /-- Raw primitive four-overlap data imply raw all-four overlap data. -/
 def toPrimitivePairAllFourOverlap
     {L M : EuclideanLollipop}
@@ -895,6 +929,18 @@ def symm
         PrimitivePairFiveOverlap.twoDoubleCcRrCrRc
           q r hqMcircle hqLcircle hqMray hqLray
           hrMcircle hrLcircle hrMray hrLray
+
+/-- Canonicalize raw primitive five-overlap data supplied in either lollipop
+order. -/
+def ofEither
+    {L M : EuclideanLollipop}
+    (H :
+      PrimitivePairFiveOverlap L M ⊕
+        PrimitivePairFiveOverlap M L) :
+    PrimitivePairFiveOverlap L M := by
+  cases H with
+  | inl H => exact H
+  | inr H => exact H.symm
 
 /-- Raw coordinate five-overlap data give the existing lifted component
 five-overlap witness. -/
