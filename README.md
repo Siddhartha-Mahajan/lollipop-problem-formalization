@@ -1,8 +1,7 @@
 # Lollipop End-to-End Formalization
 
 This repository is the cleaned Lean handoff for the lollipop manuscript.
-It has one public theorem endpoint and one explicit remaining geometry
-boundary.
+It has public theorem endpoints and explicit remaining geometry boundaries.
 
 ## Start Here
 
@@ -18,8 +17,11 @@ The main public objects are:
 Lollipop.Final.TheoremOneStatement
 Lollipop.Final.TheoremOneAtStatement
 Lollipop.Final.GeometryCertificates
+Lollipop.Final.MonotoneGeometryCertificates
 Lollipop.Final.theorem_one
 Lollipop.Final.displayed_formula
+Lollipop.Final.theorem_one_from_monotone
+Lollipop.Final.displayed_formula_from_monotone
 ```
 
 The theorem endpoint is:
@@ -50,6 +52,7 @@ carrier-counting, lower-bound summation, and theorem-assembly parts after the
 geometric certificate boundary is supplied.
 
 The single public certificate boundary is:
+The exact public certificate boundary is:
 
 ```lean
 structure Lollipop.Final.GeometryCertificates
@@ -69,6 +72,23 @@ In words, the remaining inputs are:
 
 Once those two fields are present, `Lollipop.Final.theorem_one` proves the
 manuscript Theorem 1 formula.
+
+There is also a lower-bound-facing endpoint:
+
+```lean
+structure Lollipop.Final.MonotoneGeometryCertificates
+    (P : TheoremOne.MaxProblemFamily) where
+  upper :
+    PrimitiveCarrierDirectSavingsUpperGeometryData P.toProblemFamily
+  lower :
+    PairwiseCardinalityClusteredKarlssonBlowUpIncrementalLowerBoundData
+      P.toProblemFamily
+```
+
+This version keeps the same upper geometry requirement but weakens the lower
+side to pairwise Karlsson lower bounds.  For a perturbation construction this
+is often the more natural target: supply enough certified carrier-intersection
+points, and Lean performs the summation and theorem assembly.
 
 ## What Is Already Certified Geometrically
 
@@ -124,6 +144,7 @@ Lollipop.lean
 Lollipop/Final.lean
 Lollipop/Final/TheoremOne.lean
 Lollipop/Final/Geometry.lean
+Lollipop/Final/GeometryObstruction.lean
 Lollipop/Internal/
 expected_fail/MissingGeometryCertificates.lean
 manuscript/
@@ -136,6 +157,11 @@ lean-toolchain
 `Lollipop/Final/` is the public surface.  `Lollipop/Internal/` is the proof
 closure required by the final endpoint; it is not a collection of competing
 final theorem statements.
+
+`Lollipop/Final/GeometryObstruction.lean` proves that the final certificate
+boundary cannot be filled polymorphically for every abstract
+`MaxProblemFamily`; the remaining constructors must target the intended
+concrete lollipop family or assume genuine Euclidean realization data.
 
 `manuscript/current/` contains the current TeX/PDF manuscript copy.
 `manuscript/original/` contains the original manuscript source copied from

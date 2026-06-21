@@ -58,6 +58,22 @@ structure GeometryCertificates
     TheoremOneManuscript.ExplicitInputs.KarlssonBaseBlowUpIncrementalLowerData
       P.toProblemFamily
 
+/-- A weaker lower-bound-facing geometry boundary.
+
+The upper side is the same direct whole-carrier savings package.  The lower
+side asks only for pairwise Karlsson lower bounds, not an exact classification
+of every blow-up carrier intersection.  This is often the more natural target
+for perturbation constructions: produce enough certified intersection points,
+then Lean performs the finite summation and maximum argument. -/
+structure MonotoneGeometryCertificates
+    (P : TheoremOne.MaxProblemFamily.{u}) : Type u where
+  upper :
+    TheoremOneManuscript.PrimitiveGeometry.PrimitiveCarrierDirectSavingsUpperGeometryData
+      P.toProblemFamily
+  lower :
+    TheoremOneManuscript.ExplicitInputs.PairwiseCardinalityClusteredKarlssonBlowUpIncrementalLowerBoundData
+      P.toProblemFamily
+
 namespace GeometryCertificates
 
 /-- Convert the public certificate boundary to the internal theorem package. -/
@@ -71,6 +87,20 @@ noncomputable def toSubtheorems
 
 end GeometryCertificates
 
+namespace MonotoneGeometryCertificates
+
+/-- Convert the monotone public certificate boundary to the internal theorem
+package. -/
+noncomputable def toSubtheorems
+    {P : TheoremOne.MaxProblemFamily.{u}}
+    (h : MonotoneGeometryCertificates P) :
+    TheoremOneManuscript.FormalizedProof.DirectSavingsMonotonePairwiseLowerTheoremOneSubtheorems
+      P where
+  upper_geometry := h.upper
+  lower_pairwise_bound := h.lower
+
+end MonotoneGeometryCertificates
+
 /-! ## Theorem 1 -/
 
 /-- Manuscript Theorem 1 from the final geometric certificate boundary. -/
@@ -81,6 +111,14 @@ theorem theorem_one
   TheoremOneManuscript.FormalizedProof.theorem_one_from_direct_savings_karlsson_base_lower_subtheorems
     P h.toSubtheorems
 
+/-- Manuscript Theorem 1 from the monotone lower-bound geometry boundary. -/
+theorem theorem_one_from_monotone
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : MonotoneGeometryCertificates P) :
+    TheoremOneStatement P :=
+  TheoremOneManuscript.FormalizedProof.theorem_one_from_direct_savings_monotone_pairwise_lower_subtheorems
+    P h.toSubtheorems
+
 /-- Single-size Theorem 1 from the final geometric certificate boundary. -/
 theorem theorem_one_at
     (P : TheoremOne.MaxProblemFamily.{u})
@@ -88,6 +126,14 @@ theorem theorem_one_at
     (n : Nat) :
     TheoremOneAtStatement P n :=
   theorem_one P h n
+
+/-- Single-size Theorem 1 from the monotone lower-bound geometry boundary. -/
+theorem theorem_one_at_from_monotone
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : MonotoneGeometryCertificates P)
+    (n : Nat) :
+    TheoremOneAtStatement P n :=
+  theorem_one_from_monotone P h n
 
 /-- The fully unfolded single-size displayed formula:
 `a_Lop(n) = 4 * binom(n,2) + S(n) + n + 1`. -/
@@ -99,6 +145,17 @@ theorem displayed_formula
       4 * ((n.choose 2 : Nat) : Rat) +
         TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
   theorem_one_at P h n
+
+/-- Fully unfolded single-size displayed formula from the monotone
+lower-bound geometry boundary. -/
+theorem displayed_formula_from_monotone
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : MonotoneGeometryCertificates P)
+    (n : Nat) :
+    P.aLop n =
+      4 * ((n.choose 2 : Nat) : Rat) +
+        TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
+  theorem_one_at_from_monotone P h n
 
 end Final
 end Lollipop
