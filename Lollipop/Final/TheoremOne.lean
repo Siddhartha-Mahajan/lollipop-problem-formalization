@@ -1,3 +1,4 @@
+import Lollipop.Internal.Manuscript.Construction.AutomaticCardinalityWitness
 import Lollipop.Internal.Manuscript.FormalizedProof.FinalTheorem
 
 /-!
@@ -74,6 +75,21 @@ structure MonotoneGeometryCertificates
     TheoremOneManuscript.ExplicitInputs.PairwiseCardinalityClusteredKarlssonBlowUpIncrementalLowerBoundData
       P.toProblemFamily
 
+/-- Constructive lower-bound-facing geometry boundary.
+
+The lower field asks for explicit indexed carrier-intersection points for
+each sorted Karlsson blow-up pair.  Lean proves from those points that the
+automatic carrier finset has the required cardinality, then converts that
+cardinality fact to the monotone lower theorem endpoint. -/
+structure IndexedPointLowerGeometryCertificates
+    (P : TheoremOne.MaxProblemFamily.{u}) : Type u where
+  upper :
+    TheoremOneManuscript.PrimitiveGeometry.PrimitiveCarrierDirectSavingsUpperGeometryData
+      P.toProblemFamily
+  lower :
+    TheoremOneManuscript.ConstructionFormalization.StepwiseCanonicalKarlssonIndexedPointLowerCertificate
+      P.toProblemFamily
+
 namespace GeometryCertificates
 
 /-- Convert the public certificate boundary to the internal theorem package. -/
@@ -101,6 +117,23 @@ noncomputable def toSubtheorems
 
 end MonotoneGeometryCertificates
 
+namespace IndexedPointLowerGeometryCertificates
+
+/-- Convert explicit indexed lower points to the monotone final certificate
+boundary. -/
+noncomputable def toMonotoneGeometryCertificates
+    {P : TheoremOne.MaxProblemFamily.{u}}
+    (h : IndexedPointLowerGeometryCertificates P) :
+    MonotoneGeometryCertificates P where
+  upper := h.upper
+  lower :=
+    h.lower
+      |>.toStepwiseCanonicalKarlssonCarrierCardLowerCertificate
+      |>.toStepwisePairLocalKarlssonLowerBoundCertificate
+      |>.toPairwiseCardinalityClusteredKarlssonBlowUpIncrementalLowerBoundData
+
+end IndexedPointLowerGeometryCertificates
+
 /-! ## Theorem 1 -/
 
 /-- Manuscript Theorem 1 from the final geometric certificate boundary. -/
@@ -119,6 +152,13 @@ theorem theorem_one_from_monotone
   TheoremOneManuscript.FormalizedProof.theorem_one_from_direct_savings_monotone_pairwise_lower_subtheorems
     P h.toSubtheorems
 
+/-- Manuscript Theorem 1 from explicit indexed lower points. -/
+theorem theorem_one_from_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : IndexedPointLowerGeometryCertificates P) :
+    TheoremOneStatement P :=
+  theorem_one_from_monotone P h.toMonotoneGeometryCertificates
+
 /-- Single-size Theorem 1 from the final geometric certificate boundary. -/
 theorem theorem_one_at
     (P : TheoremOne.MaxProblemFamily.{u})
@@ -134,6 +174,14 @@ theorem theorem_one_at_from_monotone
     (n : Nat) :
     TheoremOneAtStatement P n :=
   theorem_one_from_monotone P h n
+
+/-- Single-size Theorem 1 from explicit indexed lower points. -/
+theorem theorem_one_at_from_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : IndexedPointLowerGeometryCertificates P)
+    (n : Nat) :
+    TheoremOneAtStatement P n :=
+  theorem_one_from_indexed_lower P h n
 
 /-- The fully unfolded single-size displayed formula:
 `a_Lop(n) = 4 * binom(n,2) + S(n) + n + 1`. -/
@@ -156,6 +204,17 @@ theorem displayed_formula_from_monotone
       4 * ((n.choose 2 : Nat) : Rat) +
         TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
   theorem_one_at_from_monotone P h n
+
+/-- Fully unfolded single-size displayed formula from explicit indexed lower
+points. -/
+theorem displayed_formula_from_indexed_lower
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : IndexedPointLowerGeometryCertificates P)
+    (n : Nat) :
+    P.aLop n =
+      4 * ((n.choose 2 : Nat) : Rat) +
+        TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
+  theorem_one_at_from_indexed_lower P h n
 
 end Final
 end Lollipop

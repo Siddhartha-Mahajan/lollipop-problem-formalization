@@ -18,10 +18,13 @@ Lollipop.Final.TheoremOneStatement
 Lollipop.Final.TheoremOneAtStatement
 Lollipop.Final.GeometryCertificates
 Lollipop.Final.MonotoneGeometryCertificates
+Lollipop.Final.IndexedPointLowerGeometryCertificates
 Lollipop.Final.theorem_one
 Lollipop.Final.displayed_formula
 Lollipop.Final.theorem_one_from_monotone
 Lollipop.Final.displayed_formula_from_monotone
+Lollipop.Final.theorem_one_from_indexed_lower
+Lollipop.Final.displayed_formula_from_indexed_lower
 ```
 
 The theorem endpoint is:
@@ -90,6 +93,22 @@ side to pairwise Karlsson lower bounds.  For a perturbation construction this
 is often the more natural target: supply enough certified carrier-intersection
 points, and Lean performs the summation and theorem assembly.
 
+The most constructive lower endpoint is:
+
+```lean
+structure Lollipop.Final.IndexedPointLowerGeometryCertificates
+    (P : TheoremOne.MaxProblemFamily) where
+  upper :
+    PrimitiveCarrierDirectSavingsUpperGeometryData P.toProblemFamily
+  lower :
+    StepwiseCanonicalKarlssonIndexedPointLowerCertificate P.toProblemFamily
+```
+
+Here the lower construction supplies explicit indexed points in each carrier
+intersection, plus injectivity, membership, noncoincidence, automatic
+pair-table agreement, and ordered insertion data.  Lean converts those points
+to the monotone pairwise lower boundary.
+
 ## What Is Already Certified Geometrically
 
 The proved base geometry is in:
@@ -113,6 +132,7 @@ The remaining geometry gap is isolated in:
 ```lean
 expected_fail/MissingGeometryCertificates.lean
 expected_fail/MissingMonotoneGeometryCertificates.lean
+expected_fail/MissingIndexedPointGeometryCertificates.lean
 ```
 
 The exact lower endpoint intentionally fails at exactly these names:
@@ -141,11 +161,22 @@ That second lower constructor is weaker than the exact Karlsson-base
 constructor: it only has to produce pairwise lower bounds and ordered
 region-increment data.
 
+The indexed-point lower endpoint intentionally fails at:
+
+```lean
+unformalized_direct_savings_upper_geometry
+unformalized_indexed_point_karlsson_lower_geometry
+```
+
+This is the constructive lower target for formalizing Karlsson's perturbation
+argument by explicit carrier-intersection points.
+
 Run it with:
 
 ```sh
 lake env lean expected_fail/MissingGeometryCertificates.lean
 lake env lean expected_fail/MissingMonotoneGeometryCertificates.lean
+lake env lean expected_fail/MissingIndexedPointGeometryCertificates.lean
 ```
 
 The expected result is unknown-identifier errors at the names above.
@@ -161,6 +192,7 @@ Lollipop/Final/GeometryObstruction.lean
 Lollipop/Internal/
 expected_fail/MissingGeometryCertificates.lean
 expected_fail/MissingMonotoneGeometryCertificates.lean
+expected_fail/MissingIndexedPointGeometryCertificates.lean
 manuscript/
 references/
 lakefile.lean
