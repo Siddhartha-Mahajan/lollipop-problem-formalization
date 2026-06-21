@@ -1,42 +1,18 @@
 # Lollipop End-to-End Formalization
 
 This repository is the cleaned Lean handoff for the lollipop manuscript.
-It has public theorem endpoints and explicit remaining geometry boundaries.
+Lean proves the theorem assembly once the remaining Euclidean geometry
+certificates are supplied.
 
 ## Start Here
 
-Open:
+Read this file first:
 
 ```lean
 Lollipop/Final/TheoremOne.lean
 ```
 
-The main public objects are:
-
-```lean
-Lollipop.Final.TheoremOneStatement
-Lollipop.Final.TheoremOneAtStatement
-Lollipop.Final.GeometryCertificates
-Lollipop.Final.MonotoneGeometryCertificates
-Lollipop.Final.IndexedPointLowerGeometryCertificates
-Lollipop.Final.ComponentIndexedPointLowerGeometryCertificates
-Lollipop.Final.PrimitiveOverlapIndexedPointGeometryCertificates
-Lollipop.Final.PrimitiveOverlapComponentIndexedPointGeometryCertificates
-Lollipop.Final.theorem_one
-Lollipop.Final.displayed_formula
-Lollipop.Final.theorem_one_from_monotone
-Lollipop.Final.displayed_formula_from_monotone
-Lollipop.Final.theorem_one_from_indexed_lower
-Lollipop.Final.displayed_formula_from_indexed_lower
-Lollipop.Final.theorem_one_from_component_indexed_lower
-Lollipop.Final.displayed_formula_from_component_indexed_lower
-Lollipop.Final.theorem_one_from_primitive_overlap_indexed_lower
-Lollipop.Final.displayed_formula_from_primitive_overlap_indexed_lower
-Lollipop.Final.theorem_one_from_primitive_overlap_component_indexed_lower
-Lollipop.Final.displayed_formula_from_primitive_overlap_component_indexed_lower
-```
-
-The theorem endpoint is:
+The main public theorem endpoint is:
 
 ```lean
 theorem Lollipop.Final.theorem_one
@@ -57,11 +33,18 @@ theorem Lollipop.Final.displayed_formula
         TheoremOneManuscript.manuscriptS n + (n : Rat) + 1
 ```
 
+For coordinate-by-coordinate geometry work, the most useful public endpoint is:
+
+```lean
+Lollipop.Final.PrimitiveOverlapComponentIndexedPointGeometryCertificates
+Lollipop.Final.theorem_one_from_primitive_overlap_component_indexed_lower
+Lollipop.Final.displayed_formula_from_primitive_overlap_component_indexed_lower
+```
+
 ## What Lean Proves
 
 Lean proves the algebraic, finite, combinatorial, colored-Turan, matrix,
-carrier-counting, lower-bound summation, and theorem-assembly parts after a
-geometric certificate boundary is supplied.
+carrier-counting, lower-bound summation, and theorem-assembly parts.
 
 The exact public certificate boundary is:
 
@@ -78,120 +61,13 @@ In words, the remaining inputs are:
 
 - an upper certificate giving direct whole-carrier savings for the
   close/intriguing primitive Euclidean lollipop cases;
-- a lower certificate giving Karlsson's four-base table, the local blow-up
-  arrangements, and ordered-insertion data.
+- a lower certificate giving Karlsson's four-base table, local blow-up
+  arrangements, and ordered-insertion region data.
 
 Once those two fields are present, `Lollipop.Final.theorem_one` proves the
 manuscript Theorem 1 formula.
 
-There is also a lower-bound-facing endpoint:
-
-```lean
-structure Lollipop.Final.MonotoneGeometryCertificates
-    (P : TheoremOne.MaxProblemFamily) where
-  upper :
-    PrimitiveCarrierDirectSavingsUpperGeometryData P.toProblemFamily
-  lower :
-    PairwiseCardinalityClusteredKarlssonBlowUpIncrementalLowerBoundData
-      P.toProblemFamily
-```
-
-This version keeps the same upper geometry requirement but weakens the lower
-side to pairwise Karlsson lower bounds.  For a perturbation construction this
-is often the more natural target: supply enough certified carrier-intersection
-points, and Lean performs the summation and theorem assembly.
-
-The most constructive lower endpoint is:
-
-```lean
-structure Lollipop.Final.IndexedPointLowerGeometryCertificates
-    (P : TheoremOne.MaxProblemFamily) where
-  upper :
-    PrimitiveCarrierDirectSavingsUpperGeometryData P.toProblemFamily
-  lower :
-    StepwiseCanonicalKarlssonIndexedPointLowerCertificate P.toProblemFamily
-```
-
-Here the lower construction supplies explicit indexed points in each carrier
-intersection, plus injectivity, membership, noncoincidence, automatic
-pair-table agreement, and ordered insertion data.  Lean converts those points
-to the monotone pairwise lower boundary.
-
-There is also a component-indexed lower endpoint:
-
-```lean
-structure Lollipop.Final.ComponentIndexedPointLowerGeometryCertificates
-    (P : TheoremOne.MaxProblemFamily) where
-  upper :
-    PrimitiveCarrierDirectSavingsUpperGeometryData P.toProblemFamily
-  lower :
-    StepwiseCanonicalKarlssonComponentIndexedPointLowerCertificate
-      P.toProblemFamily
-```
-
-Here the lower construction supplies separate indexed point families for the
-four primitive components: circle-circle, circle-ray, ray-circle, and ray-ray.
-Lean proves that the disjoint union has the canonical Karlsson lower size and
-converts it to the indexed lower-point endpoint.
-
-Internally, the stronger exact component-coverage certificate
-`StepwiseCanonicalKarlssonIndexedDisjointComponentFinsetLowerCertificate`
-also converts to this component-indexed lower endpoint.  Thus a coordinate
-proof may either provide enough disjoint component lower points, or provide
-exact component coverage and let Lean forget down to the lower-bound boundary.
-
-The primitive-overlap/indexed-point endpoint is:
-
-```lean
-structure Lollipop.Final.PrimitiveOverlapIndexedPointGeometryCertificates
-    (P : TheoremOne.MaxProblemFamily) where
-  upper :
-    PrimitiveFlexibleOverlapSavingsStepwiseCertificate P.toProblemFamily
-  lower :
-    StepwiseCanonicalKarlssonIndexedPointLowerCertificate P.toProblemFamily
-```
-
-Here the upper construction supplies raw primitive coordinate overlap
-witnesses for the close, intriguing, and close-plus-intriguing branches, and
-the lower construction supplies explicit indexed carrier-intersection points.
-Lean converts this package to the final theorem.
-
-The most coordinate-facing endpoint currently exposed is:
-
-```lean
-structure Lollipop.Final.PrimitiveOverlapComponentIndexedPointGeometryCertificates
-    (P : TheoremOne.MaxProblemFamily) where
-  upper :
-    PrimitiveFlexibleOverlapSavingsStepwiseCertificate P.toProblemFamily
-  lower :
-    StepwiseCanonicalKarlssonComponentIndexedPointLowerCertificate
-      P.toProblemFamily
-```
-
-This combines raw primitive upper overlap witnesses with component-indexed
-Karlsson lower point families.  For a handoff to a geometry checker, this is
-the closest Lean boundary to coordinate-by-coordinate verification.
-
-The raw upper-overlap witness types in
-`Lollipop/Internal/Manuscript/EndToEndFormalization/OverlapUpper.lean` also
-provide small orientation helpers:
-
-```lean
-PrimitivePairAllFourOverlap.symm
-PrimitivePairTripleOverlap.symm
-PrimitivePairFourOverlap.symm
-PrimitivePairFiveOverlap.symm
-PrimitivePairAllFourOverlap.ofEither
-PrimitivePairTripleOverlap.ofEither
-PrimitivePairFourOverlap.ofEither
-PrimitivePairFiveOverlap.ofEither
-```
-
-These are not extra theorem endpoints.  They let a coordinate proof provide a
-primitive overlap witness in either lollipop order and then canonicalize it to
-the ordered-pair interface used by the final certificate boundary.
-
-## What Is Already Certified Geometrically
+## Geometry Work
 
 The proved base geometry is in:
 
@@ -200,16 +76,53 @@ Lollipop/Final/Geometry.lean
 ```
 
 That file contains the exact OEIS/Karlsson four-lollipop base arrangement,
-six pair coordinate-crossing certificates, the exceptional `(Q0,Q1)` routed
-upper certificate, the canonical all-ones relabeling, and the base region
-equation `45 = 40 + 4 + 1`.
+the six pair coordinate-crossing certificates, the exceptional `(Q0,Q1)`
+routed upper certificate, the canonical all-ones relabeling, and the base
+region equation `45 = 40 + 4 + 1`.
 
-These are base certificates.  They do not by themselves construct the all-`n`
-upper savings certificate or the all-sorted-blow-up lower construction.
+These are base certificates.  They do not by themselves construct:
 
-## Expected Failure File
+- the all-`n` upper savings certificate;
+- the all-sorted-blow-up Karlsson lower construction.
 
-The remaining geometry gap is isolated in:
+For the current geometry formalization work, the most coordinate-facing split
+is:
+
+```lean
+upper :
+  PrimitiveFlexibleOverlapSavingsStepwiseCertificate P.toProblemFamily
+
+lower :
+  StepwiseCanonicalKarlssonComponentIndexedPointLowerCertificate
+    P.toProblemFamily
+```
+
+This asks the geometry proof to supply:
+
+- raw primitive overlap witnesses for the close, intriguing, and
+  close-plus-intriguing upper branches;
+- separate Karlsson lower point families for the four primitive components:
+  circle-circle, circle-ray, ray-circle, and ray-ray.
+
+Lean then converts those data to the direct-savings and monotone lower
+boundaries used by the final theorem.
+
+Relevant helper code:
+
+```lean
+Lollipop/Internal/Manuscript/EndToEndFormalization/OverlapUpper.lean
+Lollipop/Internal/Manuscript/Construction/AutomaticCardinalityWitness.lean
+Lollipop/Internal/Manuscript/Construction/IndexedCarrier.lean
+```
+
+The overlap helper layer includes orientation adapters such as `symm` and
+`ofEither` for raw primitive overlap witnesses, plus lifted component-overlap
+orientation helpers.  These are infrastructure for certificate writing; they
+are not additional theorem endpoints.
+
+## Expected Failures
+
+The remaining geometry gap is intentionally isolated in:
 
 ```lean
 expected_fail/MissingGeometryCertificates.lean
@@ -219,83 +132,32 @@ expected_fail/MissingPrimitiveOverlapIndexedPointGeometryCertificates.lean
 expected_fail/MissingPrimitiveOverlapComponentIndexedPointGeometryCertificates.lean
 ```
 
-The exact lower endpoint intentionally fails at exactly these names:
+The most important expected-failure endpoint for current coordinate geometry
+work is:
 
 ```lean
-unformalized_direct_savings_upper_geometry
-unformalized_karlsson_base_blowup_lower_geometry
+expected_fail/MissingPrimitiveOverlapComponentIndexedPointGeometryCertificates.lean
 ```
 
-Those are the two constructors that would complete the no-missing-geometry
-endpoint:
-
-```lean
-Lollipop.Final.theorem_one_without_missing_geometry
-Lollipop.Final.displayed_formula_without_missing_geometry
-```
-
-The monotone lower endpoint intentionally fails at:
-
-```lean
-unformalized_direct_savings_upper_geometry
-unformalized_monotone_pairwise_karlsson_lower_geometry
-```
-
-That second lower constructor is weaker than the exact Karlsson-base
-constructor: it only has to produce pairwise lower bounds and ordered
-region-increment data.
-
-The indexed-point lower endpoint intentionally fails at:
-
-```lean
-unformalized_direct_savings_upper_geometry
-unformalized_indexed_point_karlsson_lower_geometry
-```
-
-This is the constructive lower target for formalizing Karlsson's perturbation
-argument by explicit carrier-intersection points.
-
-The component-indexed lower endpoint intentionally fails at:
-
-```lean
-unformalized_direct_savings_upper_geometry
-unformalized_component_indexed_point_karlsson_lower_geometry
-```
-
-This is the same lower target split across the four primitive component
-intersections.
-
-The primitive-overlap/indexed-point endpoint intentionally fails at:
-
-```lean
-unformalized_primitive_overlap_upper_geometry
-unformalized_indexed_point_karlsson_lower_geometry
-```
-
-This is the closest public boundary to a coordinate-by-coordinate completion:
-prove Paulsen-style upper overlap witnesses and Karlsson indexed lower points.
-
-The primitive-overlap/component-indexed endpoint intentionally fails at:
+It fails at these two missing producers:
 
 ```lean
 unformalized_primitive_overlap_upper_geometry
 unformalized_component_indexed_point_karlsson_lower_geometry
 ```
 
-This is the most coordinate-facing expected-fail endpoint: prove Paulsen-style
-upper overlap witnesses and Karlsson component-indexed lower point families.
+Supplying those two producers would complete the most coordinate-facing
+Theorem 1 endpoint.  The other expected-failure files expose older or weaker
+certificate boundaries.
 
-Run it with:
+Run the current coordinate-facing failure with:
 
 ```sh
-lake env lean expected_fail/MissingGeometryCertificates.lean
-lake env lean expected_fail/MissingMonotoneGeometryCertificates.lean
-lake env lean expected_fail/MissingIndexedPointGeometryCertificates.lean
-lake env lean expected_fail/MissingPrimitiveOverlapIndexedPointGeometryCertificates.lean
 lake env lean expected_fail/MissingPrimitiveOverlapComponentIndexedPointGeometryCertificates.lean
 ```
 
-The expected result is unknown-identifier errors at the names above.
+The expected result is unknown-identifier errors at the missing geometry
+producer names.
 
 ## Repository Layout
 
@@ -306,11 +168,7 @@ Lollipop/Final/TheoremOne.lean
 Lollipop/Final/Geometry.lean
 Lollipop/Final/GeometryObstruction.lean
 Lollipop/Internal/
-expected_fail/MissingGeometryCertificates.lean
-expected_fail/MissingMonotoneGeometryCertificates.lean
-expected_fail/MissingIndexedPointGeometryCertificates.lean
-expected_fail/MissingPrimitiveOverlapIndexedPointGeometryCertificates.lean
-expected_fail/MissingPrimitiveOverlapComponentIndexedPointGeometryCertificates.lean
+expected_fail/
 manuscript/
 references/
 lakefile.lean
@@ -324,8 +182,9 @@ final theorem statements.
 
 `Lollipop/Final/GeometryObstruction.lean` proves that the final certificate
 boundary cannot be filled polymorphically for every abstract
-`MaxProblemFamily`; the remaining constructors must target the intended
-concrete lollipop family or assume genuine Euclidean realization data.
+`MaxProblemFamily`.  The remaining geometry constructors must target the
+intended concrete lollipop family or assume genuine Euclidean realization
+data.
 
 `manuscript/current/` contains the current TeX/PDF manuscript copy.
 `manuscript/original/` contains the original manuscript source copied from
@@ -352,12 +211,6 @@ Build only the public final endpoint:
 
 ```sh
 lake build Lollipop.Final
-```
-
-Check the intentional geometry failure:
-
-```sh
-lake env lean expected_fail/MissingGeometryCertificates.lean
 ```
 
 There should be no `sorry`, `admit`, or custom `axiom` in the Lean files
