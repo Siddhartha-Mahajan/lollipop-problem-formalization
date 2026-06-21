@@ -1,0 +1,104 @@
+import Lollipop.Internal.Manuscript.FormalizedProof.FinalTheorem
+
+/-!
+Final public Theorem 1 endpoint.
+
+This is the file to read first.  It exposes one theorem statement, one
+geometry-certificate structure, and the theorem proving the displayed
+lollipop formula from those certificates.
+
+The certificate structure is deliberately manuscript-shaped:
+
+* the upper field is primitive Euclidean lollipop carrier data with direct
+  whole-carrier savings for the close/intriguing cases;
+* the lower field is Karlsson's four-base table together with the local
+  blow-up and ordered-insertion data.
+
+Everything after those two geometric inputs is proved in the imported Lean
+proof machinery.
+-/
+
+namespace Lollipop
+namespace Final
+
+universe u
+
+/-! ## Statement -/
+
+/-- Manuscript Theorem 1 in the displayed formula form. -/
+abbrev TheoremOneStatement
+    (P : TheoremOne.MaxProblemFamily.{u}) : Prop :=
+  TheoremOneManuscript.FormalizedProof.FinalTheoremOneStatement P
+
+/-- Single-size displayed formula from Theorem 1. -/
+abbrev TheoremOneAtStatement
+    (P : TheoremOne.MaxProblemFamily.{u}) (n : Nat) : Prop :=
+  TheoremOneManuscript.FormalizedProof.FinalTheoremOneAtStatement P n
+
+/-- The theorem statement is definitionally the pointwise displayed formula. -/
+theorem theoremOneStatement_iff
+    (P : TheoremOne.MaxProblemFamily.{u}) :
+    TheoremOneStatement P ↔ ∀ n : Nat, TheoremOneAtStatement P n := by
+  rfl
+
+/-! ## Geometric certificate boundary -/
+
+/-- The final geometry boundary closest to the current manuscript proof.
+
+This is the only public certificate package needed by the final theorem
+endpoint.  Supplying these two fields for the intended lollipop problem
+family completes the remaining Euclidean/model-specific part of the proof.
+-/
+structure GeometryCertificates
+    (P : TheoremOne.MaxProblemFamily.{u}) : Type u where
+  upper :
+    TheoremOneManuscript.PrimitiveGeometry.PrimitiveCarrierDirectSavingsUpperGeometryData
+      P.toProblemFamily
+  lower :
+    TheoremOneManuscript.ExplicitInputs.KarlssonBaseBlowUpIncrementalLowerData
+      P.toProblemFamily
+
+namespace GeometryCertificates
+
+/-- Convert the public certificate boundary to the internal theorem package. -/
+noncomputable def toSubtheorems
+    {P : TheoremOne.MaxProblemFamily.{u}}
+    (h : GeometryCertificates P) :
+    TheoremOneManuscript.FormalizedProof.DirectSavingsKarlssonBaseLowerTheoremOneSubtheorems
+      P where
+  upper_geometry := h.upper
+  lower_karlsson_base := h.lower
+
+end GeometryCertificates
+
+/-! ## Theorem 1 -/
+
+/-- Manuscript Theorem 1 from the final geometric certificate boundary. -/
+theorem theorem_one
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : GeometryCertificates P) :
+    TheoremOneStatement P :=
+  TheoremOneManuscript.FormalizedProof.theorem_one_from_direct_savings_karlsson_base_lower_subtheorems
+    P h.toSubtheorems
+
+/-- Single-size Theorem 1 from the final geometric certificate boundary. -/
+theorem theorem_one_at
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : GeometryCertificates P)
+    (n : Nat) :
+    TheoremOneAtStatement P n :=
+  theorem_one P h n
+
+/-- The fully unfolded single-size displayed formula:
+`a_Lop(n) = 4 * binom(n,2) + S(n) + n + 1`. -/
+theorem displayed_formula
+    (P : TheoremOne.MaxProblemFamily.{u})
+    (h : GeometryCertificates P)
+    (n : Nat) :
+    P.aLop n =
+      4 * ((n.choose 2 : Nat) : Rat) +
+        TheoremOneManuscript.manuscriptS n + (n : Rat) + 1 :=
+  theorem_one_at P h n
+
+end Final
+end Lollipop
