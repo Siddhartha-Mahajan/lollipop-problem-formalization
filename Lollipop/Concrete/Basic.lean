@@ -43,6 +43,13 @@ structure Lollipop where
 
 namespace Lollipop
 
+@[ext] theorem ext {L M : Lollipop}
+    (hcenter : L.center = M.center) (hradial : L.radial = M.radial) :
+    L = M := by
+  cases L
+  cases M
+  simp_all
+
 /-- The circle radius determined by the radial vector. -/
 def radius (L : Lollipop) : ℝ :=
   ‖L.radial‖

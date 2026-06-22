@@ -1,4 +1,4 @@
-import Lollipop.Concrete.EndToEnd.PairGeometry
+import Lollipop.Concrete.EndToEnd.Support
 import Mathlib.Analysis.InnerProductSpace.PiL2
 import Mathlib.Tactic
 
@@ -19,6 +19,17 @@ namespace EndToEnd
 namespace Lower
 
 open Set
+
+theorem point_norm_sq_eq (x : Point) :
+    ‖x‖ ^ 2 = x 0 ^ 2 + x 1 ^ 2 := by
+  rw [EuclideanSpace.norm_sq_eq]
+  norm_num [Fin.sum_univ_two, Real.norm_eq_abs, sq_abs]
+
+theorem point_coord_sq_eq_one_of_norm_eq_one
+    {u : Point} (hu : ‖u‖ = 1) :
+    u 0 ^ 2 + u 1 ^ 2 = 1 := by
+  have hsq : ‖u‖ ^ 2 = 1 := by rw [hu]; norm_num
+  rwa [point_norm_sq_eq] at hsq
 
 structure PlaneSimilarity where
   scale : ℝ
@@ -53,7 +64,7 @@ def homeomorph (S : PlaneSimilarity) : Point ≃ₜ Point where
 
 @[simp] theorem sub_toFun (S : PlaneSimilarity) (x y : Point) :
     S.toFun x - S.toFun y = S.scale • S.orthogonal (x - y) := by
-  simp [toFun, map_sub]
+  simp [toFun, map_sub, smul_sub]
 
 @[simp] theorem dist_toFun (S : PlaneSimilarity) (x y : Point) :
     dist (S.toFun x) (S.toFun y) = S.scale * dist x y := by
@@ -64,8 +75,13 @@ def homeomorph (S : PlaneSimilarity) : Point ≃ₜ Point where
 def mapLollipop (S : PlaneSimilarity) (L : Lollipop) : Lollipop where
   center := S.toFun L.center
   radial := S.scale • S.orthogonal L.radial
-  radial_ne_zero :=
-    smul_ne_zero S.scale_pos.ne' (S.orthogonal.injective.ne L.radial_ne_zero)
+  radial_ne_zero := by
+    have horth : S.orthogonal L.radial ≠ 0 := by
+      intro h
+      have h' : S.orthogonal L.radial = S.orthogonal 0 := by
+        simpa using h
+      exact L.radial_ne_zero (S.orthogonal.injective h')
+    exact smul_ne_zero S.scale_pos.ne' horth
 
 @[simp] theorem map_radius (S : PlaneSimilarity) (L : Lollipop) :
     (S.mapLollipop L).radius = S.scale * L.radius := by
@@ -79,7 +95,13 @@ def mapLollipop (S : PlaneSimilarity) (L : Lollipop) : Lollipop where
 @[simp] theorem mem_map_circle_iff (S : PlaneSimilarity) (L : Lollipop)
     (x : Point) :
     S.toFun x ∈ (S.mapLollipop L).circle ↔ x ∈ L.circle := by
-  simp [Lollipop.circle, S.dist_toFun, S.map_radius, S.scale_pos.ne']
+  unfold Lollipop.circle
+  change ‖S.toFun x - S.toFun L.center‖ = (S.mapLollipop L).radius ↔
+    ‖x - L.center‖ = L.radius
+  rw [S.sub_toFun x L.center, S.map_radius]
+  rw [norm_smul, Real.norm_eq_abs, abs_of_pos S.scale_pos,
+    S.orthogonal.norm_map]
+  simp [S.scale_pos.ne']
 
 @[simp] theorem mem_map_stem_iff (S : PlaneSimilarity) (L : Lollipop)
     (x : Point) :
@@ -87,17 +109,27 @@ def mapLollipop (S : PlaneSimilarity) (L : Lollipop) : Lollipop where
   constructor
   · rintro ⟨t, ht, h⟩
     refine ⟨t, ht, ?_⟩
-    apply S.homeomorph.injective
-    simpa [mapLollipop, toFun, map_add, map_smul, smul_smul,
-      add_assoc] using h.symm
+    have h' : S.toFun x = S.toFun (L.center + t • L.radial) := by
+      simpa [mapLollipop, toFun, map_add, map_smul, smul_smul,
+        mul_comm, add_assoc] using h
+    exact S.homeomorph.injective h'
   · rintro ⟨t, ht, rfl⟩
     refine ⟨t, ht, ?_⟩
-    simp [mapLollipop, toFun, map_add, map_smul, smul_smul, add_assoc]
+    simp [mapLollipop, toFun, map_add, map_smul, smul_smul,
+      mul_comm, add_assoc]
 
 @[simp] theorem mem_map_carrier_iff (S : PlaneSimilarity) (L : Lollipop)
     (x : Point) :
     S.toFun x ∈ (S.mapLollipop L).carrier ↔ x ∈ L.carrier := by
-  simp [Lollipop.carrier]
+  constructor
+  · intro hx
+    rcases hx with hx | hx
+    · exact Or.inl ((S.mem_map_circle_iff L x).1 hx)
+    · exact Or.inr ((S.mem_map_stem_iff L x).1 hx)
+  · intro hx
+    rcases hx with hx | hx
+    · exact Or.inl ((S.mem_map_circle_iff L x).2 hx)
+    · exact Or.inr ((S.mem_map_stem_iff L x).2 hx)
 
 /-- Carrier image identity. -/
 theorem image_carrier (S : PlaneSimilarity) (L : Lollipop) :
@@ -115,59 +147,175 @@ theorem pairCrossingCount_map (S : PlaneSimilarity) (L M : Lollipop) :
     pairCrossingCount (S.mapLollipop L) (S.mapLollipop M) =
       pairCrossingCount L M := by
   unfold pairCrossingCount pairCrossingSet
-  rw [← S.image_carrier L, ← S.image_carrier M,
-    ← Set.image_inter S.homeomorph.injective]
-  exact Set.ncard_image_of_injective S.homeomorph.injective
+  rw [← S.image_carrier L, ← S.image_carrier M]
+  rw [← Set.image_inter (f := S.toFun) S.homeomorph.injective]
+  exact Set.ncard_image_of_injective (L.carrier ∩ M.carrier)
+    S.homeomorph.injective
+
+/-- Compactified carriers are preserved by a plane similarity. -/
+theorem image_hatCarrier (S : PlaneSimilarity) (L : Lollipop) :
+    (Homeomorph.onePointCongr S.homeomorph) '' hatCarrier L =
+      hatCarrier (S.mapLollipop L) := by
+  let hhat : Sphere2 ≃ₜ Sphere2 := Homeomorph.onePointCongr S.homeomorph
+  ext y
+  constructor
+  · rintro ⟨x, hx, rfl⟩
+    cases x using OnePoint.rec with
+    | infty =>
+        exact infinity_mem_hatCarrier (S.mapLollipop L)
+    | coe p =>
+        have hp : p ∈ L.carrier := by
+          simpa [finitePoint] using
+            (finitePoint_mem_hatCarrier_iff L p).1 hx
+        change finitePoint (S.homeomorph p) ∈ hatCarrier (S.mapLollipop L)
+        simpa [hhat, finitePoint, homeomorph] using
+          (finitePoint_mem_hatCarrier_iff (S.mapLollipop L) (S.toFun p)).2
+            ((S.mem_map_carrier_iff L p).2 hp)
+  · intro hy
+    cases y using OnePoint.rec with
+    | infty =>
+        exact ⟨infinity, infinity_mem_hatCarrier L, by simp [infinity]⟩
+    | coe p =>
+        have hp : p ∈ (S.mapLollipop L).carrier := by
+          simpa [finitePoint] using
+            (finitePoint_mem_hatCarrier_iff (S.mapLollipop L) p).1 hy
+        refine ⟨finitePoint (S.invFun p), ?_, ?_⟩
+        · exact (finitePoint_mem_hatCarrier_iff L (S.invFun p)).2
+            ((S.mem_map_carrier_iff L (S.invFun p)).1
+              (by simpa [S.right_inv p] using hp))
+        · change finitePoint (S.homeomorph (S.invFun p)) = finitePoint p
+          simp [finitePoint, homeomorph, S.right_inv]
 
 /-- Similarity invariance of robust pair excess. -/
 theorem pairExcessNat_map (S : PlaneSimilarity) (L M : Lollipop) :
     pairExcessNat (S.mapLollipop L) (S.mapLollipop M) = pairExcessNat L M := by
-  let hhat : Sphere2 ≃ₜ Sphere2 := OnePoint.mapHomeomorph S.homeomorph
+  let hhat : Sphere2 ≃ₜ Sphere2 := Homeomorph.onePointCongr S.homeomorph
   have hset : hhat '' hatPairIntersection L M =
       hatPairIntersection (S.mapLollipop L) (S.mapLollipop M) := by
-    ext x
-    cases x using OnePoint.rec with
-    | infty => simp [hhat, hatPairIntersection]
-    | coe p => simp [hhat, hatPairIntersection, S.mem_map_carrier_iff]
+    rw [hatPairIntersection, hatPairIntersection,
+      Set.image_inter (f := hhat) hhat.injective,
+      image_hatCarrier S L, image_hatCarrier S M]
+  let eSet : hatPairIntersection L M ≃ₜ
+      hatPairIntersection (S.mapLollipop L) (S.mapLollipop M) :=
+    (hhat.image (hatPairIntersection L M)).trans (Homeomorph.setCongr hset)
   unfold pairExcessNat componentCount
   exact congrArg (fun k : ℕ => k - 1)
-    (Nat.card_congr (ConnectedComponents.equivOfHomeomorphOnImage hhat hset))
+    (Nat.card_congr (connectedComponentsEquivOfHomeomorph eSet).symm)
 
 /-- Image arrangement. -/
 def mapArrangement {n : ℕ} (S : PlaneSimilarity) (A : Arrangement n) :
     Arrangement n := fun i => S.mapLollipop (A i)
 
+/-- Similarities carry the occupied set of an arrangement to the occupied set
+of the image arrangement. -/
+theorem image_occupied {n : ℕ} (S : PlaneSimilarity) (A : Arrangement n) :
+    S.toFun '' occupied A = occupied (S.mapArrangement A) := by
+  ext y
+  constructor
+  · rintro ⟨x, hx, rfl⟩
+    rcases mem_occupied_iff.1 hx with ⟨i, hxi⟩
+    exact mem_occupied_iff.2
+      ⟨i, (S.mem_map_carrier_iff (A i) x).2 hxi⟩
+  · intro hy
+    rcases mem_occupied_iff.1 hy with ⟨i, hyi⟩
+    refine ⟨S.invFun y, ?_, S.right_inv y⟩
+    exact mem_occupied_iff.2
+      ⟨i, (S.mem_map_carrier_iff (A i) (S.invFun y)).1
+        (by simpa [mapArrangement, S.right_inv y] using hyi)⟩
+
 /-- Similarity preserves regions. -/
 theorem regionCount_map {n : ℕ} (S : PlaneSimilarity) (A : Arrangement n) :
     regionCount (S.mapArrangement A) = regionCount A := by
+  have hcompl :
+      S.toFun '' ((occupied A)ᶜ : Set Point) =
+        (occupied (S.mapArrangement A))ᶜ := by
+    calc
+      S.toFun '' ((occupied A)ᶜ : Set Point) =
+          (S.toFun '' occupied A)ᶜ :=
+        Set.image_compl_eq (f := S.toFun) S.homeomorph.bijective
+      _ = (occupied (S.mapArrangement A))ᶜ := by
+        rw [image_occupied]
   let e : FreeSpace A ≃ₜ FreeSpace (S.mapArrangement A) :=
-    S.homeomorph.subtypeHomeomorph fun x => by
-      simp [occupied, mapArrangement, S.image_carrier]
+    (S.homeomorph.image ((occupied A)ᶜ : Set Point)).trans
+      (Homeomorph.setCongr hcompl)
   unfold regionCount
-  exact Nat.card_congr (ConnectedComponents.equivOfHomeomorph e).symm
+  exact Nat.card_congr (connectedComponentsEquivOfHomeomorph e).symm
 
 end PlaneSimilarity
 
 /-- Standard unit lollipop. -/
 def standardLollipop : Lollipop where
   center := 0
-  radial := fun i => if i = 0 then 1 else 0
+  radial := R2.toPoint (fun i : Fin 2 => if i = 0 then 1 else 0)
   radial_ne_zero := by
     intro h
-    have := congrFun h 0
+    have := congrFun (congrArg R2.ofPoint h) 0
     norm_num at this
 
 /-- Rotation carrying the positive x-axis to a unit vector. -/
 def rotationTo (u : Point) : Point →ₗ[ℝ] Point where
-  toFun x := fun i =>
+  toFun x := R2.toPoint fun i : Fin 2 =>
     if i = 0 then u 0 * x 0 - u 1 * x 1
     else u 1 * x 0 + u 0 * x 1
-  map_add' := by intro x y; ext i; fin_cases i <;> simp <;> ring
-  map_smul' := by intro a x; ext i; fin_cases i <;> simp <;> ring
+  map_add' := by
+    intro x y
+    ext i
+    fin_cases i <;> simp [R2.toPoint] <;> ring_nf
+  map_smul' := by
+    intro a x
+    ext i
+    fin_cases i <;> simp [R2.toPoint] <;> ring_nf
 
 /-- Unit-vector rotation as a linear isometry equivalence. -/
 def rotationToIsometry (u : Point) (hu : ‖u‖ = 1) : Point ≃ₗᵢ[ℝ] Point := by
-  exact LinearIsometryEquiv.rotationMatrix2 u hu
+  let v : Point := R2.toPoint (fun i : Fin 2 => if i = 0 then u 0 else -u 1)
+  have hsq : u 0 ^ 2 + u 1 ^ 2 = 1 :=
+    point_coord_sq_eq_one_of_norm_eq_one hu
+  exact
+    { toFun := rotationTo u
+      invFun := rotationTo v
+      left_inv := by
+        intro x
+        ext i
+        fin_cases i
+        · simp [rotationTo, v, R2.toPoint]
+          ring_nf
+          calc
+            u 0 ^ 2 * x 0 + x 0 * u 1 ^ 2 =
+                (u 0 ^ 2 + u 1 ^ 2) * x 0 := by ring
+            _ = x 0 := by rw [hsq]; ring
+        · simp [rotationTo, v, R2.toPoint]
+          ring_nf
+          calc
+            u 1 ^ 2 * x 1 + u 0 ^ 2 * x 1 =
+                (u 0 ^ 2 + u 1 ^ 2) * x 1 := by ring
+            _ = x 1 := by rw [hsq]; ring
+      right_inv := by
+        intro x
+        ext i
+        fin_cases i
+        · simp [rotationTo, v, R2.toPoint]
+          ring_nf
+          calc
+            u 0 ^ 2 * x 0 + x 0 * u 1 ^ 2 =
+                (u 0 ^ 2 + u 1 ^ 2) * x 0 := by ring
+            _ = x 0 := by rw [hsq]; ring
+        · simp [rotationTo, v, R2.toPoint]
+          ring_nf
+          calc
+            u 1 ^ 2 * x 1 + u 0 ^ 2 * x 1 =
+                (u 0 ^ 2 + u 1 ^ 2) * x 1 := by ring
+            _ = x 1 := by rw [hsq]; ring
+      map_add' := (rotationTo u).map_add
+      map_smul' := (rotationTo u).map_smul
+      norm_map' := by
+        intro x
+        have hnormsq : ‖rotationTo u x‖ ^ 2 = ‖x‖ ^ 2 := by
+          rw [point_norm_sq_eq, point_norm_sq_eq]
+          simp [rotationTo, R2.toPoint]
+          ring_nf
+          nlinarith [hsq]
+        exact (sq_eq_sq₀ (norm_nonneg (rotationTo u x)) (norm_nonneg x)).1 hnormsq }
 
 /-- Canonical positive similarity from the standard lollipop to `L`. -/
 def similarityTo (L : Lollipop) : PlaneSimilarity where
@@ -178,9 +326,16 @@ def similarityTo (L : Lollipop) : PlaneSimilarity where
 
 @[simp] theorem similarityTo_standard (L : Lollipop) :
     (similarityTo L).mapLollipop standardLollipop = L := by
-  ext <;>
+  apply Lollipop.ext
+  · ext i
     simp [similarityTo, standardLollipop, rotationToIsometry,
-      rotationTo, L.radial_eq_radius_smul_unitRadial]
+      PlaneSimilarity.mapLollipop, PlaneSimilarity.toFun,
+      rotationTo, R2.toPoint]
+  · ext i
+    fin_cases i <;>
+      simp [similarityTo, standardLollipop, rotationToIsometry,
+        PlaneSimilarity.mapLollipop, PlaneSimilarity.toFun,
+        rotationTo, L.radial_eq_radius_smul_unitRadial, R2.toPoint]
 
 end Lower
 end EndToEnd

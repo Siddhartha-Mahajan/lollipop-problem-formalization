@@ -37,6 +37,12 @@ Ignored archive noise:
   isolated-point lemmas, nonparallel ray-ray subsingleton intersections, the
   current `PairwiseDisjoint` API, and connectedness of unions with a common
   point.
+* Split the lower-construction similarity layer away from `PairGeometry`, so it
+  no longer imports the failing planar-topology layer. Added local connected
+  component equivalences induced by homeomorphisms, a concrete lollipop
+  extensionality theorem, explicit one-point compactification transport under
+  similarities, and an explicit coordinate rotation isometry replacing the
+  unavailable `LinearIsometryEquiv.rotationMatrix2` helper.
 
 ## Commands Run
 
@@ -74,9 +80,28 @@ lake build Lollipop
 
 Result: succeeded.
 
+```text
+lake build Lollipop.Concrete.EndToEnd.Lower.Similarity
+```
+
+Result: succeeded.
+
+```text
+lake build Lollipop.Concrete.EndToEnd.Lower.PairChamber
+```
+
+Result: failed. The module now reaches the next genuine lower-construction
+gap: strict primitive-intersection classification lemmas such as the
+circle-circle two-point theorem, ray-circle strict-code cardinality theorems,
+ray-ray strict-code cardinality theorems, primitive-piece disjointness, and the
+finite union cardinality formula are still referenced but not yet proved in the
+concrete development.
+
 ## Current Interpretation
 
 The imported concrete bundle is useful as an architectural scaffold and now has
-buildable coordinate, compactification, and shared support layers. It is not a
-kernel-checked end-to-end proof. The remaining failures are now concentrated in
-the intended hard planar-topology layer and later modules that depend on it.
+buildable coordinate, compactification, shared support, and lower similarity
+transport layers. It is not a kernel-checked end-to-end proof. The remaining
+failures include the intended hard planar-topology layer and, independently,
+the lower-construction primitive-intersection classification layer used by
+`Lower.PairChamber`.

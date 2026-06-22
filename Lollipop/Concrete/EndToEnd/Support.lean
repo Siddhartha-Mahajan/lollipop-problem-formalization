@@ -356,6 +356,20 @@ noncomputable def connectedComponentsEquivSelfOfTotallyDisconnected
     rw [connectedComponent_eq_singleton, connectedComponent_eq_singleton] at hq
     simpa using hq
 
+/-- A homeomorphism induces an equivalence on connected-component quotients. -/
+noncomputable def connectedComponentsEquivOfHomeomorph
+    {X Y : Type*} [TopologicalSpace X] [TopologicalSpace Y]
+    (e : X ≃ₜ Y) :
+    ConnectedComponents X ≃ ConnectedComponents Y where
+  toFun := e.continuous.connectedComponentsMap
+  invFun := e.symm.continuous.connectedComponentsMap
+  left_inv q := by
+    obtain ⟨x, rfl⟩ := ConnectedComponents.surjective_coe q
+    simp
+  right_inv q := by
+    obtain ⟨y, rfl⟩ := ConnectedComponents.surjective_coe q
+    simp
+
 @[simp] theorem pairCrossingSet_decompose (L M : Lollipop) :
     pairCrossingSet L M = cc L M ∪ rc L M ∪ cr L M ∪ rr L M := by
   ext x
