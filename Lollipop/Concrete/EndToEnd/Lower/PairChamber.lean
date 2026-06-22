@@ -442,14 +442,31 @@ private theorem isOpen_rayRayCodeRealized (b : Bool) :
     ext p
     simp [U, sub_lt_zero, and_assoc, and_left_comm, and_comm]
 
+/-- Parameter-space set cut out by all strict inequalities belonging to a pair
+code.  Keeping this as a set avoids expensive conversions between large
+`setOf` predicates and finite intersections in the openness proofs. -/
+def strictPairChamberSet (code : StrictPairCode) :
+    Set (Lollipop × Lollipop) :=
+  {p | 0 < circleOuterMargin p.1 p.2} ∩
+    ({p | 0 < circleInnerMargin p.1 p.2} ∩
+      ({p | code.leftRayRightCircle.Realized p.1 p.2} ∩
+        ({p | code.rightRayLeftCircle.Realized p.2 p.1} ∩
+          {p | RayRayCodeRealized code.rayRay p.1 p.2})))
+
 /-- Realization of all strict inequalities belonging to a pair code. -/
 def RealizesStrictPairCode
     (code : StrictPairCode) (L M : Lollipop) : Prop :=
-  0 < circleOuterMargin L M ∧
-  0 < circleInnerMargin L M ∧
-  code.leftRayRightCircle.Realized L M ∧
-  code.rightRayLeftCircle.Realized M L ∧
-  RayRayCodeRealized code.rayRay L M
+  (L, M) ∈ strictPairChamberSet code
+
+@[simp] theorem mem_strictPairChamberSet
+    (code : StrictPairCode) (p : Lollipop × Lollipop) :
+    p ∈ strictPairChamberSet code ↔
+      0 < circleOuterMargin p.1 p.2 ∧
+      0 < circleInnerMargin p.1 p.2 ∧
+      code.leftRayRightCircle.Realized p.1 p.2 ∧
+      code.rightRayLeftCircle.Realized p.2 p.1 ∧
+      RayRayCodeRealized code.rayRay p.1 p.2 := by
+  rfl
 
 /-- Swapping the two lollipops swaps the two mixed codes. -/
 def StrictPairCode.swap (code : StrictPairCode) : StrictPairCode :=
@@ -536,6 +553,17 @@ private theorem normSqPoint_perpPoint (u : Point) :
 private theorem detPoint_self_perpPoint (u : Point) :
     detPoint u (perpPoint u) = normSqPoint u := by
   simp [perpPoint, R2.toPoint, detPoint, normSqPoint, dotPoint]
+
+private theorem detPoint_self (u : Point) :
+    detPoint u u = 0 := by
+  simp [detPoint]
+  ring
+
+private theorem detPoint_smul_add_smul_perp
+    (u : Point) (a b : ℝ) :
+    detPoint u (a • u + b • perpPoint u) = b * normSqPoint u := by
+  simp [perpPoint, R2.toPoint, detPoint, normSqPoint, dotPoint]
+  ring
 
 private theorem normSqPoint_smul (a : ℝ) (u : Point) :
     normSqPoint (a • u) = a ^ 2 * normSqPoint u := by
@@ -658,14 +686,176 @@ private theorem circleChordHeightSq_pos_of_strict_margins
   rw [hidentity]
   exact div_pos hnum_pos (mul_pos (by norm_num) hd2_pos)
 
+private def circleCircleWitness (L M : Lollipop) (sign : ℝ) : Point :=
+  L.center +
+    (circleChordParameter L M • circleChordUnit L M +
+      (sign * Real.sqrt (circleChordHeightSq L M)) •
+        perpPoint (circleChordUnit L M))
+
+private theorem circleCircleWitness_sub_left
+    (L M : Lollipop) (sign : ℝ) :
+    circleCircleWitness L M sign - L.center =
+      circleChordParameter L M • circleChordUnit L M +
+        (sign * Real.sqrt (circleChordHeightSq L M)) •
+          perpPoint (circleChordUnit L M) := by
+  ext i
+  simp [circleCircleWitness]
+
+private theorem circleCircleWitness_sub_right
+    {L M : Lollipop} (hin : 0 < circleInnerMargin L M) (sign : ℝ) :
+    circleCircleWitness L M sign - M.center =
+      (circleChordParameter L M - Real.sqrt (centerDistanceSq L M)) •
+          circleChordUnit L M +
+        (sign * Real.sqrt (circleChordHeightSq L M)) •
+          perpPoint (circleChordUnit L M) := by
+  have hdisp := displacement_eq_sqrt_smul_circleChordUnit (L := L) (M := M) hin
+  have hcenter : M.center = L.center + displacement L M := by
+    ext i
+    simp [displacement]
+  ext i
+  rw [hcenter, hdisp]
+  simp [circleCircleWitness, sub_smul]
+  ring
+
+private theorem mem_circle_of_normSqPoint_sub_center_eq_radius_sq
+    {L : Lollipop} {x : Point}
+    (h : normSqPoint (x - L.center) = L.radius ^ 2) :
+    x ∈ L.circle := by
+  have hsq : ‖x - L.center‖ ^ 2 = L.radius ^ 2 := by
+    rw [← normSqPoint_eq_norm_sq]
+    exact h
+  have hnorm :
+      ‖x - L.center‖ = L.radius :=
+    (sq_eq_sq₀ (norm_nonneg _) L.radius_pos.le).1 hsq
+  simpa [Lollipop.circle] using hnorm
+
+private theorem circleChordLeftNormAlgebra (L M : Lollipop) :
+    circleChordParameter L M ^ 2 + circleChordHeightSq L M =
+      L.radius ^ 2 := by
+  unfold circleChordHeightSq
+  ring
+
+private theorem circleChordRightNormAlgebra
+    {L M : Lollipop} (hin : 0 < circleInnerMargin L M) :
+    (circleChordParameter L M - Real.sqrt (centerDistanceSq L M)) ^ 2 +
+        circleChordHeightSq L M =
+      M.radius ^ 2 := by
+  have hd2_pos : 0 < centerDistanceSq L M :=
+    centerDistanceSq_pos_of_circleInnerMargin_pos hin
+  have hd_pos : 0 < Real.sqrt (centerDistanceSq L M) :=
+    Real.sqrt_pos.2 hd2_pos
+  have hd_sq :
+      (Real.sqrt (centerDistanceSq L M)) ^ 2 =
+        centerDistanceSq L M :=
+    Real.sq_sqrt hd2_pos.le
+  unfold circleChordHeightSq circleChordParameter
+  field_simp [hd_pos.ne']
+  rw [hd_sq]
+  ring
+
+private theorem circleCircleWitness_normSq_left
+    {L M : Lollipop}
+    (hout : 0 < circleOuterMargin L M)
+    (hin : 0 < circleInnerMargin L M)
+    {sign : ℝ} (hsign : sign ^ 2 = 1) :
+    normSqPoint (circleCircleWitness L M sign - L.center) =
+      L.radius ^ 2 := by
+  have hu := circleChordUnit_normSq (L := L) (M := M) hin
+  have hh_pos := circleChordHeightSq_pos_of_strict_margins
+    (L := L) (M := M) hout hin
+  have hsqrt_sq :
+      (Real.sqrt (circleChordHeightSq L M)) ^ 2 =
+        circleChordHeightSq L M :=
+    Real.sq_sqrt hh_pos.le
+  rw [circleCircleWitness_sub_left]
+  rw [normSqPoint_smul_add_smul_perp hu]
+  rw [mul_pow, hsign, one_mul, hsqrt_sq]
+  exact circleChordLeftNormAlgebra L M
+
+private theorem circleCircleWitness_normSq_right
+    {L M : Lollipop}
+    (hout : 0 < circleOuterMargin L M)
+    (hin : 0 < circleInnerMargin L M)
+    {sign : ℝ} (hsign : sign ^ 2 = 1) :
+    normSqPoint (circleCircleWitness L M sign - M.center) =
+      M.radius ^ 2 := by
+  have hu := circleChordUnit_normSq (L := L) (M := M) hin
+  have hh_pos := circleChordHeightSq_pos_of_strict_margins
+    (L := L) (M := M) hout hin
+  have hsqrt_sq :
+      (Real.sqrt (circleChordHeightSq L M)) ^ 2 =
+        circleChordHeightSq L M :=
+    Real.sq_sqrt hh_pos.le
+  rw [circleCircleWitness_sub_right hin]
+  rw [normSqPoint_smul_add_smul_perp hu]
+  rw [mul_pow, hsign, one_mul, hsqrt_sq]
+  exact circleChordRightNormAlgebra hin
+
+private theorem circleCircleWitness_mem_cc
+    {L M : Lollipop}
+    (hout : 0 < circleOuterMargin L M)
+    (hin : 0 < circleInnerMargin L M)
+    {sign : ℝ} (hsign : sign ^ 2 = 1) :
+    circleCircleWitness L M sign ∈ cc L M := by
+  refine ⟨?_, ?_⟩
+  · exact mem_circle_of_normSqPoint_sub_center_eq_radius_sq
+      (circleCircleWitness_normSq_left hout hin hsign)
+  · exact mem_circle_of_normSqPoint_sub_center_eq_radius_sq
+      (circleCircleWitness_normSq_right hout hin hsign)
+
+private theorem circleCircleWitness_pos_ne_neg
+    {L M : Lollipop}
+    (hout : 0 < circleOuterMargin L M)
+    (hin : 0 < circleInnerMargin L M) :
+    circleCircleWitness L M 1 ≠ circleCircleWitness L M (-1) := by
+  intro heq
+  have hu := circleChordUnit_normSq (L := L) (M := M) hin
+  have hh_pos := circleChordHeightSq_pos_of_strict_margins
+    (L := L) (M := M) hout hin
+  have hsqrt_pos :
+      0 < Real.sqrt (circleChordHeightSq L M) :=
+    Real.sqrt_pos.2 hh_pos
+  have hdet := congrArg
+    (fun x : Point =>
+      detPoint (circleChordUnit L M) (x - L.center)) heq
+  rw [circleCircleWitness_sub_left,
+    circleCircleWitness_sub_left] at hdet
+  rw [detPoint_smul_add_smul_perp,
+    detPoint_smul_add_smul_perp, hu] at hdet
+  norm_num at hdet
+  nlinarith
+
 /-- Strict circle margins classify the circle--circle primitive. -/
 theorem circle_circle_ncard_eq_two
     {L M : Lollipop}
     (hout : 0 < circleOuterMargin L M)
     (hin : 0 < circleInnerMargin L M) :
     (cc L M).ncard = 2 := by
-  exact circle_intersection_ncard_eq_two_of_strict_triangle
-    L.center M.center L.radius M.radius L.radius_pos M.radius_pos hout hin
+  let p : Point := circleCircleWitness L M 1
+  let q : Point := circleCircleWitness L M (-1)
+  have hp : p ∈ cc L M := by
+    exact circleCircleWitness_mem_cc hout hin (by norm_num)
+  have hq : q ∈ cc L M := by
+    exact circleCircleWitness_mem_cc hout hin (by norm_num)
+  have hpq : p ≠ q := by
+    exact circleCircleWitness_pos_ne_neg hout hin
+  have hsphere : concreteSphere L ≠ concreteSphere M := by
+    intro hsphere
+    exact centers_ne_of_circleInnerMargin_pos hin (by
+      simpa [concreteSphere] using
+        congrArg EuclideanGeometry.Sphere.center hsphere)
+  have hfinite : (cc L M).Finite := by
+    apply finite_of_forall_mem_eq_left_or_right
+    intro a b x ha hb hx hab
+    exact eq_or_eq_of_mem_cc_of_two_witnesses hsphere hab ha hb hx
+  have hle : (cc L M).ncard ≤ 2 := by
+    apply ncard_le_two_of_forall_mem_eq_left_or_right
+    intro a b x ha hb hx hab
+    exact eq_or_eq_of_mem_cc_of_two_witnesses hsphere hab ha hb hx
+  have hlt : 1 < (cc L M).ncard := by
+    rw [Set.one_lt_ncard_iff hfinite]
+    exact ⟨p, q, hp, hq, hpq⟩
+  omega
 
 /-- The same strict margins imply transverse circle intersections. -/
 theorem circle_circle_transverse
@@ -1382,6 +1572,157 @@ private theorem ncard_union_four_of_pairwiseDisjoint
   rw [Set.ncard_union_eq h01_2 ((hfin 0).union (hfin 1)) (hfin 2)]
   rw [Set.ncard_union_eq h01 (hfin 0) (hfin 1)]
 
+private theorem eq_anchor_of_mem_circle_of_mem_stem
+    {L : Lollipop} {x : Point}
+    (hcircle : x ∈ L.circle) (hstem : x ∈ L.stem) :
+    x = L.anchor := by
+  rcases hstem with ⟨t, ht, rfl⟩
+  have hnorm :
+      ‖t • L.radial‖ = L.radius := by
+    simpa [Lollipop.circle, Lollipop.anchor, sub_eq_add_neg,
+      add_comm, add_left_comm, add_assoc] using hcircle
+  rw [norm_smul, Real.norm_of_nonneg (le_trans zero_le_one ht),
+    Lollipop.radius] at hnorm
+  have hradial_pos : 0 < ‖L.radial‖ := by
+    simpa [Lollipop.radius] using L.radius_pos
+  have ht_eq : t = 1 := by
+    nlinarith
+  simp [Lollipop.anchor, ht_eq]
+
+private theorem anchorPower_eq_zero_of_anchor_mem_circle
+    {L M : Lollipop} (hcircle : L.anchor ∈ M.circle) :
+    anchorPower L M = 0 := by
+  have hnorm : ‖L.anchor - M.center‖ = M.radius := by
+    simpa [Lollipop.circle] using hcircle
+  unfold anchorPower
+  rw [normSqPoint_eq_norm_sq, hnorm]
+  ring
+
+private theorem anchorPower_ne_zero_of_mixed_realized
+    {code : MixedCode} {L M : Lollipop}
+    (h : MixedCode.Realized code L M) :
+    anchorPower L M ≠ 0 := by
+  cases code
+  · simp only [MixedCode.Realized] at h
+    rcases h with hdisc | hpos
+    · intro hzero
+      have hquad := anchorPower_eq_mixed_at_anchor L M
+      have hnonneg : 0 ≤ (L.radius - projectedCenterParameter L M) ^ 2 :=
+        sq_nonneg _
+      nlinarith
+    · exact ne_of_gt hpos.1
+  · simp only [MixedCode.Realized] at h
+    exact ne_of_lt h.2
+  · simp only [MixedCode.Realized] at h
+    exact ne_of_gt h.2.1
+
+private theorem not_anchor_mem_circle_of_mixed_realized
+    {code : MixedCode} {L M : Lollipop}
+    (h : MixedCode.Realized code L M) :
+    L.anchor ∉ M.circle := by
+  intro hcircle
+  exact anchorPower_ne_zero_of_mixed_realized h
+    (anchorPower_eq_zero_of_anchor_mem_circle hcircle)
+
+private theorem anchor_eq_stemPoint_radius (L : Lollipop) :
+    L.anchor = stemPoint L L.radius := by
+  simp [stemPoint, Lollipop.anchor, L.radial_eq_radius_smul_unitRadial]
+
+private theorem left_anchor_not_mem_rr_of_true
+    {L M : Lollipop} (h : RayRayCodeRealized true L M) :
+    L.anchor ∉ rr L M := by
+  simp only [RayRayCodeRealized, if_true] at h
+  intro hx
+  rcases line_parameters_of_mem_rr h.1 hx with
+    ⟨qL, _qM, _hqL, _hqM, hxL, _hxM, hqL, _hqM⟩
+  have hq : qL = L.radius := by
+    apply stemPoint_injective L
+    rw [stemPoint, ← hxL, ← anchor_eq_stemPoint_radius L]
+  nlinarith
+
+private theorem right_anchor_not_mem_rr_of_true
+    {L M : Lollipop} (h : RayRayCodeRealized true L M) :
+    M.anchor ∉ rr L M := by
+  simp only [RayRayCodeRealized, if_true] at h
+  intro hx
+  rcases line_parameters_of_mem_rr h.1 hx with
+    ⟨_qL, qM, _hqL, _hqM, _hxL, hxM, _hqL', hqM⟩
+  have hq : qM = M.radius := by
+    apply stemPoint_injective M
+    rw [stemPoint, ← hxM, ← anchor_eq_stemPoint_radius M]
+  nlinarith
+
+private theorem false_of_mem_cc_and_rc
+    {code : MixedCode} {L M : Lollipop}
+    (hrc : MixedCode.Realized code L M)
+    {x : Point} (hcc : x ∈ cc L M) (hrc_mem : x ∈ rc L M) :
+    False := by
+  have hxanchor : x = L.anchor :=
+    eq_anchor_of_mem_circle_of_mem_stem hcc.1 hrc_mem.1
+  have hanchor_circle : L.anchor ∈ M.circle := by
+    simpa [hxanchor] using hcc.2
+  exact not_anchor_mem_circle_of_mixed_realized hrc hanchor_circle
+
+private theorem false_of_mem_cc_and_cr
+    {code : MixedCode} {L M : Lollipop}
+    (hcr : MixedCode.Realized code M L)
+    {x : Point} (hcc : x ∈ cc L M) (hcr_mem : x ∈ cr L M) :
+    False := by
+  have hxanchor : x = M.anchor :=
+    eq_anchor_of_mem_circle_of_mem_stem hcc.2 hcr_mem.2
+  have hanchor_circle : M.anchor ∈ L.circle := by
+    simpa [hxanchor] using hcc.1
+  exact not_anchor_mem_circle_of_mixed_realized hcr hanchor_circle
+
+private theorem false_of_mem_cc_and_rr
+    {b : Bool} {L M : Lollipop}
+    (hrr : RayRayCodeRealized b L M)
+    {x : Point} (hcc : x ∈ cc L M) (hrr_mem : x ∈ rr L M) :
+    False := by
+  cases b
+  · have hempty := ray_ray_empty_of_false_strict_code hrr
+    simpa [hempty] using hrr_mem
+  · have hxanchor : x = L.anchor :=
+      eq_anchor_of_mem_circle_of_mem_stem hcc.1 hrr_mem.1
+    exact left_anchor_not_mem_rr_of_true hrr (by simpa [hxanchor] using hrr_mem)
+
+private theorem false_of_mem_rc_and_cr
+    {b : Bool} {L M : Lollipop}
+    (hrr : RayRayCodeRealized b L M)
+    {x : Point} (hrc_mem : x ∈ rc L M) (hcr_mem : x ∈ cr L M) :
+    False := by
+  have hrr_mem : x ∈ rr L M := ⟨hrc_mem.1, hcr_mem.2⟩
+  cases b
+  · have hempty := ray_ray_empty_of_false_strict_code hrr
+    simpa [hempty] using hrr_mem
+  · have hxanchor : x = L.anchor :=
+      eq_anchor_of_mem_circle_of_mem_stem hcr_mem.1 hrc_mem.1
+    exact left_anchor_not_mem_rr_of_true hrr (by simpa [hxanchor] using hrr_mem)
+
+private theorem false_of_mem_rc_and_rr
+    {b : Bool} {L M : Lollipop}
+    (hrr : RayRayCodeRealized b L M)
+    {x : Point} (hrc_mem : x ∈ rc L M) (hrr_mem : x ∈ rr L M) :
+    False := by
+  cases b
+  · have hempty := ray_ray_empty_of_false_strict_code hrr
+    simpa [hempty] using hrr_mem
+  · have hxanchor : x = M.anchor :=
+      eq_anchor_of_mem_circle_of_mem_stem hrc_mem.2 hrr_mem.2
+    exact right_anchor_not_mem_rr_of_true hrr (by simpa [hxanchor] using hrr_mem)
+
+private theorem false_of_mem_cr_and_rr
+    {b : Bool} {L M : Lollipop}
+    (hrr : RayRayCodeRealized b L M)
+    {x : Point} (hcr_mem : x ∈ cr L M) (hrr_mem : x ∈ rr L M) :
+    False := by
+  cases b
+  · have hempty := ray_ray_empty_of_false_strict_code hrr
+    simpa [hempty] using hrr_mem
+  · have hxanchor : x = L.anchor :=
+      eq_anchor_of_mem_circle_of_mem_stem hcr_mem.1 hrr_mem.1
+    exact left_anchor_not_mem_rr_of_true hrr (by simpa [hxanchor] using hrr_mem)
+
 /-- Under strict pair diagnostics, the four primitive crossing sets are
 pairwise disjoint.  Anchor coincidences and triple primitive coincidences would
 force one of the strict inequalities to become an equality. -/
@@ -1394,7 +1735,23 @@ theorem primitive_pieces_pairwise_disjoint
       | 1 => rc L M
       | 2 => cr L M
       | 3 => rr L M) := by
-  exact primitive_intersection_pieces_disjoint_of_strict_diagnostics h
+  rcases h with ⟨_hout, _hin, hrc, hcr, hrr⟩
+  rw [Set.pairwiseDisjoint_iff]
+  intro i _hi j _hj hnonempty
+  rcases hnonempty with ⟨x, hxi, hxj⟩
+  fin_cases i <;> fin_cases j <;> simp at hxi hxj ⊢
+  · exact false_of_mem_cc_and_rc hrc hxi hxj
+  · exact false_of_mem_cc_and_cr hcr hxi hxj
+  · exact false_of_mem_cc_and_rr hrr hxi hxj
+  · exact false_of_mem_cc_and_rc hrc hxj hxi
+  · exact false_of_mem_rc_and_cr hrr hxi hxj
+  · exact false_of_mem_rc_and_rr hrr hxi hxj
+  · exact false_of_mem_cc_and_cr hcr hxj hxi
+  · exact false_of_mem_rc_and_cr hrr hxj hxi
+  · exact false_of_mem_cr_and_rr hrr hxi hxj
+  · exact false_of_mem_cc_and_rr hrr hxj hxi
+  · exact false_of_mem_rc_and_rr hrr hxj hxi
+  · exact false_of_mem_cr_and_rr hrr hxj hxi
 
 /-- Exact finite pair crossing count in a strict chamber. -/
 theorem pairCrossingCount_eq_code
@@ -1504,8 +1861,7 @@ theorem primitivePairwiseTransverse_of_realizes
 /-- A strict chamber is open in the product parameter space of pairs of
 lollipops. -/
 theorem isOpen_realizesStrictPairCode (code : StrictPairCode) :
-    IsOpen {p : Lollipop × Lollipop |
-      RealizesStrictPairCode code p.1 p.2} := by
+    IsOpen (strictPairChamberSet code) := by
   have houter : IsOpen {p : Lollipop × Lollipop |
       0 < circleOuterMargin p.1 p.2} :=
     isOpen_lt continuous_const continuous_circleOuterMargin_pair
@@ -1515,8 +1871,7 @@ theorem isOpen_realizesStrictPairCode (code : StrictPairCode) :
   have hleft := isOpen_mixedCodeRealized code.leftRayRightCircle
   have hright := isOpen_mixedCodeRealized_swap code.rightRayLeftCircle
   have hrr := isOpen_rayRayCodeRealized code.rayRay
-  simpa [RealizesStrictPairCode, Set.setOf_and, inter_assoc, and_assoc] using
-    houter.inter (hinner.inter (hleft.inter (hright.inter hrr)))
+  exact houter.inter (hinner.inter (hleft.inter (hright.inter hrr)))
 
 /-- Pointwise chamber stability in a convenient neighborhood form. -/
 theorem exists_pair_chamber_neighborhood
@@ -1526,8 +1881,7 @@ theorem exists_pair_chamber_neighborhood
       IsOpen U ∧ IsOpen V ∧ L ∈ U ∧ M ∈ V ∧
       ∀ L' ∈ U, ∀ M' ∈ V, RealizesStrictPairCode code L' M' := by
   have hopen := isOpen_realizesStrictPairCode code
-  have hp : (L, M) ∈ {p : Lollipop × Lollipop |
-      RealizesStrictPairCode code p.1 p.2} := h
+  have hp : (L, M) ∈ strictPairChamberSet code := h
   rcases isOpen_prod_iff.mp hopen L M hp with
     ⟨U, V, hU, hV, hLU, hMV, hsub⟩
   exact ⟨U, V, hU, hV, hLU, hMV, by

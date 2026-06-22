@@ -95,31 +95,29 @@ Result: succeeded.
 lake build Lollipop.Concrete.EndToEnd.Lower.PairChamber
 ```
 
-Result: failed. The module now gets through the concrete chamber topology,
+Result: succeeded. The module now gets through the concrete chamber topology,
 swap algebra, strict-code openness, neighborhood-stability plumbing, the
 finite four-way union cardinality formula for primitive pieces, both empty
 mixed ray-circle strict-code cases, and both true/false ray-ray strict-code
 cardinality cases. It also proves mixed ray-circle transversality for every
 strict mixed code from the concrete quadratic identity. The positive
-mixed ray-circle strict-code root counts are now reduced to a proved
+mixed ray-circle strict-code root counts are reduced to a proved
 one-dimensional accepted-root theorem and transported through the injective
-unit-speed stem parametrization. The circle-circle strict transversality
-direction is now proved directly from the determinant/dot-product identity and
-the strict inner/outer margins. The file also contains checked scaffolding for
-the remaining circle-circle count proof: positive center-distance consequences,
-the perpendicular coordinate vector, the normalized center-direction, the
-chord parameter, and the positive chord-height-square identity.
+unit-speed stem parametrization.
 
-The remaining failures are the next genuine lower-construction gap:
-circle-circle strict two-point classification and primitive-piece disjointness
-under strict diagnostics are still referenced but not yet proved in the
-concrete development.
+The previous remaining lower-construction gaps in this file are now filled:
+strict circle-circle two-point classification is proved by constructing the
+two chord witnesses from the strict inner/outer margins, and primitive-piece
+disjointness is proved from the strict mixed and ray-ray diagnostics. The
+strict chamber predicate is now backed by an explicit set
+`strictPairChamberSet`, so openness proofs use finite intersections directly
+instead of expensive conversions through a large `setOf` predicate.
 
 ## Current Interpretation
 
 The imported concrete bundle is useful as an architectural scaffold and now has
-buildable coordinate, compactification, shared support, and lower similarity
-transport layers. It is not a kernel-checked end-to-end proof. The remaining
-failures include the intended hard planar-topology layer and, independently,
-the lower-construction primitive-intersection classification layer used by
-`Lower.PairChamber`.
+buildable coordinate, compactification, shared support, lower similarity
+transport, and strict pair-chamber layers. It is not a kernel-checked
+end-to-end proof. The remaining failures include the intended hard
+planar-topology layer and the later assembly needed to feed concrete geometric
+theorems into the final maximum statement.
