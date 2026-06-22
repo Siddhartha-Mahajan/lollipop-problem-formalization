@@ -336,16 +336,56 @@ def codeSpec (P : BlowUpPorts)
   code := pairCode P q hq
   swap := pairCode_swap P q hq
 
-/-- The exact remaining realization theorem for the blow-up pre-arrangement.
-
-This is separated from `BlowUpPorts` because it depends on the canonical
-quadruple indexing functions defined above.  It is still a concrete theorem
-target: for every admissible quadruple, the constructed pre-arrangement lies in
-the intended strict pair-code chamber. -/
-structure BlowUpRealizationPorts (P : BlowUpPorts) : Prop where
-  preArrangement_realizes :
-    ∀ {n : ℕ} (q : QuadVec n) (hq : q ∈ quadVecs n),
-      RealizesPairCodeSpec (codeSpec P q hq) (preArrangement P q hq)
+/-- The constructed pre-arrangement realizes every intended strict pair
+chamber. -/
+theorem preArrangement_realizes_concrete (P : BlowUpPorts) {n : ℕ}
+    (q : QuadVec n) (hq : q ∈ quadVecs n) :
+    RealizesPairCodeSpec (codeSpec P q hq) (preArrangement P q hq) := by
+  intro i j hij
+  have hpi := memberParameter_bounds (epsilon_pos P) q hq i
+  have hpj := memberParameter_bounds (epsilon_pos P) q hq j
+  change RealizesStrictPairCode (pairCode P q hq i j)
+    (PolynomialFamily.around (RationalBase.base (clusterOf q hq i))
+      (memberParameter (epsilon P) q hq i))
+    (PolynomialFamily.around (RationalBase.base (clusterOf q hq j))
+      (memberParameter (epsilon P) q hq j))
+  unfold pairCode
+  by_cases hc : clusterOf q hq i = clusterOf q hq j
+  · have hpne : memberParameter (epsilon P) q hq i ≠
+        memberParameter (epsilon P) q hq j :=
+      memberParameter_ne_of_same_cluster (epsilon_pos P) q hq
+        (ne_of_lt hij) hc
+    by_cases hlt : memberParameter (epsilon P) q hq i <
+        memberParameter (epsilon P) q hq j
+    · rw [if_pos hc, if_pos hlt]
+      rw [← hc]
+      have hlocal := PolynomialFamily.local_realizes_four
+        (le_of_lt hpi.1) hlt
+        (le_trans (le_of_lt hpj.2) (epsilon_le_quarter P))
+      have hmapped := (P.realizes_map_iff
+        (similarityTo (RationalBase.base (clusterOf q hq i)))
+        StrictPairCode.four _ _).2 hlocal
+      simpa [PolynomialFamily.around] using hmapped
+    · rw [if_pos hc, if_neg hlt]
+      rw [← hc]
+      have hrev : memberParameter (epsilon P) q hq j <
+          memberParameter (epsilon P) q hq i :=
+        lt_of_le_of_ne (le_of_not_gt hlt) (Ne.symm hpne)
+      have hlocal := PolynomialFamily.local_realizes_four
+        (le_of_lt hpj.1) hrev
+        (le_trans (le_of_lt hpi.2) (epsilon_le_quarter P))
+      have hmapped := (P.realizes_map_iff
+        (similarityTo (RationalBase.base (clusterOf q hq i)))
+        StrictPairCode.four _ _).2 hlocal
+      exact (realizes_swap_iff StrictPairCode.four _ _).1
+        (by simpa [PolynomialFamily.around] using hmapped)
+  · rw [if_neg hc]
+    exact (Classical.choose_spec exists_uniform_intercluster_radius).2.2
+      (clusterOf q hq i) (clusterOf q hq j) hc
+      (memberParameter (epsilon P) q hq i)
+      (memberParameter (epsilon P) q hq j)
+      (le_of_lt hpi.1) (le_of_lt hpi.2)
+      (le_of_lt hpj.1) (le_of_lt hpj.2)
 
 /-- Numerical pair code is exactly Karlsson's symmetric cluster table. -/
 theorem pairCode_crossings_eq_clusterTable {n : ℕ}
@@ -370,7 +410,6 @@ theorem pairCode_crossings_eq_clusterTable {n : ℕ}
 /-- Generic concrete realization of one admissible quadruple. -/
 theorem exists_generic_blowUp {n : ℕ}
     (P : BlowUpPorts)
-    (R : BlowUpRealizationPorts P)
     (havoid : GenericityPort.GenericityAvoidance n)
     (q : QuadVec n) (hq : q ∈ quadVecs n) :
     ∃ A : Arrangement n,
@@ -379,7 +418,7 @@ theorem exists_generic_blowUp {n : ℕ}
         pairCrossingCount (A i) (A j) =
           (pairCode P q hq i j).crossings := by
   exact exists_generic_with_pairCrossingCounts_of_avoidance havoid
-    (R.preArrangement_realizes q hq)
+    (preArrangement_realizes_concrete P q hq)
 
 /-- The generic blow-up crossing sum is exactly the existing clustered table. -/
 theorem totalCrossingsRat_eq_clusteredTable {n : ℕ}
@@ -402,13 +441,12 @@ theorem totalCrossingsRat_eq_clusteredTable {n : ℕ}
 /-- Exact lower crossing total for one admissible quadruple. -/
 theorem exists_generic_crossings_eq_lowerCrossingsOfQuad {n : ℕ}
     (P : BlowUpPorts)
-    (R : BlowUpRealizationPorts P)
     (havoid : GenericityPort.GenericityAvoidance n)
     (q : QuadVec n) (hq : q ∈ quadVecs n) :
     ∃ A : Arrangement n,
       IsGeneric A ∧
       ((totalCrossingsNat A : ℕ) : ℚ) = lowerCrossingsOfQuad q := by
-  rcases exists_generic_blowUp P R havoid q hq with ⟨A, hgen, hpair⟩
+  rcases exists_generic_blowUp P havoid q hq with ⟨A, hgen, hpair⟩
   refine ⟨A, hgen, ?_⟩
   calc
     ((totalCrossingsNat A : ℕ) : ℚ) =
@@ -422,32 +460,30 @@ theorem exists_generic_crossings_eq_lowerCrossingsOfQuad {n : ℕ}
 /-- Exact generic region equation for one admissible quadruple. -/
 theorem exists_region_eq_lowerRegionsOfQuad {n : ℕ}
     (P : BlowUpPorts)
-    (R : BlowUpRealizationPorts P)
     (havoid : GenericityPort.GenericityAvoidance n)
     (q : QuadVec n) (hq : q ∈ quadVecs n) :
     ∃ A : Arrangement n,
       regionCountRat A = lowerRegionsOfQuad q := by
-  rcases exists_generic_crossings_eq_lowerCrossingsOfQuad P R havoid q hq with
+  rcases exists_generic_crossings_eq_lowerCrossingsOfQuad P havoid q hq with
     ⟨A, hgen, hcross⟩
   refine ⟨A, ?_⟩
   unfold lowerRegionsOfQuad
   rw [P.generic_region_eq hgen, hcross]
 
 /-- Concrete lower realization in the existing algebraic interface. -/
-theorem lowerRealization (P : BlowUpPorts) (R : BlowUpRealizationPorts P)
+theorem lowerRealization (P : BlowUpPorts)
     (havoid : ∀ n : ℕ, GenericityPort.GenericityAvoidance n) (n : ℕ) :
     LowerRealization (Arrangement n) regionCountRat n := by
   intro q hq
-  exact exists_region_eq_lowerRegionsOfQuad P R (havoid n) q hq
+  exact exists_region_eq_lowerRegionsOfQuad P (havoid n) q hq
 
 /-- Crossing-level concrete lower realization. -/
 theorem lowerCrossingRealization (P : BlowUpPorts)
-    (R : BlowUpRealizationPorts P)
     (havoid : ∀ n : ℕ, GenericityPort.GenericityAvoidance n) (n : ℕ) :
     LowerCrossingRealization (Arrangement n) regionCountRat
       (fun A => ((totalCrossingsNat A : ℕ) : ℚ)) n := by
   intro q hq
-  rcases exists_generic_crossings_eq_lowerCrossingsOfQuad P R (havoid n) q hq with
+  rcases exists_generic_crossings_eq_lowerCrossingsOfQuad P (havoid n) q hq with
     ⟨A, hgen, hcross⟩
   refine ⟨A, hcross, ?_⟩
   exact P.generic_region_eq hgen

@@ -14,8 +14,8 @@ theorem Lollipop.Concrete.EndToEnd.lollipopMaximum
 
 This endpoint has no `GeometryCertificates` argument.  Its remaining
 assumptions are explicit concrete theorem packages: `UpperPorts`, `LowerPorts`,
-`BlowUpPorts`, `BlowUpRealizationPorts`, `GenericityAvoidance`,
-`PlanarTopologyPorts`, and `PairGeometryPorts`.
+`BlowUpPorts`, `GenericityAvoidance`, `PlanarTopologyPorts`, and
+`PairGeometryPorts`.
 
 A comment/string-stripped static scan reports no `sorry`, `admit`, top-level `axiom`, `constant`, `opaque`, or `unsafe` declaration in the repository Lean sources. See `verification/lean_static_audit.txt`.
 
@@ -41,8 +41,9 @@ structures:
 - `GenericityAvoidance`: finite bad-locus avoidance for perturbations;
 - `BlowUpPorts`: similarity invariance and the generic region equation; the
   uniform inter-cluster chamber radius is now proved as
-  `Lower.BlowUp.exists_uniform_intercluster_radius`;
-- `BlowUpRealizationPorts`: realization of all intended blow-up pair chambers;
+  `Lower.BlowUp.exists_uniform_intercluster_radius`, and realization of all
+  intended blow-up pair chambers is now proved as
+  `Lower.BlowUp.preArrangement_realizes_concrete`;
 - removing the `EndToEndPorts` argument from the final concrete theorem.
 
 ## Build status
