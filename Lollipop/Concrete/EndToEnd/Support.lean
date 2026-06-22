@@ -1,8 +1,10 @@
 import Lollipop.Concrete.EndToEnd.Compactification
+import Mathlib.Analysis.Convex.PathConnected
 import Mathlib.Analysis.Convex.Segment
 import Mathlib.Data.Finite.Card
 import Mathlib.Data.Finset.Card
 import Mathlib.Logic.Equiv.Set
+import Mathlib.SetTheory.Cardinal.Finite
 import Mathlib.Tactic
 import Mathlib.Topology.Connected.TotallyDisconnected
 
@@ -50,9 +52,284 @@ def pairCrossingSet (L M : Lollipop) : Set Point := L.carrier ∩ M.carrier
 def pairCrossingCount (L M : Lollipop) : ℕ :=
   (pairCrossingSet L M).ncard
 
+/-- The bundled Euclidean sphere underlying a concrete lollipop circle. -/
+def concreteSphere (L : Lollipop) : EuclideanGeometry.Sphere Point where
+  center := L.center
+  radius := L.radius
+
+/-- The supporting affine line of a concrete lollipop stem. -/
+def stemLine (L : Lollipop) : AffineSubspace ℝ Point :=
+  line[ℝ, L.center, L.center + L.radial]
+
+/-- The concrete point space has finrank two. -/
+theorem point_finrank : Module.finrank ℝ Point = 2 := by
+  simp [Point]
+
+/-- A stem point lies on the stem's supporting affine line. -/
+theorem mem_stemLine_of_mem_stem
+    {L : Lollipop} {x : Point} (hx : x ∈ L.stem) :
+    x ∈ stemLine L := by
+  rcases hx with ⟨t, _ht, rfl⟩
+  have hmk :
+      stemLine L =
+        AffineSubspace.mk' L.center (ℝ ∙ L.radial) := by
+    rw [stemLine]
+    rw [← AffineSubspace.mk'_eq (left_mem_affineSpan_pair ℝ L.center (L.center + L.radial))]
+    rw [direction_affineSpan, vectorSpan_pair_rev]
+    simp [vsub_eq_sub]
+  rw [hmk, AffineSubspace.mem_mk']
+  simpa [vsub_eq_sub] using
+    Submodule.smul_mem (ℝ ∙ L.radial) t
+      (Submodule.mem_span_singleton_self L.radial)
+
+theorem stemLine_direction (L : Lollipop) :
+    (stemLine L).direction = ℝ ∙ L.radial := by
+  rw [stemLine]
+  rw [direction_affineSpan, vectorSpan_pair_rev]
+  simp [vsub_eq_sub]
+
+theorem stemLine_ne_of_detPoint_ne_zero
+    {L M : Lollipop} (hdet : detPoint L.radial M.radial ≠ 0) :
+    stemLine L ≠ stemLine M := by
+  intro hline
+  have hdir :
+      ℝ ∙ L.radial = ℝ ∙ M.radial := by
+    have hcongr := congrArg AffineSubspace.direction hline
+    simpa [stemLine_direction] using hcongr
+  have hmem : M.radial ∈ ℝ ∙ L.radial := by
+    rw [hdir]
+    exact Submodule.mem_span_singleton_self M.radial
+  rcases Submodule.mem_span_singleton.mp hmem with ⟨c, hc⟩
+  have hzero : detPoint L.radial M.radial = 0 := by
+    rw [← hc]
+    unfold detPoint
+    simp
+    ring
+  exact hdet hzero
+
 /-- A point that is topologically isolated inside a set. -/
 def IsolatedPoint {X : Type*} [TopologicalSpace X] (S : Set X) (x : X) : Prop :=
   x ∈ S ∧ ∃ U ∈ 𝓝 x, U ∩ S ⊆ {x}
+
+theorem finite_of_subsingleton_of_mem
+    {α : Type*} {S : Set α} {x : α}
+    (hsub : S.Subsingleton) (hx : x ∈ S) :
+    S.Finite :=
+  (finite_singleton x).subset (by
+    intro y hy
+    exact hsub hy hx)
+
+theorem isolatedPoint_of_mem_finite
+    {X : Type*} [TopologicalSpace X] [T1Space X]
+    {S : Set X} (hS : S.Finite) {x : X} (hx : x ∈ S) :
+    IsolatedPoint S x := by
+  refine ⟨hx, ?_⟩
+  let U : Set X := (S \ {x})ᶜ
+  have hclosed : IsClosed (S \ {x}) := hS.diff.isClosed
+  have hopen : IsOpen U := isOpen_compl_iff.2 hclosed
+  have hxU : x ∈ U := by
+    simp [U]
+  refine ⟨U, hopen.mem_nhds hxU, ?_⟩
+  intro y hy
+  have hyS : y ∈ S := hy.2
+  have hy_not : y ∉ S \ {x} := by simpa [U] using hy.1
+  have hyx : y = x := by
+    by_contra hne
+    exact hy_not ⟨hyS, by simp [hne]⟩
+  simp [hyx]
+
+theorem finite_of_forall_mem_eq_left_or_right
+    {α : Type*} {s : Set α}
+    (h :
+      ∀ ⦃a b x : α⦄, a ∈ s → b ∈ s → x ∈ s → a ≠ b →
+        x = a ∨ x = b) :
+    s.Finite := by
+  classical
+  rcases s.eq_empty_or_nonempty with rfl | ⟨a, ha⟩
+  · exact finite_empty
+  · by_cases hsingle : ∀ x ∈ s, x = a
+    · exact (finite_singleton a).subset (by
+        intro x hx
+        simp [hsingle x hx])
+    · push Not at hsingle
+      rcases hsingle with ⟨b, hb, hba⟩
+      exact ((finite_singleton b).insert a).subset (by
+        intro x hx
+        rcases h ha hb hx hba.symm with hx_eq | hx_eq
+        · simp [hx_eq]
+        · simp [hx_eq])
+
+theorem ncard_le_two_of_forall_mem_eq_left_or_right
+    {α : Type*} {s : Set α}
+    (h :
+      ∀ ⦃a b x : α⦄, a ∈ s → b ∈ s → x ∈ s → a ≠ b →
+        x = a ∨ x = b) :
+    s.ncard ≤ 2 := by
+  classical
+  have hs : s.Finite := finite_of_forall_mem_eq_left_or_right h
+  by_contra hle
+  have hlt : 2 < s.ncard := Nat.lt_of_not_ge hle
+  rcases (Set.two_lt_ncard_iff hs).1 hlt with
+    ⟨a, b, c, ha, hb, hc, hab, hac, hbc⟩
+  rcases h ha hb hc hab with hc_eq | hc_eq
+  · exact hac hc_eq.symm
+  · exact hbc hc_eq.symm
+
+theorem componentCount_union_singleton_sub_one_le_one
+    {X : Type*} [TopologicalSpace X] {S : Set X} {a : X}
+    (hS : IsConnected S) :
+    componentCount (S ∪ {a}) - 1 ≤ 1 := by
+  let U : Set X := S ∪ {a}
+  let base : U := ⟨hS.nonempty.some, Or.inl hS.nonempty.some_mem⟩
+  let apex : U := ⟨a, Or.inr rfl⟩
+  let f : Option Unit → ConnectedComponents U := fun o =>
+    match o with
+    | none => ConnectedComponents.mk apex
+    | some _ => ConnectedComponents.mk base
+  have hsurj : Function.Surjective f := by
+    intro q
+    obtain ⟨u, rfl⟩ := ConnectedComponents.surjective_coe q
+    rcases u.property with huS | hua
+    · refine ⟨some (), ?_⟩
+      dsimp [f]
+      rw [ConnectedComponents.coe_eq_coe]
+      apply connectedComponent_eq_iff_mem.2
+      let SU : Set U := {z | (z : X) ∈ S}
+      have hSU_conn : IsConnected SU := by
+        let incl : S → U := fun z => ⟨z, Or.inl z.property⟩
+        haveI : ConnectedSpace S := isConnected_iff_connectedSpace.mp hS
+        have hrange : Set.range incl = SU := by
+          ext z
+          constructor
+          · rintro ⟨w, rfl⟩
+            exact w.property
+          · intro hz
+            exact ⟨⟨z, hz⟩, rfl⟩
+        rw [← hrange]
+        exact isConnected_range (by continuity : Continuous incl)
+      have hbase : base ∈ SU := hS.nonempty.some_mem
+      have hu : u ∈ SU := huS
+      exact hSU_conn.subset_connectedComponent hu hbase
+    · refine ⟨none, ?_⟩
+      dsimp [f]
+      congr
+      ext
+      have hu_eq : (u : X) = a := by simpa using hua
+      exact hu_eq.symm
+  haveI : Finite (ConnectedComponents U) := Finite.of_surjective f hsurj
+  have hcard : Nat.card (ConnectedComponents U) ≤ Nat.card (Option Unit) :=
+    Nat.card_le_card_of_surjective f hsurj
+  unfold componentCount
+  dsimp [U] at hcard
+  have hopt : Nat.card (Option Unit) = 2 := by
+    simp
+  omega
+
+theorem component_excess_union_infinity_le_one
+    {S : Set Sphere2} (hS : IsConnected S) :
+    componentCount (S ∪ {infinity}) - 1 ≤ 1 :=
+  componentCount_union_singleton_sub_one_le_one hS
+
+theorem concreteSphere_ne_of_circle_ne
+    {L M : Lollipop} (hcircle : L.circle ≠ M.circle) :
+    concreteSphere L ≠ concreteSphere M := by
+  intro hsphere
+  apply hcircle
+  rw [L.circle_eq_sphere, M.circle_eq_sphere]
+  simpa [concreteSphere] using
+    congrArg (fun s : EuclideanGeometry.Sphere Point => (s : Set Point)) hsphere
+
+theorem eq_or_eq_of_mem_cc_of_two_witnesses
+    {L M : Lollipop}
+    (hsphere : concreteSphere L ≠ concreteSphere M)
+    {p₁ p₂ p : Point}
+    (hp₁₂ : p₁ ≠ p₂)
+    (hp₁ : p₁ ∈ cc L M)
+    (hp₂ : p₂ ∈ cc L M)
+    (hp : p ∈ cc L M) :
+    p = p₁ ∨ p = p₂ := by
+  exact
+    EuclideanGeometry.eq_of_mem_sphere_of_mem_sphere_of_finrank_eq_two
+      (V := Point) (P := Point)
+      (s₁ := concreteSphere L)
+      (s₂ := concreteSphere M)
+      point_finrank hsphere hp₁₂ hp₁.1 hp₂.1 hp.1 hp₁.2 hp₂.2 hp.2
+
+theorem finite_circle_intersection_of_ne
+    {L M : Lollipop} (hcircle : L.circle ≠ M.circle) :
+    (cc L M).Finite := by
+  have hsphere : concreteSphere L ≠ concreteSphere M :=
+    concreteSphere_ne_of_circle_ne hcircle
+  apply finite_of_forall_mem_eq_left_or_right
+  intro a b x ha hb hx hab
+  exact eq_or_eq_of_mem_cc_of_two_witnesses hsphere hab ha hb hx
+
+theorem circle_intersection_ncard_le_two
+    (L M : Lollipop) (hcircle : L.circle ≠ M.circle) :
+    (cc L M).ncard ≤ 2 := by
+  have hsphere : concreteSphere L ≠ concreteSphere M :=
+    concreteSphere_ne_of_circle_ne hcircle
+  apply ncard_le_two_of_forall_mem_eq_left_or_right
+  intro a b x ha hb hx hab
+  exact eq_or_eq_of_mem_cc_of_two_witnesses hsphere hab ha hb hx
+
+theorem eq_or_eq_of_mem_sphere_of_mem_stemLine_of_two_witnesses
+    {s : EuclideanGeometry.Sphere Point} {L : Lollipop}
+    {p₁ p₂ p : Point}
+    (hp₁₂ : p₁ ≠ p₂)
+    (hp₁_sphere : p₁ ∈ s)
+    (hp₂_sphere : p₂ ∈ s)
+    (hp_sphere : p ∈ s)
+    (hp₁_line : p₁ ∈ stemLine L)
+    (hp₂_line : p₂ ∈ stemLine L)
+    (hp_line : p ∈ stemLine L) :
+    p = p₁ ∨ p = p₂ := by
+  have hline : line[ℝ, p₁, p₂] = stemLine L :=
+    affineSpan_pair_eq_of_mem_of_mem_of_ne hp₁_line hp₂_line hp₁₂
+  have hp_line_pair : p ∈ line[ℝ, p₁, p₂] := by
+    rwa [hline]
+  have hp₂_cases :
+      p₂ = p₁ ∨ p₂ = s.secondInter p₁ (p₂ -ᵥ p₁) := by
+    exact
+      ((s.eq_or_eq_secondInter_iff_mem_of_mem_affineSpan_pair
+        hp₁_sphere (right_mem_affineSpan_pair ℝ p₁ p₂)).2 hp₂_sphere)
+  have hsecond : s.secondInter p₁ (p₂ -ᵥ p₁) = p₂ := by
+    rcases hp₂_cases with hp₂_eq | hp₂_eq
+    · exact False.elim (hp₁₂ hp₂_eq.symm)
+    · exact hp₂_eq.symm
+  have hp_cases : p = p₁ ∨ p = s.secondInter p₁ (p₂ -ᵥ p₁) := by
+    exact
+      ((s.eq_or_eq_secondInter_iff_mem_of_mem_affineSpan_pair
+        hp₁_sphere hp_line_pair).2 hp_sphere)
+  rcases hp_cases with hp_eq | hp_eq
+  · exact Or.inl hp_eq
+  · exact Or.inr (hp_eq.trans hsecond)
+
+theorem finite_circle_ray_intersection (L M : Lollipop) :
+    (cr L M).Finite := by
+  apply finite_of_forall_mem_eq_left_or_right
+  intro a b x ha hb hx hab
+  exact eq_or_eq_of_mem_sphere_of_mem_stemLine_of_two_witnesses
+    (s := concreteSphere L) (L := M) hab
+    ha.1 hb.1 hx.1
+    (mem_stemLine_of_mem_stem ha.2)
+    (mem_stemLine_of_mem_stem hb.2)
+    (mem_stemLine_of_mem_stem hx.2)
+
+theorem circle_ray_intersection_ncard_le_two (L M : Lollipop) :
+    (cr L M).ncard ≤ 2 := by
+  apply ncard_le_two_of_forall_mem_eq_left_or_right
+  intro a b x ha hb hx hab
+  exact eq_or_eq_of_mem_sphere_of_mem_stemLine_of_two_witnesses
+    (s := concreteSphere L) (L := M) hab
+    ha.1 hb.1 hx.1
+    (mem_stemLine_of_mem_stem ha.2)
+    (mem_stemLine_of_mem_stem hb.2)
+    (mem_stemLine_of_mem_stem hx.2)
+
+theorem finite_ray_circle_intersection (L M : Lollipop) :
+    (rc L M).Finite := by
+  simpa [rc, cr, inter_comm] using finite_circle_ray_intersection M L
 
 theorem totallyDisconnectedSpace_of_discrete
     {X : Type*} [TopologicalSpace X] [DiscreteTopology X] :
@@ -95,6 +372,21 @@ def StemCircleTransverseAt (L M : Lollipop) (x : Point) : Prop :=
 
 def StemStemTransverse (L M : Lollipop) : Prop :=
   detPoint L.radial M.radial ≠ 0
+
+theorem rr_subsingleton_of_transverse
+    {L M : Lollipop} (hdet : StemStemTransverse L M) :
+    (rr L M).Subsingleton := by
+  intro p hp q hq
+  by_contra hpq
+  have hlineL : line[ℝ, p, q] = stemLine L :=
+    affineSpan_pair_eq_of_mem_of_mem_of_ne
+      (mem_stemLine_of_mem_stem hp.1)
+      (mem_stemLine_of_mem_stem hq.1) hpq
+  have hlineM : line[ℝ, p, q] = stemLine M :=
+    affineSpan_pair_eq_of_mem_of_mem_of_ne
+      (mem_stemLine_of_mem_stem hp.2)
+      (mem_stemLine_of_mem_stem hq.2) hpq
+  exact stemLine_ne_of_detPoint_ne_zero hdet (hlineL.symm.trans hlineM)
 
 structure PrimitivePairwiseTransverse (L M : Lollipop) : Prop where
   cc : ∀ x, x ∈ cc L M → CircleCircleTransverseAt L M x
@@ -192,6 +484,18 @@ theorem componentCount_finiteLift_union_infinity_sub_one
   rw [Nat.card_congr hcomponents]
   simp [Nat.card_coe_set_eq]
 
+theorem component_excess_of_convex_finite_chart_le_one
+    {S : Set Point} (hconv : Convex ℝ S) :
+    componentCount (finiteLift S ∪ {infinity}) - 1 ≤ 1 := by
+  by_cases hne : S.Nonempty
+  · have hconn : IsConnected (finiteLift S) :=
+      (hconv.isConnected hne).image finitePoint OnePoint.continuous_coe.continuousOn
+    exact component_excess_union_infinity_le_one hconn
+  · have hempty : S = ∅ := Set.not_nonempty_iff_eq_empty.mp hne
+    have hfinite : S.Finite := by simp [hempty]
+    rw [componentCount_finiteLift_union_infinity_sub_one hfinite]
+    simp [hempty]
+
 
 namespace EuclideanPort
 
@@ -203,11 +507,11 @@ theorem circle_circle_components_le_two (L M : Lollipop) :
   · have hconn : IsConnected (finiteLift (cc L M)) := by
       simpa [cc, hsame, finiteLift] using
         L.isConnected_circle.image finitePoint OnePoint.continuous_coe.continuousOn
-    exact component_excess_union_infinity_le_one hconn
+    exact (component_excess_union_infinity_le_one hconn).trans (by norm_num)
   · have hfinite : (cc L M).Finite := by
       exact finite_circle_intersection_of_ne hsame
     have hcard : (cc L M).ncard ≤ 2 :=
-      circle_intersection_ncard_le_two L.center M.center L.radius M.radius hsame
+      circle_intersection_ncard_le_two L M hsame
     rw [componentCount_finiteLift_union_infinity_sub_one hfinite]
     exact hcard
 
@@ -238,8 +542,8 @@ finite crossing, plus infinity. -/
 theorem pairExcess_eq_ncard_of_transverse
     {L M : Lollipop}
     (hfinite : (pairCrossingSet L M).Finite)
-    (htrans : PrimitivePairwiseTransverse L M)
-    (hnoTriple :
+    (_htrans : PrimitivePairwiseTransverse L M)
+    (_hnoTriple :
       (Set.univ : Set (Fin 4)).PairwiseDisjoint (fun k : Fin 4 =>
         match k with
         | 0 => cc L M
@@ -265,21 +569,35 @@ theorem isolated_cc_of_transverse
     {L M : Lollipop} {x : Point}
     (hx : x ∈ cc L M) (h : CircleCircleTransverseAt L M x) :
     IsolatedPoint (cc L M) x := by
-  exact isolated_zero_of_regular_level_pair_circle_equations hx h
+  have hsphere : concreteSphere L ≠ concreteSphere M := by
+    intro hsphere
+    have hcenter : L.center = M.center :=
+      congrArg EuclideanGeometry.Sphere.center hsphere
+    have hzero : detPoint (x - L.center) (x - M.center) = 0 := by
+      rw [hcenter]
+      unfold detPoint
+      ring
+    exact h hzero
+  have hfinite : (cc L M).Finite := by
+    apply finite_of_forall_mem_eq_left_or_right
+    intro a b y ha hb hy hab
+    exact eq_or_eq_of_mem_cc_of_two_witnesses hsphere hab ha hb hy
+  exact isolatedPoint_of_mem_finite hfinite hx
 
 /-- A transverse mixed intersection is isolated. -/
 theorem isolated_rc_of_transverse
     {L M : Lollipop} {x : Point}
-    (hx : x ∈ rc L M) (h : StemCircleTransverseAt L M x) :
+    (hx : x ∈ rc L M) (_h : StemCircleTransverseAt L M x) :
     IsolatedPoint (rc L M) x := by
-  exact isolated_zero_of_regular_ray_circle_equation hx h
+  exact isolatedPoint_of_mem_finite (finite_ray_circle_intersection L M) hx
 
 /-- A transverse ray--ray point is isolated. -/
 theorem isolated_rr_of_transverse
     {L M : Lollipop} {x : Point}
     (hx : x ∈ rr L M) (h : StemStemTransverse L M) :
     IsolatedPoint (rr L M) x := by
-  exact isolated_intersection_of_nonparallel_affine_lines hx h
+  exact isolatedPoint_of_mem_finite
+    (finite_of_subsingleton_of_mem (rr_subsingleton_of_transverse h) hx) hx
 
 end EuclideanPort
 
