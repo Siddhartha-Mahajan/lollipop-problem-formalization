@@ -383,6 +383,102 @@ theorem one_lt_mu
   rw [lt_div_iff₀ hden]
   nlinarith
 
+/-- The explicit ray--ray intersection point, written using the `s`-stem
+parameter. -/
+def rayRayPoint (s t : ℝ) : R2 := stemPoint s (lambda s t)
+
+/-- The explicit ray--ray point has the same coordinates when written using
+the `t`-stem parameter. -/
+theorem rayRayPoint_eq_stemPoint_t
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) :
+    rayRayPoint s t = stemPoint t (mu s t) := by
+  have ht0 : 0 ≤ t := le_trans hs (le_of_lt hst)
+  have hden_pos : 0 < 1 + s * t := by positivity
+  have hden : 1 + s * t ≠ 0 := ne_of_gt hden_pos
+  rcases rayRay_solution_coordinates s t hden with ⟨hx, hy⟩
+  ext i
+  fin_cases i
+  · simpa [rayRayPoint, stemPoint, center, vector, point2, Pi.add_apply,
+      Pi.smul_apply] using hx
+  · simp [rayRayPoint, stemPoint, center, vector, point2, Pi.add_apply,
+      Pi.smul_apply]
+    nlinarith [hy]
+
+/-- The explicit ray--ray point lies on the `s`-stem half-line. -/
+theorem rayRayPoint_mem_leftRay
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    rayRayPoint s t ∈
+      raySet (lollipop s).anchor (lollipop s).rayDirection := by
+  have hlambda : 1 ≤ lambda s t :=
+    le_of_lt (one_lt_lambda hs hst ht)
+  simpa [rayRayPoint, lollipop] using
+    (stemPoint_mem_raySet (t := s) (q := lambda s t) hlambda)
+
+/-- The explicit ray--ray point lies on the `t`-stem half-line. -/
+theorem rayRayPoint_mem_rightRay
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    rayRayPoint s t ∈
+      raySet (lollipop t).anchor (lollipop t).rayDirection := by
+  have hmu : 1 ≤ mu s t := le_of_lt (one_lt_mu hs hst ht)
+  have heq := rayRayPoint_eq_stemPoint_t hs hst
+  rw [heq]
+  simpa [lollipop] using
+    (stemPoint_mem_raySet (t := t) (q := mu s t) hmu)
+
+/-- The explicit ray--ray point is strictly outside the circle of the
+`s`-member of the family. -/
+theorem rayRayPoint_strictly_outside_leftCircle
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    (lollipop s).radius ^ 2 <
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+        (rayRayPoint s t) (lollipop s).center := by
+  have hlambda := one_lt_lambda hs hst ht
+  simpa [rayRayPoint, lollipop] using
+    (stemPoint_strictly_outside_own_circle (t := s) (q := lambda s t)
+      hlambda)
+
+/-- The explicit ray--ray point is strictly outside the circle of the
+`t`-member of the family. -/
+theorem rayRayPoint_strictly_outside_rightCircle
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    (lollipop t).radius ^ 2 <
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+        (rayRayPoint s t) (lollipop t).center := by
+  have hmu := one_lt_mu hs hst ht
+  have heq := rayRayPoint_eq_stemPoint_t hs hst
+  rw [heq]
+  simpa [lollipop] using
+    (stemPoint_strictly_outside_own_circle (t := t) (q := mu s t) hmu)
+
+/-- The explicit ray--ray point is not on the circle of the `s`-member. -/
+theorem rayRayPoint_not_mem_leftCircle
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    rayRayPoint s t ∉
+      circleSet (lollipop s).center (lollipop s).radius := by
+  intro hmem
+  have hout := rayRayPoint_strictly_outside_leftCircle hs hst ht
+  simp [circleSet] at hmem
+  nlinarith
+
+/-- The explicit ray--ray point is not on the circle of the `t`-member. -/
+theorem rayRayPoint_not_mem_rightCircle
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    rayRayPoint s t ∉
+      circleSet (lollipop t).center (lollipop t).radius := by
+  intro hmem
+  have hout := rayRayPoint_strictly_outside_rightCircle hs hst ht
+  simp [circleSet] at hmem
+  nlinarith
+
+/-- The ray--ray component of two distinct ordered polynomial-family members
+has an explicit primitive witness. -/
+theorem rayRayPoint_mem_pairIntersectionSet
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    rayRayPoint s t ∈ pairIntersectionSet (lollipop s) (lollipop t) :=
+  mem_pairIntersectionSet_of_mem_raySets
+    (rayRayPoint_mem_leftRay hs hst ht)
+    (rayRayPoint_mem_rightRay hs hst ht)
+
 /-- The complete scalar package used by the corrected local crossing proof. -/
 theorem corrected_local_pair_data
     {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
