@@ -70,9 +70,10 @@ This is not yet an unconditional theorem: `EndToEndPorts` explicitly packages
 the remaining concrete theorem targets.  The current port boundary is:
 
 - `UpperPorts`: concrete upper bound for every arrangement.
-- `LowerPorts`: lower construction from blow-up geometry and genericity.
-- `BlowUpPorts`: similarity invariance and the generic region equation.  The
-  uniform inter-cluster chamber radius is now proved in Lean as
+- `LowerPorts`: lower construction from blow-up geometry, genericity, and the
+  planar topology generic Euler equation.
+- `BlowUpPorts`: similarity invariance of strict pair chambers.  The uniform
+  inter-cluster chamber radius is now proved in Lean as
   `Lower.BlowUp.exists_uniform_intercluster_radius`, and the constructed
   pre-arrangements are proved to realize the intended pair chambers as
   `Lower.BlowUp.preArrangement_realizes_concrete`.

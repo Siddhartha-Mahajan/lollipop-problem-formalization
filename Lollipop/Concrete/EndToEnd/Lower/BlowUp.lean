@@ -262,16 +262,12 @@ theorem exists_uniform_intercluster_radius :
 /-- Remaining theorem package for the concrete blow-up layer.
 
 The fields are concrete statements, not project axioms.  They name the exact
-facts still to prove in this file: similarity invariance of strict pair codes
-and the generic Euler/region equation supplied by planar topology. -/
+fact still to prove in this file: similarity invariance of strict pair codes. -/
 structure BlowUpPorts : Prop where
   realizes_map_iff :
     ∀ (S : PlaneSimilarity) (code : StrictPairCode) (L M : Lollipop),
     RealizesStrictPairCode code (S.mapLollipop L) (S.mapLollipop M) ↔
       RealizesStrictPairCode code L M
-  generic_region_eq :
-    ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
-      regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (n : ℚ) + 1
 
 /-- Choose one uniform radius once and for all. -/
 def epsilon (_P : BlowUpPorts) : ℝ :=
@@ -460,6 +456,8 @@ theorem exists_generic_crossings_eq_lowerCrossingsOfQuad {n : ℕ}
 /-- Exact generic region equation for one admissible quadruple. -/
 theorem exists_region_eq_lowerRegionsOfQuad {n : ℕ}
     (P : BlowUpPorts)
+    (hregion : ∀ {m : ℕ} {A : Arrangement m}, IsGeneric A →
+      regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (m : ℚ) + 1)
     (havoid : GenericityPort.GenericityAvoidance n)
     (q : QuadVec n) (hq : q ∈ quadVecs n) :
     ∃ A : Arrangement n,
@@ -468,17 +466,21 @@ theorem exists_region_eq_lowerRegionsOfQuad {n : ℕ}
     ⟨A, hgen, hcross⟩
   refine ⟨A, ?_⟩
   unfold lowerRegionsOfQuad
-  rw [P.generic_region_eq hgen, hcross]
+  rw [hregion hgen, hcross]
 
 /-- Concrete lower realization in the existing algebraic interface. -/
 theorem lowerRealization (P : BlowUpPorts)
+    (hregion : ∀ {m : ℕ} {A : Arrangement m}, IsGeneric A →
+      regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (m : ℚ) + 1)
     (havoid : ∀ n : ℕ, GenericityPort.GenericityAvoidance n) (n : ℕ) :
     LowerRealization (Arrangement n) regionCountRat n := by
   intro q hq
-  exact exists_region_eq_lowerRegionsOfQuad P (havoid n) q hq
+  exact exists_region_eq_lowerRegionsOfQuad P hregion (havoid n) q hq
 
 /-- Crossing-level concrete lower realization. -/
 theorem lowerCrossingRealization (P : BlowUpPorts)
+    (hregion : ∀ {m : ℕ} {A : Arrangement m}, IsGeneric A →
+      regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (m : ℚ) + 1)
     (havoid : ∀ n : ℕ, GenericityPort.GenericityAvoidance n) (n : ℕ) :
     LowerCrossingRealization (Arrangement n) regionCountRat
       (fun A => ((totalCrossingsNat A : ℕ) : ℚ)) n := by
@@ -486,7 +488,7 @@ theorem lowerCrossingRealization (P : BlowUpPorts)
   rcases exists_generic_crossings_eq_lowerCrossingsOfQuad P (havoid n) q hq with
     ⟨A, hgen, hcross⟩
   refine ⟨A, hcross, ?_⟩
-  exact P.generic_region_eq hgen
+  exact hregion hgen
 
 end BlowUp
 end Lower

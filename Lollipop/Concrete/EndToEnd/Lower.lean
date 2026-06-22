@@ -26,16 +26,18 @@ theorem candidate_eq_candidateRegionsChoose (n : ℕ) :
 
 These are not caller-facing certificates for an abstract problem family.  They
 are the concrete geometry/topology theorems still to prove: genericity
-avoidance, similarity invariance, and the generic region equation. -/
+avoidance, similarity invariance, and planar topology. -/
 structure LowerPorts : Prop where
   blowUp : Lower.BlowUp.BlowUpPorts
+  topology : PlanarTopologyPorts
   genericity : ∀ n : ℕ, Lower.GenericityPort.GenericityAvoidance n
 
 /-- Every admissible quadruple has a concrete lollipop realization with its
 exact lower region count. -/
 theorem lowerRealization_all (ports : LowerPorts) (n : ℕ) :
     LowerRealization (Arrangement n) regionCountRat n :=
-  Lower.BlowUp.lowerRealization ports.blowUp ports.genericity n
+  Lower.BlowUp.lowerRealization ports.blowUp ports.topology.generic_region_eq
+    ports.genericity n
 
 /-- The displayed candidate is attained for every size. -/
 theorem regionLower (ports : LowerPorts) (n : ℕ) : RegionLowerStatement n := by

@@ -41,8 +41,8 @@ structures:
 - `GenericityAvoidance`: density of the complement of the finite bad locus;
   points outside that locus are proved generic as
   `Lower.GenericityPort.good_is_generic`;
-- `BlowUpPorts`: similarity invariance and the generic region equation; the
-  uniform inter-cluster chamber radius is now proved as
+- `BlowUpPorts`: similarity invariance of strict pair chambers; the uniform
+  inter-cluster chamber radius is now proved as
   `Lower.BlowUp.exists_uniform_intercluster_radius`, and realization of all
   intended blow-up pair chambers is now proved as
   `Lower.BlowUp.preArrangement_realizes_concrete`;
