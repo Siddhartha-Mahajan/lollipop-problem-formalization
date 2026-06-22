@@ -565,6 +565,16 @@ private theorem detPoint_smul_add_smul_perp
   simp [perpPoint, R2.toPoint, detPoint, normSqPoint, dotPoint]
   ring
 
+private theorem detPoint_smul_left (a : ℝ) (u v : Point) :
+    detPoint (a • u) v = a * detPoint u v := by
+  simp [detPoint]
+  ring
+
+private theorem detPoint_smul_right (a : ℝ) (u v : Point) :
+    detPoint u (a • v) = a * detPoint u v := by
+  simp [detPoint]
+  ring
+
 private theorem normSqPoint_smul (a : ℝ) (u : Point) :
     normSqPoint (a • u) = a ^ 2 * normSqPoint u := by
   simp [normSqPoint, dotPoint]
@@ -597,6 +607,199 @@ private theorem normSqPoint_sub_of_dot_zero
   have hnorm_neg : normSqPoint (-v) = normSqPoint v := by
     simpa using normSqPoint_smul (-1) v
   rw [sub_eq_add_neg, normSqPoint_add_of_dot_zero hneg, hnorm_neg]
+
+private theorem similarityTo_unit_sq (Q : Lollipop) :
+    Q.unitRadial 0 ^ 2 + Q.unitRadial 1 ^ 2 = 1 :=
+  point_coord_sq_eq_one_of_norm_eq_one Q.norm_unitRadial
+
+theorem similarityTo_displacement (Q L M : Lollipop) :
+    displacement ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      Q.radius • rotationTo Q.unitRadial (displacement L M) := by
+  unfold displacement
+  change (similarityTo Q).toFun M.center - (similarityTo Q).toFun L.center =
+    Q.radius • rotationTo Q.unitRadial (M.center - L.center)
+  rw [PlaneSimilarity.sub_toFun]
+  simp [similarityTo, rotationToIsometry]
+
+theorem similarityTo_map_unitRadial (Q L : Lollipop) :
+    ((similarityTo Q).mapLollipop L).unitRadial =
+      rotationTo Q.unitRadial L.unitRadial := by
+  rw [PlaneSimilarity.map_unitRadial]
+  simp [similarityTo, rotationToIsometry]
+
+private theorem normSqPoint_similarityTo_rotation (Q : Lollipop) (x : Point) :
+    normSqPoint (Q.radius • rotationTo Q.unitRadial x) =
+      Q.radius ^ 2 * normSqPoint x := by
+  rw [normSqPoint_smul]
+  unfold normSqPoint
+  rw [rotationTo_dotPoint (similarityTo_unit_sq Q)]
+
+theorem centerDistanceSq_similarityTo (Q L M : Lollipop) :
+    centerDistanceSq ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      Q.radius ^ 2 * centerDistanceSq L M := by
+  unfold centerDistanceSq
+  rw [similarityTo_displacement, normSqPoint_similarityTo_rotation]
+
+theorem projectedCenterParameter_similarityTo (Q L M : Lollipop) :
+    projectedCenterParameter ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      Q.radius * projectedCenterParameter L M := by
+  unfold projectedCenterParameter
+  rw [similarityTo_displacement, similarityTo_map_unitRadial]
+  rw [dotPoint_smul_left, rotationTo_dotPoint (similarityTo_unit_sq Q)]
+
+theorem circleOuterMargin_similarityTo (Q L M : Lollipop) :
+    circleOuterMargin ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      Q.radius ^ 2 * circleOuterMargin L M := by
+  unfold circleOuterMargin
+  rw [PlaneSimilarity.map_radius, PlaneSimilarity.map_radius,
+    centerDistanceSq_similarityTo]
+  simp [similarityTo]
+  ring_nf
+
+theorem circleInnerMargin_similarityTo (Q L M : Lollipop) :
+    circleInnerMargin ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      Q.radius ^ 2 * circleInnerMargin L M := by
+  unfold circleInnerMargin
+  rw [PlaneSimilarity.map_radius, PlaneSimilarity.map_radius,
+    centerDistanceSq_similarityTo]
+  simp [similarityTo]
+  ring_nf
+
+theorem lineDiscriminant_similarityTo (Q L M : Lollipop) :
+    lineDiscriminant ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      Q.radius ^ 2 * lineDiscriminant L M := by
+  unfold lineDiscriminant
+  rw [PlaneSimilarity.map_radius, centerDistanceSq_similarityTo,
+    projectedCenterParameter_similarityTo]
+  simp [similarityTo]
+  ring_nf
+
+theorem anchorPower_similarityTo (Q L M : Lollipop) :
+    anchorPower ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      Q.radius ^ 2 * anchorPower L M := by
+  unfold anchorPower
+  rw [PlaneSimilarity.map_anchor, PlaneSimilarity.map_radius]
+  change normSqPoint
+      ((similarityTo Q).toFun L.anchor - (similarityTo Q).toFun M.center) -
+        (Q.radius * M.radius) ^ 2 =
+      Q.radius ^ 2 * (normSqPoint (L.anchor - M.center) - M.radius ^ 2)
+  rw [PlaneSimilarity.sub_toFun]
+  change normSqPoint (Q.radius • rotationTo Q.unitRadial (L.anchor - M.center)) -
+        (Q.radius * M.radius) ^ 2 =
+      Q.radius ^ 2 * (normSqPoint (L.anchor - M.center) - M.radius ^ 2)
+  rw [normSqPoint_similarityTo_rotation]
+  ring
+
+theorem vertexAhead_similarityTo (Q L M : Lollipop) :
+    vertexAhead ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      Q.radius * vertexAhead L M := by
+  unfold vertexAhead
+  rw [projectedCenterParameter_similarityTo, PlaneSimilarity.map_radius]
+  simp [similarityTo]
+  ring_nf
+
+theorem directionDet_similarityTo (Q L M : Lollipop) :
+    directionDet ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      directionDet L M := by
+  unfold directionDet
+  rw [similarityTo_map_unitRadial, similarityTo_map_unitRadial]
+  exact rotationTo_detPoint (similarityTo_unit_sq Q) L.unitRadial M.unitRadial
+
+theorem leftLineParameter_similarityTo (Q L M : Lollipop) :
+    leftLineParameter ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      Q.radius * leftLineParameter L M := by
+  unfold leftLineParameter
+  rw [similarityTo_displacement, similarityTo_map_unitRadial,
+    directionDet_similarityTo]
+  rw [detPoint_smul_left, rotationTo_detPoint (similarityTo_unit_sq Q)]
+  ring
+
+theorem rightLineParameter_similarityTo (Q L M : Lollipop) :
+    rightLineParameter ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) =
+      Q.radius * rightLineParameter L M := by
+  unfold rightLineParameter
+  rw [similarityTo_displacement, similarityTo_map_unitRadial,
+    directionDet_similarityTo]
+  rw [detPoint_smul_left, rotationTo_detPoint (similarityTo_unit_sq Q)]
+  ring
+
+private theorem pos_mul_iff_of_pos_left' {a x : ℝ} (ha : 0 < a) :
+    0 < a * x ↔ 0 < x :=
+  mul_pos_iff_of_pos_left ha
+
+private theorem mul_lt_zero_iff_of_pos_left' {a x : ℝ} (ha : 0 < a) :
+    a * x < 0 ↔ x < 0 := by
+  constructor
+  · intro h
+    exact neg_of_mul_neg_right h ha.le
+  · intro hx
+    simpa using mul_lt_mul_of_pos_left hx ha
+
+private theorem mul_lt_mul_left_iff_of_pos' {a x y : ℝ} (ha : 0 < a) :
+    a * x < a * y ↔ x < y := by
+  constructor
+  · intro h
+    exact lt_of_mul_lt_mul_left h ha.le
+  · intro h
+    exact mul_lt_mul_of_pos_left h ha
+
+theorem mixedCodeRealized_similarityTo_iff
+    (Q : Lollipop) (code : MixedCode) (L M : Lollipop) :
+    code.Realized ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) ↔
+      code.Realized L M := by
+  have hscale : 0 < Q.radius := Q.radius_pos
+  have hscaleSq : 0 < Q.radius ^ 2 := sq_pos_of_pos hscale
+  cases code <;>
+    simp [MixedCode.Realized, lineDiscriminant_similarityTo,
+      anchorPower_similarityTo, vertexAhead_similarityTo,
+      pos_mul_iff_of_pos_left' hscaleSq,
+      mul_lt_zero_iff_of_pos_left' hscaleSq,
+      pos_mul_iff_of_pos_left' hscale,
+      mul_lt_zero_iff_of_pos_left' hscale]
+
+theorem rayRayCodeRealized_similarityTo_iff
+    (Q : Lollipop) (b : Bool) (L M : Lollipop) :
+    RayRayCodeRealized b ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) ↔
+      RayRayCodeRealized b L M := by
+  have hscale : 0 < Q.radius := Q.radius_pos
+  cases b
+  · simp only [RayRayCodeRealized, if_false]
+    rw [directionDet_similarityTo, leftLineParameter_similarityTo,
+      rightLineParameter_similarityTo, PlaneSimilarity.map_radius,
+      PlaneSimilarity.map_radius]
+    simp [similarityTo, mul_lt_mul_left_iff_of_pos' hscale]
+  · simp only [RayRayCodeRealized, if_true]
+    rw [directionDet_similarityTo, leftLineParameter_similarityTo,
+      rightLineParameter_similarityTo, PlaneSimilarity.map_radius,
+      PlaneSimilarity.map_radius]
+    simp [similarityTo, mul_lt_mul_left_iff_of_pos' hscale]
+
+/-- Canonical positive similarities preserve every strict pair chamber. -/
+theorem realizes_similarityTo_iff
+    (Q : Lollipop) (code : StrictPairCode) (L M : Lollipop) :
+    RealizesStrictPairCode code ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) ↔
+      RealizesStrictPairCode code L M := by
+  have hscaleSq : 0 < Q.radius ^ 2 := sq_pos_of_pos Q.radius_pos
+  rcases code with ⟨left, right, ray⟩
+  simp [RealizesStrictPairCode, strictPairChamberSet,
+    circleOuterMargin_similarityTo, circleInnerMargin_similarityTo,
+    mixedCodeRealized_similarityTo_iff,
+    rayRayCodeRealized_similarityTo_iff,
+    pos_mul_iff_of_pos_left' hscaleSq]
 
 private def circleChordParameter (L M : Lollipop) : ℝ :=
   (centerDistanceSq L M + L.radius ^ 2 - M.radius ^ 2) /
@@ -1820,6 +2023,14 @@ theorem pair_transverse
     · exact ray_ray_transverse (by simpa [hcode] using hrr)
 
 end PairChamberPort
+
+/-- Canonical positive similarities preserve every strict pair chamber. -/
+theorem realizes_similarityTo_iff
+    (Q : Lollipop) (code : StrictPairCode) (L M : Lollipop) :
+    RealizesStrictPairCode code ((similarityTo Q).mapLollipop L)
+        ((similarityTo Q).mapLollipop M) ↔
+      RealizesStrictPairCode code L M :=
+  PairChamberPort.realizes_similarityTo_iff Q code L M
 
 /-- Swapping a strict pair chamber. -/
 theorem realizes_swap_iff

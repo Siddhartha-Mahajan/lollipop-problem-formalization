@@ -88,6 +88,14 @@ def mapLollipop (S : PlaneSimilarity) (L : Lollipop) : Lollipop where
   simp [mapLollipop, Lollipop.radius, norm_smul, Real.norm_eq_abs,
     abs_of_pos S.scale_pos]
 
+@[simp] theorem map_unitRadial (S : PlaneSimilarity) (L : Lollipop) :
+    (S.mapLollipop L).unitRadial = S.orthogonal L.unitRadial := by
+  rw [Lollipop.unitRadial, map_radius, mapLollipop, Lollipop.unitRadial]
+  have hscale' : L.radius⁻¹ * S.scale⁻¹ * S.scale = L.radius⁻¹ := by
+    field_simp [S.scale_pos.ne']
+  ext i
+  simp [smul_smul, hscale', map_smul]
+
 @[simp] theorem map_anchor (S : PlaneSimilarity) (L : Lollipop) :
     (S.mapLollipop L).anchor = S.toFun L.anchor := by
   simp [mapLollipop, Lollipop.anchor, toFun, map_add, add_assoc]
@@ -265,6 +273,28 @@ def rotationTo (u : Point) : Point →ₗ[ℝ] Point where
     intro a x
     ext i
     fin_cases i <;> simp [R2.toPoint] <;> ring_nf
+
+theorem rotationTo_dotPoint {u : Point}
+    (hu : u 0 ^ 2 + u 1 ^ 2 = 1) (x y : Point) :
+    dotPoint (rotationTo u x) (rotationTo u y) = dotPoint x y := by
+  unfold rotationTo dotPoint
+  simp [R2.toPoint]
+  calc
+    (u 0 * x 0 - u 1 * x 1) * (u 0 * y 0 - u 1 * y 1) +
+        (u 1 * x 0 + u 0 * x 1) * (u 1 * y 0 + u 0 * y 1) =
+        (u 0 ^ 2 + u 1 ^ 2) * (x 0 * y 0 + x 1 * y 1) := by ring
+    _ = x 0 * y 0 + x 1 * y 1 := by rw [hu]; ring
+
+theorem rotationTo_detPoint {u : Point}
+    (hu : u 0 ^ 2 + u 1 ^ 2 = 1) (x y : Point) :
+    detPoint (rotationTo u x) (rotationTo u y) = detPoint x y := by
+  unfold rotationTo detPoint
+  simp [R2.toPoint]
+  calc
+    (u 0 * x 0 - u 1 * x 1) * (u 1 * y 0 + u 0 * y 1) -
+        (u 1 * x 0 + u 0 * x 1) * (u 0 * y 0 - u 1 * y 1) =
+        (u 0 ^ 2 + u 1 ^ 2) * (x 0 * y 1 - x 1 * y 0) := by ring
+    _ = x 0 * y 1 - x 1 * y 0 := by rw [hu]; ring
 
 /-- Unit-vector rotation as a linear isometry equivalence. -/
 def rotationToIsometry (u : Point) (hu : ‖u‖ = 1) : Point ≃ₗᵢ[ℝ] Point := by
