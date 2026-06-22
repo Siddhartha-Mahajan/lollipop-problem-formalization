@@ -33,25 +33,6 @@ noncomputable def bettiOne {X : Type*} [TopologicalSpace X] (K : Set X) : ℕ :=
   Module.finrank ℚ
     ((AlgebraicTopology.SingularHomology.functor ℚ 1).obj (TopCat.of K))
 
-/-- Finite crossing sum for a generic arrangement. -/
-def totalCrossingsNat {n : ℕ} (A : Arrangement n) : ℕ :=
-  ∑ p ∈ Lollipop.pairFinset n, pairCrossingCount (A p.1) (A p.2)
-
-/-- Genericity sufficient for the exact Euler face formula. -/
-structure IsGeneric {n : ℕ} (A : Arrangement n) : Prop where
-  pair_finite : ∀ i j : Fin n, i ≠ j →
-    (pairCrossingSet (A i) (A j)).Finite
-  pair_transverse : ∀ i j : Fin n, i ≠ j →
-    PrimitivePairwiseTransverse (A i) (A j)
-  away_left_anchor : ∀ i j : Fin n, i ≠ j →
-    (A i).anchor ∉ pairCrossingSet (A i) (A j)
-  away_right_anchor : ∀ i j : Fin n, i ≠ j →
-    (A j).anchor ∉ pairCrossingSet (A i) (A j)
-  no_triple : ∀ i j k : Fin n, i ≠ j → i ≠ k → j ≠ k →
-    pairCrossingSet (A i) (A j) ∩ (A k).carrier = ∅
-  nonparallel_stems : ∀ i j : Fin n, i ≠ j →
-    detPoint (A i).radial (A j).radial ≠ 0
-
 namespace TopologyPort
 
 /-- Compatible finite triangulation of all carrier unions and intersections.

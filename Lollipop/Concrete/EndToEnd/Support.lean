@@ -52,6 +52,11 @@ def pairCrossingSet (L M : Lollipop) : Set Point := L.carrier ∩ M.carrier
 def pairCrossingCount (L M : Lollipop) : ℕ :=
   (pairCrossingSet L M).ncard
 
+/-- Finite crossing sum for an arrangement.  For generic arrangements this is
+the ordinary crossing count used in the Euler face formula. -/
+def totalCrossingsNat {n : ℕ} (A : Arrangement n) : ℕ :=
+  ∑ p ∈ Lollipop.pairFinset n, pairCrossingCount (A p.1) (A p.2)
+
 /-- The bundled Euclidean sphere underlying a concrete lollipop circle. -/
 def concreteSphere (L : Lollipop) : EuclideanGeometry.Sphere Point where
   center := L.center
@@ -407,6 +412,21 @@ structure PrimitivePairwiseTransverse (L M : Lollipop) : Prop where
   cr : ∀ x, x ∈ cr L M → StemCircleTransverseAt M L x
   rc : ∀ x, x ∈ rc L M → StemCircleTransverseAt L M x
   rr : (rr L M).Nonempty → StemStemTransverse L M
+
+/-- Genericity sufficient for the exact embedded-graph Euler face formula. -/
+structure IsGeneric {n : ℕ} (A : Arrangement n) : Prop where
+  pair_finite : ∀ i j : Fin n, i ≠ j →
+    (pairCrossingSet (A i) (A j)).Finite
+  pair_transverse : ∀ i j : Fin n, i ≠ j →
+    PrimitivePairwiseTransverse (A i) (A j)
+  away_left_anchor : ∀ i j : Fin n, i ≠ j →
+    (A i).anchor ∉ pairCrossingSet (A i) (A j)
+  away_right_anchor : ∀ i j : Fin n, i ≠ j →
+    (A j).anchor ∉ pairCrossingSet (A i) (A j)
+  no_triple : ∀ i j k : Fin n, i ≠ j → i ≠ k → j ≠ k →
+    pairCrossingSet (A i) (A j) ∩ (A k).carrier = ∅
+  nonparallel_stems : ∀ i j : Fin n, i ≠ j →
+    detPoint (A i).radial (A j).radial ≠ 0
 
 /-- The stem is convex. -/
 theorem stem_convex (L : Lollipop) : Convex ℝ L.stem := by

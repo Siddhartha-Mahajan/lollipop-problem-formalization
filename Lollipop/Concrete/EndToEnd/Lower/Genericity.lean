@@ -39,21 +39,29 @@ def LollipopParameter.toLollipop (p : LollipopParameter) : Lollipop where
   radial_ne_zero := p.2
 
 /-- Parameters of a concrete lollipop. -/
-def Lollipop.toParameter (L : Lollipop) : LollipopParameter :=
+def lollipopToParameter (L : Lollipop) : LollipopParameter :=
   ⟨(L.center, L.radial), L.radial_ne_zero⟩
 
 @[simp] theorem parameter_toLollipop (L : Lollipop) :
-    L.toParameter.toLollipop = L := by cases L <;> rfl
+    (lollipopToParameter L).toLollipop = L := by cases L <;> rfl
 
 @[simp] theorem lollipop_toParameter (p : LollipopParameter) :
-    p.toLollipop.toParameter = p := by cases p <;> rfl
+    lollipopToParameter p.toLollipop = p := by cases p <;> rfl
 
 /-- Parameter equivalence. -/
 def lollipopParameterEquiv : LollipopParameter ≃ Lollipop :=
   { toFun := LollipopParameter.toLollipop
-    invFun := Lollipop.toParameter
+    invFun := lollipopToParameter
     left_inv := lollipop_toParameter
     right_inv := parameter_toLollipop }
+
+/-- The parameter-to-lollipop map is continuous for the induced lollipop
+topology. -/
+theorem continuous_toLollipop :
+    Continuous LollipopParameter.toLollipop := by
+  rw [continuous_induced_rng]
+  change Continuous (fun p : LollipopParameter => (p.1.1, p.1.2))
+  fun_prop
 
 /-- Parameter space of an `n`-arrangement. -/
 abbrev ArrangementParameter (n : ℕ) := Fin n → LollipopParameter
@@ -63,14 +71,15 @@ def ArrangementParameter.toArrangement {n : ℕ}
   fun i => (p i).toLollipop
 
 /-- Parameters of an arrangement. -/
-def Arrangement.toParameter {n : ℕ}
+def arrangementToParameter {n : ℕ}
     (A : Arrangement n) : ArrangementParameter n :=
-  fun i => (A i).toParameter
+  fun i => lollipopToParameter (A i)
 
 @[simp] theorem arrangement_parameter_roundtrip {n : ℕ}
-    (A : Arrangement n) : A.toParameter.toArrangement = A := by
+    (A : Arrangement n) :
+    (arrangementToParameter A).toArrangement = A := by
   funext i
-  simp [Arrangement.toParameter, ArrangementParameter.toArrangement]
+  simp [arrangementToParameter, ArrangementParameter.toArrangement]
 
 /-- Symmetric pair-code specification. -/
 structure PairCodeSpec (n : ℕ) where
@@ -94,17 +103,27 @@ theorem isOpen_pairCodeChamber {n : ℕ} (S : PairCodeSpec n) :
     IsOpen (pairCodeChamber S) := by
   classical
   unfold pairCodeChamber RealizesPairCodeSpec
-  rw [isOpen_setOf_forall_fin_pair]
-  intro i j hij
-  exact (isOpen_realizesStrictPairCode (S.code i j)).preimage
-    (continuous_apply i |>.prodMk (continuous_apply j))
+  simp only [Set.setOf_forall]
+  apply isOpen_iInter_of_finite
+  intro i
+  apply isOpen_iInter_of_finite
+  intro j
+  apply isOpen_iInter_of_finite
+  intro _hij
+  have hmap : Continuous (fun p : ArrangementParameter n =>
+      ((p i).toLollipop, (p j).toLollipop)) :=
+    (continuous_toLollipop.comp (continuous_apply i)).prodMk
+      (continuous_toLollipop.comp (continuous_apply j))
+  simpa [strictPairChamberSet, RealizesStrictPairCode,
+    ArrangementParameter.toArrangement, Set.setOf_and] using
+    (isOpen_realizesStrictPairCode (S.code i j)).preimage hmap
 
 /-- The chamber containing a realizing arrangement is nonempty. -/
 theorem parameter_mem_pairCodeChamber
     {n : ℕ} {S : PairCodeSpec n} {A : Arrangement n}
     (hA : RealizesPairCodeSpec S A) :
-    A.toParameter ∈ pairCodeChamber S := by
-  simpa [pairCodeChamber, Arrangement.toParameter,
+    arrangementToParameter A ∈ pairCodeChamber S := by
+  simpa [pairCodeChamber, arrangementToParameter,
     ArrangementParameter.toArrangement] using hA
 
 namespace GenericityPort
@@ -127,6 +146,15 @@ def primitive (k : PrimitiveKind) (L : Lollipop) : Set Point :=
   match k with
   | .circle => L.circle
   | .stem => L.stem
+
+/-- Pointwise transversality predicate for a chosen pair of primitive pieces. -/
+def primitiveTransverseAt
+    (ki kj : PrimitiveKind) (L M : Lollipop) (x : Point) : Prop :=
+  match ki, kj with
+  | .circle, .circle => CircleCircleTransverseAt L M x
+  | .circle, .stem => StemCircleTransverseAt M L x
+  | .stem, .circle => StemCircleTransverseAt L M x
+  | .stem, .stem => StemStemTransverse L M
 
 /-- Tangency/nontransversality locus for one ordered pair and primitive kinds. -/
 def pairBadSet {n : ℕ}
@@ -159,138 +187,130 @@ def parallelBadSet {n : ℕ} (i j : Fin n) (hij : i ≠ j) :
   {p | detPoint ((p i).toLollipop).radial
       ((p j).toLollipop).radial = 0}
 
-/-- Every pair tangency locus is semialgebraic. -/
-theorem pairBadSet_semialgebraic {n : ℕ}
-    (i j : Fin n) (hij : i ≠ j) (ki kj : PrimitiveKind) :
-    IsSemialgebraic (pairBadSet i j hij ki kj) := by
-  unfold pairBadSet primitive primitiveTransverseAt
-  exact IsSemialgebraic.exists_point_primitive_incidence_and_jacobian_zero
-    i j hij ki kj
+/-- Union of all primitive-pair tangency loci. -/
+def pairBadUnion {n : ℕ} : Set (ArrangementParameter n) :=
+  ⋃ i : Fin n, ⋃ j : Fin n, ⋃ hij : i ≠ j,
+    ⋃ ki : PrimitiveKind, ⋃ kj : PrimitiveKind,
+      pairBadSet i j hij ki kj
 
-/-- Every pair tangency locus is proper.  Move the center of the second
-primitive in a normal direction while fixing all other parameters. -/
-theorem pairBadSet_interior_empty {n : ℕ}
-    (i j : Fin n) (hij : i ≠ j) (ki kj : PrimitiveKind) :
-    interior (pairBadSet i j hij ki kj) = ∅ := by
-  have hsemi := pairBadSet_semialgebraic i j hij ki kj
-  apply hsemi.interior_eq_empty_of_polynomial_witness
-  exact primitive_tangency_nonzero_normal_translation_polynomial i j hij ki kj
+/-- Union of all anchor-incidence loci. -/
+def anchorBadUnion {n : ℕ} : Set (ArrangementParameter n) :=
+  ⋃ i : Fin n, ⋃ j : Fin n, ⋃ hij : i ≠ j,
+    anchorBadSet i j hij
 
-/-- Anchor incidences form a proper semialgebraic locus. -/
-theorem anchorBadSet_semialgebraic_and_interior_empty {n : ℕ}
-    (i j : Fin n) (hij : i ≠ j) :
-    IsSemialgebraic (anchorBadSet i j hij) ∧
-      interior (anchorBadSet i j hij) = ∅ := by
-  constructor
-  · exact IsSemialgebraic.anchor_carrier_incidence i j hij
-  · exact IsSemialgebraic.interior_empty_anchor_carrier_incidence i j hij
+/-- Union of all triple-incidence loci. -/
+def tripleBadUnion {n : ℕ} : Set (ArrangementParameter n) :=
+  ⋃ i : Fin n, ⋃ j : Fin n, ⋃ k : Fin n,
+    ⋃ hij : i ≠ j, ⋃ hik : i ≠ k, ⋃ hjk : j ≠ k,
+      tripleBadSet i j k hij hik hjk
 
-/-- Triple incidences form a proper semialgebraic locus. -/
-theorem tripleBadSet_semialgebraic_and_interior_empty {n : ℕ}
-    (i j k : Fin n) (hij : i ≠ j) (hik : i ≠ k) (hjk : j ≠ k) :
-    IsSemialgebraic (tripleBadSet i j k hij hik hjk) ∧
-      interior (tripleBadSet i j k hij hik hjk) = ∅ := by
-  constructor
-  · exact IsSemialgebraic.exists_triple_lollipop_carrier_incidence
-      i j k hij hik hjk
-  · exact IsSemialgebraic.interior_empty_triple_lollipop_carrier_incidence
-      i j k hij hik hjk
-
-/-- Parallel stems form a proper algebraic hypersurface. -/
-theorem parallelBadSet_semialgebraic_and_interior_empty {n : ℕ}
-    (i j : Fin n) (hij : i ≠ j) :
-    IsSemialgebraic (parallelBadSet i j hij) ∧
-      interior (parallelBadSet i j hij) = ∅ := by
-  constructor
-  · exact IsSemialgebraic.det_coordinate_zero i j
-  · exact polynomial_zero_set_interior_empty
-      (det_radial_polynomial_nonzero i j hij)
+/-- Union of all parallel-stem loci. -/
+def parallelBadUnion {n : ℕ} : Set (ArrangementParameter n) :=
+  ⋃ i : Fin n, ⋃ j : Fin n, ⋃ hij : i ≠ j,
+    parallelBadSet i j hij
 
 /-- Union of all finitely many forbidden degeneracy loci. -/
 def allBad {n : ℕ} : Set (ArrangementParameter n) :=
-  (⋃ (i j : Fin n) (hij : i ≠ j)
-      (ki kj : PrimitiveKind), pairBadSet i j hij ki kj) ∪
-  (⋃ (i j : Fin n) (hij : i ≠ j), anchorBadSet i j hij) ∪
-  (⋃ (i j k : Fin n) (hij : i ≠ j) (hik : i ≠ k) (hjk : j ≠ k),
-      tripleBadSet i j k hij hik hjk) ∪
-  (⋃ (i j : Fin n) (hij : i ≠ j), parallelBadSet i j hij)
+  pairBadUnion ∪ (anchorBadUnion ∪ (tripleBadUnion ∪ parallelBadUnion))
 
-/-- The complement of all degeneracies is dense. -/
-theorem dense_compl_allBad (n : ℕ) :
-    Dense ((allBad : Set (ArrangementParameter n))ᶜ) := by
-  apply dense_compl_of_isClosed_iUnion_semialgebraic_interior_empty
-  · exact finite_family_pairBad_anchorBad_tripleBad_parallelBad
-  · intro S hS
-    rcases hS with hpair | hanchor | htriple | hparallel
-    · exact pairBadSet_semialgebraic _ _ _ _ _
-    · exact (anchorBadSet_semialgebraic_and_interior_empty _ _ _).1
-    · exact (tripleBadSet_semialgebraic_and_interior_empty _ _ _ _ _ _).1
-    · exact (parallelBadSet_semialgebraic_and_interior_empty _ _ _).1
-  · intro S hS
-    rcases hS with hpair | hanchor | htriple | hparallel
-    · exact pairBadSet_interior_empty _ _ _ _ _
-    · exact (anchorBadSet_semialgebraic_and_interior_empty _ _ _).2
-    · exact (tripleBadSet_semialgebraic_and_interior_empty _ _ _ _ _ _).2
-    · exact (parallelBadSet_semialgebraic_and_interior_empty _ _ _).2
+/-- Membership constructor for the pair-tangency part of `allBad`. -/
+theorem mem_allBad_of_pairBad {n : ℕ}
+    (i j : Fin n) (hij : i ≠ j) (ki kj : PrimitiveKind)
+    {p : ArrangementParameter n}
+    (hbad : p ∈ pairBadSet i j hij ki kj) :
+    p ∈ (allBad : Set (ArrangementParameter n)) := by
+  apply Or.inl
+  exact Set.mem_iUnion.mpr ⟨i,
+    Set.mem_iUnion.mpr ⟨j,
+      Set.mem_iUnion.mpr ⟨hij,
+        Set.mem_iUnion.mpr ⟨ki,
+          Set.mem_iUnion.mpr ⟨kj, hbad⟩⟩⟩⟩⟩
 
-/-- Avoiding `allBad` implies the exact genericity predicate used by the graph
+/-- Membership constructor for the anchor-incidence part of `allBad`. -/
+theorem mem_allBad_of_anchorBad {n : ℕ}
+    (i j : Fin n) (hij : i ≠ j)
+    {p : ArrangementParameter n}
+    (hbad : p ∈ anchorBadSet i j hij) :
+    p ∈ (allBad : Set (ArrangementParameter n)) := by
+  apply Or.inr
+  apply Or.inl
+  exact Set.mem_iUnion.mpr ⟨i,
+    Set.mem_iUnion.mpr ⟨j,
+      Set.mem_iUnion.mpr ⟨hij, hbad⟩⟩⟩
+
+/-- Membership constructor for the triple-incidence part of `allBad`. -/
+theorem mem_allBad_of_tripleBad {n : ℕ}
+    (i j k : Fin n) (hij : i ≠ j) (hik : i ≠ k) (hjk : j ≠ k)
+    {p : ArrangementParameter n}
+    (hbad : p ∈ tripleBadSet i j k hij hik hjk) :
+    p ∈ (allBad : Set (ArrangementParameter n)) := by
+  apply Or.inr
+  apply Or.inr
+  apply Or.inl
+  exact Set.mem_iUnion.mpr ⟨i,
+    Set.mem_iUnion.mpr ⟨j,
+      Set.mem_iUnion.mpr ⟨k,
+        Set.mem_iUnion.mpr ⟨hij,
+          Set.mem_iUnion.mpr ⟨hik,
+            Set.mem_iUnion.mpr ⟨hjk, hbad⟩⟩⟩⟩⟩⟩
+
+/-- Membership constructor for the parallel-stem part of `allBad`. -/
+theorem mem_allBad_of_parallelBad {n : ℕ}
+    (i j : Fin n) (hij : i ≠ j)
+    {p : ArrangementParameter n}
+    (hbad : p ∈ parallelBadSet i j hij) :
+    p ∈ (allBad : Set (ArrangementParameter n)) := by
+  apply Or.inr
+  apply Or.inr
+  apply Or.inr
+  exact Set.mem_iUnion.mpr ⟨i,
+    Set.mem_iUnion.mpr ⟨j,
+      Set.mem_iUnion.mpr ⟨hij, hbad⟩⟩⟩
+
+/-- The remaining finite-avoidance theorem needed to finish the lower
+genericization step.
+
+This is intentionally a proposition, not an axiom and not a caller-facing
+certificate for the final endpoint.  It records the concrete theorem still to
+prove: the complement of the explicitly defined bad locus is dense, and every
+point outside that locus satisfies the genericity predicate used by the graph
 Euler theorem. -/
-theorem isGeneric_of_not_mem_allBad {n : ℕ}
-    {p : ArrangementParameter n} (hp : p ∉ allBad) :
-    IsGeneric p.toArrangement := by
-  refine
-    { pair_finite := ?_
-      pair_transverse := ?_
-      away_left_anchor := ?_
-      away_right_anchor := ?_
-      no_triple := ?_
-      nonparallel_stems := ?_ }
-  · intro i j hij
-    exact finite_pairCrossingSet_of_no_primitive_tangency
-      (fun ki kj => by
-        intro hbad
-        exact hp (mem_allBad_of_pairBad i j hij ki kj hbad))
-  · intro i j hij
-    exact primitivePairwiseTransverse_of_not_pairBad
-      (fun ki kj hbad => hp (mem_allBad_of_pairBad i j hij ki kj hbad))
-  · intro i j hij hanchor
-    exact hp (mem_allBad_of_anchorBad i j hij (Or.inl hanchor))
-  · intro i j hij hanchor
-    exact hp (mem_allBad_of_anchorBad i j hij (Or.inr hanchor))
-  · intro i j k hij hik hjk
-    apply Set.eq_empty_iff_forall_not_mem.2
-    intro x hx
-    exact hp (mem_allBad_of_tripleBad i j k hij hik hjk ⟨x, hx⟩)
-  · intro i j hij hparallel
-    exact hp (mem_allBad_of_parallelBad i j hij hparallel)
+structure GenericityAvoidance (n : ℕ) : Prop where
+  dense_good : Dense ((allBad : Set (ArrangementParameter n))ᶜ)
+  good_is_generic :
+    ∀ {p : ArrangementParameter n}, p ∉ allBad → IsGeneric p.toArrangement
 
 end GenericityPort
 
-/-- Every nonempty strict pair chamber contains a generic arrangement. -/
-theorem exists_generic_realizing_pair_codes
+/-- Every nonempty strict pair chamber contains a generic arrangement, assuming
+the remaining concrete finite-avoidance theorem. -/
+theorem exists_generic_realizing_pair_codes_of_avoidance
     {n : ℕ} {S : PairCodeSpec n} {A : Arrangement n}
+    (havoid : GenericityPort.GenericityAvoidance n)
     (hA : RealizesPairCodeSpec S A) :
     ∃ B : Arrangement n,
       RealizesPairCodeSpec S B ∧ IsGeneric B := by
   let U := pairCodeChamber S
   have hUopen : IsOpen U := isOpen_pairCodeChamber S
   have hUne : U.Nonempty :=
-    ⟨A.toParameter, parameter_mem_pairCodeChamber hA⟩
-  have hdense := GenericityPort.dense_compl_allBad n
-  rcases hUopen.exists_mem_inter_of_dense hUne hdense with ⟨p, hpU, hpGood⟩
+    ⟨arrangementToParameter A, parameter_mem_pairCodeChamber hA⟩
+  rcases havoid.dense_good.exists_mem_open hUopen hUne with
+    ⟨p, hpGood, hpU⟩
   refine ⟨p.toArrangement, hpU, ?_⟩
-  exact GenericityPort.isGeneric_of_not_mem_allBad hpGood
+  exact havoid.good_is_generic hpGood
 
 /-- Genericization preserves every exact pair crossing count encoded by the
-strict chamber. -/
-theorem exists_generic_with_pairCrossingCounts
+strict chamber, assuming the remaining concrete finite-avoidance theorem. -/
+theorem exists_generic_with_pairCrossingCounts_of_avoidance
     {n : ℕ} {S : PairCodeSpec n} {A : Arrangement n}
+    (havoid : GenericityPort.GenericityAvoidance n)
     (hA : RealizesPairCodeSpec S A) :
     ∃ B : Arrangement n,
       IsGeneric B ∧
       ∀ i j : Fin n, i < j →
         pairCrossingCount (B i) (B j) = (S.code i j).crossings := by
-  rcases exists_generic_realizing_pair_codes hA with ⟨B, hB, hgen⟩
+  rcases exists_generic_realizing_pair_codes_of_avoidance havoid hA with
+    ⟨B, hB, hgen⟩
   exact ⟨B, hgen, fun i j hij =>
     pairCrossingCount_eq_of_realizes (hB i j hij)⟩
 
