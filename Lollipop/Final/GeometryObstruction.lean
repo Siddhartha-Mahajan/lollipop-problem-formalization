@@ -33,7 +33,8 @@ def zeroRegionMaxProblemFamily : TheoremOne.MaxProblemFamily where
 theorem manuscriptS_zero :
     TheoremOneManuscript.manuscriptS 0 = 0 := by
   rw [TheoremOneManuscript.manuscriptS_eq_concreteS]
-  native_decide
+  rw [concreteS_eq_concreteM, concreteM_zero]
+  norm_num
 
 /-- Therefore the displayed formula evaluates to `1` at size `0`. -/
 theorem displayed_formula_rhs_zero :

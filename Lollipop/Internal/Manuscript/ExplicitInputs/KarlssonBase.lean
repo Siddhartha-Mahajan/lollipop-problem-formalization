@@ -45,23 +45,23 @@ theorem karlssonBasePairCrossing_symm (a b : Fin 4) :
 
 @[simp] theorem karlssonBasePairCrossing_zero_two :
     karlssonBasePairCrossing (0 : Fin 4) (2 : Fin 4) = 7 := by
-  native_decide
+  decide
 
 @[simp] theorem karlssonBasePairCrossing_zero_three :
     karlssonBasePairCrossing (0 : Fin 4) (3 : Fin 4) = 7 := by
-  native_decide
+  decide
 
 @[simp] theorem karlssonBasePairCrossing_one_two :
     karlssonBasePairCrossing (1 : Fin 4) (2 : Fin 4) = 7 := by
-  native_decide
+  decide
 
 @[simp] theorem karlssonBasePairCrossing_one_three :
     karlssonBasePairCrossing (1 : Fin 4) (3 : Fin 4) = 7 := by
-  native_decide
+  decide
 
 @[simp] theorem karlssonBasePairCrossing_two_three :
     karlssonBasePairCrossing (2 : Fin 4) (3 : Fin 4) = 7 := by
-  native_decide
+  decide
 
 /-- The visible six-entry Karlsson base table sums to `40`. -/
 theorem karlssonBasePairCrossing_six_pair_sum_eq_forty :
@@ -149,7 +149,19 @@ def karlssonBasePairCrossing_sixPairTableCertificate :
 /-- The unordered-pair finite sum over the four base lollipops is `40`. -/
 theorem pairSum_four_karlssonBasePairCrossing_eq_forty :
     pairSum 4 karlssonBasePairCrossing = 40 := by
-  native_decide
+  have hpair : pairFinset 4 =
+      {((0 : Fin 4), (1 : Fin 4)), ((0 : Fin 4), (2 : Fin 4)),
+        ((0 : Fin 4), (3 : Fin 4)), ((1 : Fin 4), (2 : Fin 4)),
+        ((1 : Fin 4), (3 : Fin 4)), ((2 : Fin 4), (3 : Fin 4))} := by
+    ext p
+    rcases p with ⟨i, j⟩
+    fin_cases i <;> fin_cases j <;> simp [pairFinset]
+  unfold pairSum
+  rw [hpair]
+  simp [karlssonBasePairCrossing_zero_one, karlssonBasePairCrossing_zero_two,
+    karlssonBasePairCrossing_zero_three, karlssonBasePairCrossing_one_two,
+    karlssonBasePairCrossing_one_three, karlssonBasePairCrossing_two_three]
+  norm_num
 
 /-- Any concrete four-base crossing table agreeing with Karlsson's table on
 distinct base pairs has unordered-pair sum `40`. -/

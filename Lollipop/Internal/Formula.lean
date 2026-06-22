@@ -132,21 +132,76 @@ theorem concreteM_le_quadCost_of_sum
   have hmin := concreteM_le_quadVecCost hq
   simpa [quadVecCost, quadEntry, q] using hmin
 
+private theorem quadVecCost_ge_three_halves_entry_sum
+    {n : ℕ} (q : QuadVec n) :
+    (3 / 2 : ℚ) *
+        (quadEntry q 0 + quadEntry q 1 + quadEntry q 2 + quadEntry q 3) ≤
+      quadVecCost q := by
+  have h0 : ((q 0 : ℕ) : ℚ) ≤ ((q 0 : ℕ) : ℚ) ^ 2 := by
+    exact_mod_cast (by simpa [pow_two] using Nat.le_mul_self (q 0 : ℕ))
+  have h1 : ((q 1 : ℕ) : ℚ) ≤ ((q 1 : ℕ) : ℚ) ^ 2 := by
+    exact_mod_cast (by simpa [pow_two] using Nat.le_mul_self (q 1 : ℕ))
+  have h2 : ((q 2 : ℕ) : ℚ) ≤ ((q 2 : ℕ) : ℚ) ^ 2 := by
+    exact_mod_cast (by simpa [pow_two] using Nat.le_mul_self (q 2 : ℕ))
+  have h3 : ((q 3 : ℕ) : ℚ) ≤ ((q 3 : ℕ) : ℚ) ^ 2 := by
+    exact_mod_cast (by simpa [pow_two] using Nat.le_mul_self (q 3 : ℕ))
+  have hab : 0 ≤ 2 * ((q 0 : ℕ) : ℚ) * ((q 1 : ℕ) : ℚ) := by
+    positivity
+  unfold quadVecCost quadEntry quadCost
+  nlinarith
+
+private theorem three_halves_mul_le_concreteM (n : ℕ) :
+    (3 / 2 : ℚ) * (n : ℚ) ≤ concreteM n := by
+  unfold concreteM
+  refine Finset.le_inf' (quadVecs_nonempty n) quadVecCost ?_
+  intro q hq
+  have hsum := quadEntry_sum_eq_of_mem hq
+  have hcost := quadVecCost_ge_three_halves_entry_sum q
+  rwa [hsum] at hcost
+
 /-- The first small value of `M`. -/
 theorem concreteM_zero : concreteM 0 = (0 : ℚ) := by
-  native_decide
+  apply le_antisymm
+  · have h := concreteM_le_quadCost_of_sum
+      (a := 0) (b := 0) (c := 0) (d := 0) (n := 0) (by norm_num)
+    norm_num [quadCost] at h
+    exact h
+  · have h := three_halves_mul_le_concreteM 0
+    norm_num at h
+    exact h
 
 /-- The second small value of `M`. -/
 theorem concreteM_one : concreteM 1 = (3 / 2 : ℚ) := by
-  native_decide
+  apply le_antisymm
+  · have h := concreteM_le_quadCost_of_sum
+      (a := 0) (b := 0) (c := 0) (d := 1) (n := 1) (by norm_num)
+    norm_num [quadCost] at h
+    exact h
+  · have h := three_halves_mul_le_concreteM 1
+    norm_num at h
+    exact h
 
 /-- The third small value of `M`. -/
 theorem concreteM_two : concreteM 2 = (3 : ℚ) := by
-  native_decide
+  apply le_antisymm
+  · have h := concreteM_le_quadCost_of_sum
+      (a := 0) (b := 0) (c := 1) (d := 1) (n := 2) (by norm_num)
+    norm_num [quadCost] at h
+    exact h
+  · have h := three_halves_mul_le_concreteM 2
+    norm_num at h
+    exact h
 
 /-- The fourth small value of `M`. -/
 theorem concreteM_three : concreteM 3 = (9 / 2 : ℚ) := by
-  native_decide
+  apply le_antisymm
+  · have h := concreteM_le_quadCost_of_sum
+      (a := 0) (b := 1) (c := 1) (d := 1) (n := 3) (by norm_num)
+    norm_num [quadCost] at h
+    exact h
+  · have h := three_halves_mul_le_concreteM 3
+    norm_num at h
+    exact h
 
 /-- The boundary values used in the small-`n` branch of the star-forest
 argument. -/

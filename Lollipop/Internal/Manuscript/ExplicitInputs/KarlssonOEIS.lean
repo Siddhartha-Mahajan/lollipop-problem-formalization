@@ -213,7 +213,10 @@ def karlssonOEISBaseOrderedRegionData :
   partialRegions_zero := rfl
   partialRegions_step := by
     intro k hk
-    interval_cases k <;> native_decide
+    interval_cases k <;>
+      simp [karlssonOEISBasePartialRegions, previousPairAdded, previousPairSum,
+        Fin.sum_univ_four] <;>
+      norm_num
   partialRegions_final := rfl
 
 /-- Stepwise ordered insertion-region data for the base table, splitting the
@@ -226,7 +229,10 @@ def karlssonOEISBaseStepwiseOrderedRegionData :
   step := by
     intro k hk
     refine ⟨?_⟩
-    interval_cases k <;> native_decide
+    interval_cases k <;>
+      simp [karlssonOEISBasePartialRegions, previousPairAdded, previousPairSum,
+        Fin.sum_univ_four] <;>
+      norm_num
   partialRegions_final := rfl
 
 /-- The ordered insertion arithmetic for the OEIS/Karlsson base table gives
