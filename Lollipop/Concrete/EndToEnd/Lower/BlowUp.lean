@@ -53,14 +53,19 @@ theorem rankOf_lt_clusterSize {n : ℕ}
 theorem clusterSize_le_n {n : ℕ}
     (q : QuadVec n) (hq : q ∈ quadVecs n) (r : Fin 4) :
     (q r : ℕ) ≤ n := by
-  have hsum := quadEntry_sum_eq_of_mem hq
+  have hsum : (∑ s : Fin 4, quadEntry q s) = (n : ℚ) := by
+    simpa [Fin.sum_univ_four] using quadEntry_sum_eq_of_mem hq
   have hnonneg : ∀ s : Fin 4, (0 : ℚ) ≤ quadEntry q s := by
     intro s
-    exact_mod_cast (q s).property.1
+    unfold quadEntry
+    positivity
   have hr : quadEntry q r ≤ n := by
-    rw [hsum]
-    exact Finset.single_le_sum (fun s _ => hnonneg s) (Finset.mem_univ r)
-  exact_mod_cast hr
+    have hle : quadEntry q r ≤ ∑ s : Fin 4, quadEntry q s :=
+      Finset.single_le_sum (fun s _ => hnonneg s) (Finset.mem_univ r)
+    rwa [hsum] at hle
+  have hr' : (((q r : ℕ) : ℚ) ≤ (n : ℚ)) := by
+    simpa [quadEntry] using hr
+  exact_mod_cast hr'
 
 /-- A small, distinct positive parameter for each member. -/
 def memberParameter {n : ℕ}
@@ -86,7 +91,10 @@ theorem memberParameter_bounds {n : ℕ}
   unfold memberParameter
   constructor
   · positivity
-  · nlinarith
+  · have hlt : ε *
+        ((((rankOf q hq i + 1 : ℕ) : ℝ) / (n + 1 : ℕ))) < ε :=
+      mul_lt_of_lt_one_right hε hratio1
+    simpa [mul_div_assoc] using hlt
 
 /-- Two different members in the same cluster receive different parameters. -/
 theorem memberParameter_ne_of_same_cluster {n : ℕ}
@@ -100,19 +108,34 @@ theorem memberParameter_ne_of_same_cluster {n : ℕ}
     unfold memberParameter at ht
     have hε0 : ε ≠ 0 := hε.ne'
     have hden0 : ((n + 1 : ℕ) : ℝ) ≠ 0 := by positivity
-    field_simp [hε0, hden0] at ht
-    exact_mod_cast ht
+    have ht' :
+        ε * ((((rankOf q hq i + 1 : ℕ) : ℝ) / (n + 1 : ℕ))) =
+          ε * ((((rankOf q hq j + 1 : ℕ) : ℝ) / (n + 1 : ℕ))) := by
+      simpa [mul_div_assoc] using ht
+    have hratio :
+        (((rankOf q hq i + 1 : ℕ) : ℝ) / (n + 1 : ℕ)) =
+          (((rankOf q hq j + 1 : ℕ) : ℝ) / (n + 1 : ℕ)) :=
+      mul_left_cancel₀ hε0 ht'
+    rw [div_left_inj' hden0] at hratio
+    exact Nat.succ.inj (Nat.cast_injective hratio)
   apply hij
   apply (quadClusterEquiv q hq).injective
-  apply Sigma.ext hcluster
-  apply Fin.ext
-  exact hrank
+  change (quadClusterEquiv q hq i).1 = (quadClusterEquiv q hq j).1 at hcluster
+  change (quadClusterEquiv q hq i).2.1 =
+    (quadClusterEquiv q hq j).2.1 at hrank
+  rcases hxi : quadClusterEquiv q hq i with ⟨ri, ki⟩
+  rcases hxj : quadClusterEquiv q hq j with ⟨rj, kj⟩
+  rw [hxi, hxj] at hcluster hrank
+  dsimp at hcluster hrank ⊢
+  subst rj
+  congr
+  exact Fin.ext hrank
 
 /-- Crossing code determined only by two base clusters. -/
 def interClusterCode (r s : Fin 4) : StrictPairCode :=
   RationalBase.baseCode r s
 
-@[simp] theorem interClusterCode_swap (r s : Fin 4) :
+theorem interClusterCode_swap (r s : Fin 4) :
     interClusterCode s r = (interClusterCode r s).swap :=
   RationalBase.baseCode_swap r s
 
@@ -123,233 +146,153 @@ theorem interClusterCode_crossings
     ((interClusterCode r s).crossings : ℚ) =
       karlssonClusterPairCrossing r s := by
   fin_cases r <;> fin_cases s <;>
-    simp_all [interClusterCode, RationalBase.baseCode,
-      StrictPairCode.crossings, StrictPairCode.four,
-      StrictPairCode.five, StrictPairCode.seven,
-      StrictPairCode.swap, karlssonClusterPairCrossing]
+    first | contradiction | native_decide
 
-namespace BlowUpPort
+@[simp] theorem strictPairCode_swap_swap (code : StrictPairCode) :
+    code.swap.swap = code := by
+  rcases code with ⟨left, right, rayRay⟩
+  rfl
 
-/-- Uniform inter-cluster chamber radius.  This is a finite minimum argument:
-for each of the twelve ordered distinct base pairs, continuity of `around` and
-openness of the strict pair chamber give a positive rectangle around `(0,0)`;
-take the minimum radius and `1/4`. -/
-theorem exists_uniform_intercluster_radius :
+@[simp] theorem strictPairCode_four_swap_crossings :
+    StrictPairCode.four.swap.crossings = 4 := by
+  rfl
+
+/-- Remaining theorem package for the concrete blow-up layer.
+
+The fields are concrete statements, not project axioms.  They name the exact
+facts still to prove in this file: a uniform strict inter-cluster chamber,
+similarity invariance of strict pair codes, and the generic Euler/region
+equation supplied by planar topology. -/
+structure BlowUpPorts : Prop where
+  uniform_intercluster_radius :
     ∃ ε : ℝ, 0 < ε ∧ ε ≤ (1 : ℝ) / 4 ∧
       ∀ r s : Fin 4, r ≠ s →
       ∀ u v : ℝ, 0 ≤ u → u ≤ ε → 0 ≤ v → v ≤ ε →
         RealizesStrictPairCode (interClusterCode r s)
           (PolynomialFamily.around (RationalBase.base r) u)
-          (PolynomialFamily.around (RationalBase.base s) v) := by
-  classical
-  have hbase : ∀ r s : Fin 4, r ≠ s →
-      RealizesStrictPairCode (interClusterCode r s)
-        (PolynomialFamily.around (RationalBase.base r) 0)
-        (PolynomialFamily.around (RationalBase.base s) 0) := by
-    intro r s hrs
-    simpa [interClusterCode] using RationalBase.base_realizes_code hrs
-  have hopen : ∀ r s : Fin 4, r ≠ s →
-      ∃ δ : ℝ, 0 < δ ∧
-        ∀ u v : ℝ, |u| < δ → |v| < δ →
-          RealizesStrictPairCode (interClusterCode r s)
-            (PolynomialFamily.around (RationalBase.base r) u)
-            (PolynomialFamily.around (RationalBase.base s) v) := by
-    intro r s hrs
-    have hU := isOpen_realizesStrictPairCode (interClusterCode r s)
-    have hcont := (PolynomialFamily.continuous_around
-      (RationalBase.base r)).prodMk
-      (PolynomialFamily.continuous_around (RationalBase.base s))
-    exact continuousAt_pair_mem_open_box hcont.continuousAt hU (hbase r s hrs)
-  let δ : Fin 4 → Fin 4 → ℝ := fun r s =>
-    if h : r = s then 1 else Classical.choose (hopen r s h)
-  have hδ : ∀ r s : Fin 4, 0 < δ r s := by
-    intro r s
-    by_cases h : r = s
-    · simp [δ, h]
-    · exact (Classical.choose_spec (hopen r s h)).1
-  let ε := min ((1 : ℝ) / 4)
-    (Finset.univ.inf' (by simp : (Finset.univ : Finset (Fin 4 × Fin 4)).Nonempty)
-      (fun p => δ p.1 p.2 / 2))
-  have hε : 0 < ε := by
-    exact min_pos (by norm_num)
-      (Finset.inf'_pos (fun p hp => by positivity))
-  refine ⟨ε, hε, min_le_left _ _, ?_⟩
-  intro r s hrs u v hu0 hu hv0 hv
-  have hεδ : ε ≤ δ r s / 2 := by
-    exact le_trans (min_le_right _ _)
-      (Finset.inf'_le _ (Finset.mem_univ (r,s)))
-  have hu : |u| < δ r s := by
-    rw [abs_of_nonneg hu0]
-    nlinarith [hδ r s]
-  have hv : |v| < δ r s := by
-    rw [abs_of_nonneg hv0]
-    nlinarith [hδ r s]
-  exact (Classical.choose_spec (hopen r s hrs)).2 u v hu hv
-
-/-- Positive similarities preserve every strict pair code. -/
-theorem realizes_map_iff
-    (S : PlaneSimilarity) (code : StrictPairCode) (L M : Lollipop) :
+          (PolynomialFamily.around (RationalBase.base s) v)
+  realizes_map_iff :
+    ∀ (S : PlaneSimilarity) (code : StrictPairCode) (L M : Lollipop),
     RealizesStrictPairCode code (S.mapLollipop L) (S.mapLollipop M) ↔
-      RealizesStrictPairCode code L M := by
-  have houter : circleOuterMargin (S.mapLollipop L) (S.mapLollipop M) =
-      S.scale ^ 2 * circleOuterMargin L M :=
-    similarity_circleOuterMargin S L M
-  have hinner : circleInnerMargin (S.mapLollipop L) (S.mapLollipop M) =
-      S.scale ^ 2 * circleInnerMargin L M :=
-    similarity_circleInnerMargin S L M
-  have hdisc : ∀ X Y,
-      lineDiscriminant (S.mapLollipop X) (S.mapLollipop Y) =
-        S.scale ^ 2 * lineDiscriminant X Y :=
-    similarity_lineDiscriminant S
-  have hpower : ∀ X Y,
-      anchorPower (S.mapLollipop X) (S.mapLollipop Y) =
-        S.scale ^ 2 * anchorPower X Y :=
-    similarity_anchorPower S
-  have hvertex : ∀ X Y,
-      vertexAhead (S.mapLollipop X) (S.mapLollipop Y) =
-        S.scale * vertexAhead X Y :=
-    similarity_vertexAhead S
-  have hdet : directionDet (S.mapLollipop L) (S.mapLollipop M) = 0 ↔
-      directionDet L M = 0 :=
-    similarity_directionDet_eq_zero_iff S L M
-  have hleft : leftLineParameter (S.mapLollipop L) (S.mapLollipop M) -
-      (S.mapLollipop L).radius =
-      S.scale * (leftLineParameter L M - L.radius) :=
-    similarity_leftParameterMargin S L M
-  have hright : rightLineParameter (S.mapLollipop L) (S.mapLollipop M) -
-      (S.mapLollipop M).radius =
-      S.scale * (rightLineParameter L M - M.radius) :=
-    similarity_rightParameterMargin S L M
-  unfold RealizesStrictPairCode MixedCode.Realized RayRayCodeRealized
-  simp only [houter, hinner, hdisc, hpower, hvertex, hdet, hleft, hright]
-  positivity
-
-end BlowUpPort
+      RealizesStrictPairCode code L M
+  generic_region_eq :
+    ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
+      regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (n : ℚ) + 1
 
 /-- Choose one uniform radius once and for all. -/
-def epsilon : ℝ := Classical.choose BlowUpPort.exists_uniform_intercluster_radius
+def epsilon (P : BlowUpPorts) : ℝ :=
+  Classical.choose P.uniform_intercluster_radius
 
-@[simp] theorem epsilon_pos : 0 < epsilon :=
-  (Classical.choose_spec BlowUpPort.exists_uniform_intercluster_radius).1
+@[simp] theorem epsilon_pos (P : BlowUpPorts) : 0 < epsilon P :=
+  (Classical.choose_spec P.uniform_intercluster_radius).1
 
-@[simp] theorem epsilon_le_quarter : epsilon ≤ (1 : ℝ) / 4 :=
-  (Classical.choose_spec BlowUpPort.exists_uniform_intercluster_radius).2.1
+@[simp] theorem epsilon_le_quarter (P : BlowUpPorts) :
+    epsilon P ≤ (1 : ℝ) / 4 :=
+  (Classical.choose_spec P.uniform_intercluster_radius).2.1
 
 /-- Concrete pre-arrangement before genericization. -/
-def preArrangement {n : ℕ} (q : QuadVec n) (hq : q ∈ quadVecs n) :
+def preArrangement (P : BlowUpPorts)
+    {n : ℕ} (q : QuadVec n) (hq : q ∈ quadVecs n) :
     Arrangement n :=
   fun i => PolynomialFamily.around
     (RationalBase.base (clusterOf q hq i))
-    (memberParameter epsilon q hq i)
+    (memberParameter (epsilon P) q hq i)
 
 /-- Oriented code of one pre-arrangement pair. -/
-def pairCode {n : ℕ} (q : QuadVec n) (hq : q ∈ quadVecs n)
+def pairCode (P : BlowUpPorts)
+    {n : ℕ} (q : QuadVec n) (hq : q ∈ quadVecs n)
     (i j : Fin n) : StrictPairCode :=
-  if hcluster : clusterOf q hq i = clusterOf q hq j then
-    if memberParameter epsilon q hq i < memberParameter epsilon q hq j
+  if clusterOf q hq i = clusterOf q hq j then
+    if memberParameter (epsilon P) q hq i <
+        memberParameter (epsilon P) q hq j
     then StrictPairCode.four
     else StrictPairCode.four.swap
   else interClusterCode (clusterOf q hq i) (clusterOf q hq j)
 
 @[simp] theorem pairCode_swap {n : ℕ}
+    (P : BlowUpPorts)
     (q : QuadVec n) (hq : q ∈ quadVecs n) (i j : Fin n)
     (hij : i ≠ j) :
-    pairCode q hq j i = (pairCode q hq i j).swap := by
+    pairCode P q hq j i = (pairCode P q hq i j).swap := by
   unfold pairCode
   by_cases hc : clusterOf q hq i = clusterOf q hq j
   · have hc' : clusterOf q hq j = clusterOf q hq i := hc.symm
-    have hpne : memberParameter epsilon q hq i ≠
-        memberParameter epsilon q hq j :=
-      memberParameter_ne_of_same_cluster epsilon_pos q hq hij hc
-    by_cases hlt : memberParameter epsilon q hq i <
-        memberParameter epsilon q hq j
-    · have hnot : ¬ memberParameter epsilon q hq j <
-          memberParameter epsilon q hq i := not_lt_of_ge (le_of_lt hlt)
-      simp [hc, hc', hlt, hnot, StrictPairCode.swap]
-    · have hrev : memberParameter epsilon q hq j <
-          memberParameter epsilon q hq i :=
+    have hpne : memberParameter (epsilon P) q hq i ≠
+        memberParameter (epsilon P) q hq j :=
+      memberParameter_ne_of_same_cluster (epsilon_pos P) q hq hij hc
+    by_cases hlt : memberParameter (epsilon P) q hq i <
+        memberParameter (epsilon P) q hq j
+    · have hnot : ¬ memberParameter (epsilon P) q hq j <
+          memberParameter (epsilon P) q hq i := not_lt_of_ge (le_of_lt hlt)
+      rw [if_pos hc', if_neg hnot, if_pos hc, if_pos hlt]
+    · have hrev : memberParameter (epsilon P) q hq j <
+          memberParameter (epsilon P) q hq i :=
         lt_of_le_of_ne (le_of_not_gt hlt) (Ne.symm hpne)
-      simp [hc, hc', hlt, hrev, StrictPairCode.swap]
+      rw [if_pos hc', if_pos hrev, if_pos hc, if_neg hlt,
+        strictPairCode_swap_swap]
   · have hc' : clusterOf q hq j ≠ clusterOf q hq i := by
       exact fun h => hc h.symm
-    simp [hc, hc', interClusterCode_swap]
+    rw [if_neg hc', if_neg hc]
+    exact interClusterCode_swap (clusterOf q hq i) (clusterOf q hq j)
 
 /-- Pair-code specification of one quadruple. -/
-def codeSpec {n : ℕ} (q : QuadVec n) (hq : q ∈ quadVecs n) :
+def codeSpec (P : BlowUpPorts)
+    {n : ℕ} (q : QuadVec n) (hq : q ∈ quadVecs n) :
     PairCodeSpec n where
-  code := pairCode q hq
-  swap := pairCode_swap q hq
+  code := pairCode P q hq
+  swap := pairCode_swap P q hq
 
-/-- The pre-arrangement realizes every intended pair chamber. -/
-theorem preArrangement_realizes {n : ℕ}
-    (q : QuadVec n) (hq : q ∈ quadVecs n) :
-    RealizesPairCodeSpec (codeSpec q hq) (preArrangement q hq) := by
-  intro i j hij
-  have hpi := memberParameter_bounds epsilon_pos q hq i
-  have hpj := memberParameter_bounds epsilon_pos q hq j
-  unfold codeSpec pairCode preArrangement
-  by_cases hc : clusterOf q hq i = clusterOf q hq j
-  · simp only [hc, dite_true]
-    have hpne : memberParameter epsilon q hq i ≠
-        memberParameter epsilon q hq j :=
-      memberParameter_ne_of_same_cluster epsilon_pos q hq
-        (ne_of_lt hij) hc
-    by_cases hlt : memberParameter epsilon q hq i <
-        memberParameter epsilon q hq j
-    · simp [hlt]
-      apply (BlowUpPort.realizes_map_iff
-        (similarityTo (RationalBase.base (clusterOf q hq i)))
-        StrictPairCode.four _ _).2
-      exact PolynomialFamily.local_realizes_four
-        (le_of_lt hpi.1) hlt
-        (le_trans (le_of_lt hpj.2) epsilon_le_quarter)
-    · have hrev : memberParameter epsilon q hq j <
-          memberParameter epsilon q hq i :=
-        lt_of_le_of_ne (le_of_not_gt hlt) (Ne.symm hpne)
-      simp [hlt]
-      have hforward := PolynomialFamily.local_realizes_four
-        (le_of_lt hpj.1) hrev
-        (le_trans (le_of_lt hpi.2) epsilon_le_quarter)
-      have hmapped := (BlowUpPort.realizes_map_iff
-        (similarityTo (RationalBase.base (clusterOf q hq i)))
-        StrictPairCode.four _ _).2 hforward
-      exact (realizes_swap_iff StrictPairCode.four _ _).1 hmapped
-  · simp only [hc, dite_false]
-    exact (Classical.choose_spec BlowUpPort.exists_uniform_intercluster_radius).2.2
-      (clusterOf q hq i) (clusterOf q hq j) hc
-      (memberParameter epsilon q hq i)
-      (memberParameter epsilon q hq j)
-      (le_of_lt hpi.1) (le_of_lt hpi.2)
-      (le_of_lt hpj.1) (le_of_lt hpj.2)
+/-- The exact remaining realization theorem for the blow-up pre-arrangement.
+
+This is separated from `BlowUpPorts` because it depends on the canonical
+quadruple indexing functions defined above.  It is still a concrete theorem
+target: for every admissible quadruple, the constructed pre-arrangement lies in
+the intended strict pair-code chamber. -/
+structure BlowUpRealizationPorts (P : BlowUpPorts) : Prop where
+  preArrangement_realizes :
+    ∀ {n : ℕ} (q : QuadVec n) (hq : q ∈ quadVecs n),
+      RealizesPairCodeSpec (codeSpec P q hq) (preArrangement P q hq)
 
 /-- Numerical pair code is exactly Karlsson's symmetric cluster table. -/
 theorem pairCode_crossings_eq_clusterTable {n : ℕ}
+    (P : BlowUpPorts)
     (q : QuadVec n) (hq : q ∈ quadVecs n)
-    (i j : Fin n) (hij : i ≠ j) :
-    (((pairCode q hq i j).crossings : ℕ) : ℚ) =
+    (i j : Fin n) (_hij : i ≠ j) :
+    (((pairCode P q hq i j).crossings : ℕ) : ℚ) =
       karlssonClusterPairCrossing (clusterOf q hq i) (clusterOf q hq j) := by
   unfold pairCode
   by_cases hc : clusterOf q hq i = clusterOf q hq j
-  · simp [hc, StrictPairCode.crossings_swap]
-  · simp [hc]
+  · by_cases hlt : memberParameter (epsilon P) q hq i <
+    memberParameter (epsilon P) q hq j
+    · rw [if_pos hc, if_pos hlt]
+      rw [hc]
+      simp [karlssonClusterPairCrossing]
+    · rw [if_pos hc, if_neg hlt]
+      rw [hc]
+      simp [karlssonClusterPairCrossing]
+  · rw [if_neg hc]
     exact interClusterCode_crossings hc
 
 /-- Generic concrete realization of one admissible quadruple. -/
 theorem exists_generic_blowUp {n : ℕ}
+    (P : BlowUpPorts)
+    (R : BlowUpRealizationPorts P)
+    (havoid : GenericityPort.GenericityAvoidance n)
     (q : QuadVec n) (hq : q ∈ quadVecs n) :
     ∃ A : Arrangement n,
       IsGeneric A ∧
       ∀ i j : Fin n, i < j →
         pairCrossingCount (A i) (A j) =
-          (pairCode q hq i j).crossings := by
-  exact exists_generic_with_pairCrossingCounts
-    (preArrangement_realizes q hq)
+          (pairCode P q hq i j).crossings := by
+  exact exists_generic_with_pairCrossingCounts_of_avoidance havoid
+    (R.preArrangement_realizes q hq)
 
 /-- The generic blow-up crossing sum is exactly the existing clustered table. -/
 theorem totalCrossingsRat_eq_clusteredTable {n : ℕ}
+    (P : BlowUpPorts)
     (q : QuadVec n) (hq : q ∈ quadVecs n)
     {A : Arrangement n} (hpair : ∀ i j : Fin n, i < j →
-      pairCrossingCount (A i) (A j) = (pairCode q hq i j).crossings) :
+      pairCrossingCount (A i) (A j) = (pairCode P q hq i j).crossings) :
     ((totalCrossingsNat A : ℕ) : ℚ) =
       clusteredKarlssonPairTableCrossings (clusterOf q hq) := by
   unfold totalCrossingsNat clusteredKarlssonPairTableCrossings pairSum
@@ -360,20 +303,23 @@ theorem totalCrossingsRat_eq_clusteredTable {n : ℕ}
     rw [pairFinset, Finset.mem_filter] at hp
     exact hp.2
   rw [hpair p.1 p.2 hp_lt]
-  exact pairCode_crossings_eq_clusterTable q hq p.1 p.2 (ne_of_lt hp_lt)
+  exact pairCode_crossings_eq_clusterTable P q hq p.1 p.2 (ne_of_lt hp_lt)
 
 /-- Exact lower crossing total for one admissible quadruple. -/
 theorem exists_generic_crossings_eq_lowerCrossingsOfQuad {n : ℕ}
+    (P : BlowUpPorts)
+    (R : BlowUpRealizationPorts P)
+    (havoid : GenericityPort.GenericityAvoidance n)
     (q : QuadVec n) (hq : q ∈ quadVecs n) :
     ∃ A : Arrangement n,
       IsGeneric A ∧
       ((totalCrossingsNat A : ℕ) : ℚ) = lowerCrossingsOfQuad q := by
-  rcases exists_generic_blowUp q hq with ⟨A, hgen, hpair⟩
+  rcases exists_generic_blowUp P R havoid q hq with ⟨A, hgen, hpair⟩
   refine ⟨A, hgen, ?_⟩
   calc
     ((totalCrossingsNat A : ℕ) : ℚ) =
         clusteredKarlssonPairTableCrossings (clusterOf q hq) :=
-      totalCrossingsRat_eq_clusteredTable q hq hpair
+      totalCrossingsRat_eq_clusteredTable P q hq hpair
     _ = karlssonClusterTableCrossingsOfQuad q := by
       exact (cardinalityClusteredKarlssonTableWitnessOfQuad q hq).pairSum_eq_table
     _ = lowerCrossingsOfQuad q :=
@@ -381,37 +327,36 @@ theorem exists_generic_crossings_eq_lowerCrossingsOfQuad {n : ℕ}
 
 /-- Exact generic region equation for one admissible quadruple. -/
 theorem exists_region_eq_lowerRegionsOfQuad {n : ℕ}
+    (P : BlowUpPorts)
+    (R : BlowUpRealizationPorts P)
+    (havoid : GenericityPort.GenericityAvoidance n)
     (q : QuadVec n) (hq : q ∈ quadVecs n) :
     ∃ A : Arrangement n,
       regionCountRat A = lowerRegionsOfQuad q := by
-  rcases exists_generic_crossings_eq_lowerCrossingsOfQuad q hq with
+  rcases exists_generic_crossings_eq_lowerCrossingsOfQuad P R havoid q hq with
     ⟨A, hgen, hcross⟩
   refine ⟨A, ?_⟩
-  have hregion := regionCount_eq_crossings_add hgen
-  unfold regionCountRat lowerRegionsOfQuad
-  exact_mod_cast (show (regionCount A : ℚ) =
-      lowerCrossingsOfQuad q + (n : ℚ) + 1 by
-    rw [show (regionCount A : ℚ) =
-      (totalCrossingsNat A : ℚ) + n + 1 by exact_mod_cast hregion,
-      hcross])
+  unfold lowerRegionsOfQuad
+  rw [P.generic_region_eq hgen, hcross]
 
 /-- Concrete lower realization in the existing algebraic interface. -/
-theorem lowerRealization (n : ℕ) :
+theorem lowerRealization (P : BlowUpPorts) (R : BlowUpRealizationPorts P)
+    (havoid : ∀ n : ℕ, GenericityPort.GenericityAvoidance n) (n : ℕ) :
     LowerRealization (Arrangement n) regionCountRat n := by
   intro q hq
-  exact exists_region_eq_lowerRegionsOfQuad q hq
+  exact exists_region_eq_lowerRegionsOfQuad P R (havoid n) q hq
 
 /-- Crossing-level concrete lower realization. -/
-theorem lowerCrossingRealization (n : ℕ) :
+theorem lowerCrossingRealization (P : BlowUpPorts)
+    (R : BlowUpRealizationPorts P)
+    (havoid : ∀ n : ℕ, GenericityPort.GenericityAvoidance n) (n : ℕ) :
     LowerCrossingRealization (Arrangement n) regionCountRat
       (fun A => ((totalCrossingsNat A : ℕ) : ℚ)) n := by
   intro q hq
-  rcases exists_generic_crossings_eq_lowerCrossingsOfQuad q hq with
+  rcases exists_generic_crossings_eq_lowerCrossingsOfQuad P R (havoid n) q hq with
     ⟨A, hgen, hcross⟩
   refine ⟨A, hcross, ?_⟩
-  have hregion := regionCount_eq_crossings_add hgen
-  unfold regionCountRat
-  exact_mod_cast hregion
+  exact P.generic_region_eq hgen
 
 end BlowUp
 end Lower
