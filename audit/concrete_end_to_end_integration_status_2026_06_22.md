@@ -103,12 +103,17 @@ cardinality cases. It also proves mixed ray-circle transversality for every
 strict mixed code from the concrete quadratic identity. The positive
 mixed ray-circle strict-code root counts are now reduced to a proved
 one-dimensional accepted-root theorem and transported through the injective
-unit-speed stem parametrization.
+unit-speed stem parametrization. The circle-circle strict transversality
+direction is now proved directly from the determinant/dot-product identity and
+the strict inner/outer margins. The file also contains checked scaffolding for
+the remaining circle-circle count proof: positive center-distance consequences,
+the perpendicular coordinate vector, the normalized center-direction, the
+chord parameter, and the positive chord-height-square identity.
 
 The remaining failures are the next genuine lower-construction gap:
-circle-circle strict classification/transversality and primitive-piece
-disjointness under strict diagnostics are still referenced but not yet proved
-in the concrete development.
+circle-circle strict two-point classification and primitive-piece disjointness
+under strict diagnostics are still referenced but not yet proved in the
+concrete development.
 
 ## Current Interpretation
 

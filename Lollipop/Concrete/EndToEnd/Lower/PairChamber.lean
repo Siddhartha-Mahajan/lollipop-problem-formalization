@@ -495,6 +495,169 @@ theorem anchorPower_eq_mixed_at_anchor (L M : Lollipop) :
   simp [anchorPower, Lollipop.anchor,
     L.radial_eq_radius_smul_unitRadial, normSqPoint]
 
+private theorem normSqPoint_eq_norm_sq (x : Point) :
+    normSqPoint x = ‖x‖ ^ 2 := by
+  rw [point_norm_sq_eq]
+  simp [normSqPoint, dotPoint, sq]
+
+private theorem centerDistanceSq_pos_of_circleInnerMargin_pos
+    {L M : Lollipop} (hin : 0 < circleInnerMargin L M) :
+    0 < centerDistanceSq L M := by
+  unfold circleInnerMargin at hin
+  have hsquare : 0 ≤ (L.radius - M.radius) ^ 2 := sq_nonneg _
+  nlinarith
+
+private theorem centers_ne_of_circleInnerMargin_pos
+    {L M : Lollipop} (hin : 0 < circleInnerMargin L M) :
+    L.center ≠ M.center := by
+  intro hcenter
+  have hpos := centerDistanceSq_pos_of_circleInnerMargin_pos hin
+  have hzero : centerDistanceSq L M = 0 := by
+    simp [centerDistanceSq, displacement, normSqPoint, dotPoint, hcenter]
+  nlinarith
+
+private def perpPoint (u : Point) : Point :=
+  R2.toPoint fun i : Fin 2 => if i = 0 then -u 1 else u 0
+
+private theorem dotPoint_perpPoint_self (u : Point) :
+    dotPoint u (perpPoint u) = 0 := by
+  simp [perpPoint, R2.toPoint, dotPoint]
+  ring
+
+private theorem dotPoint_self_perpPoint (u : Point) :
+    dotPoint (perpPoint u) u = 0 := by
+  rw [dotPoint_comm, dotPoint_perpPoint_self]
+
+private theorem normSqPoint_perpPoint (u : Point) :
+    normSqPoint (perpPoint u) = normSqPoint u := by
+  simp [perpPoint, R2.toPoint, normSqPoint, dotPoint]
+  ring
+
+private theorem detPoint_self_perpPoint (u : Point) :
+    detPoint u (perpPoint u) = normSqPoint u := by
+  simp [perpPoint, R2.toPoint, detPoint, normSqPoint, dotPoint]
+
+private theorem normSqPoint_smul (a : ℝ) (u : Point) :
+    normSqPoint (a • u) = a ^ 2 * normSqPoint u := by
+  simp [normSqPoint, dotPoint]
+  ring
+
+private theorem dotPoint_smul_left (a : ℝ) (u v : Point) :
+    dotPoint (a • u) v = a * dotPoint u v := by
+  simp [dotPoint]
+  ring
+
+private theorem dotPoint_smul_right (a : ℝ) (u v : Point) :
+    dotPoint u (a • v) = a * dotPoint u v := by
+  rw [dotPoint_comm, dotPoint_smul_left, dotPoint_comm v u]
+
+private theorem normSqPoint_add_of_dot_zero
+    {u v : Point} (h : dotPoint u v = 0) :
+    normSqPoint (u + v) = normSqPoint u + normSqPoint v := by
+  have hsym : dotPoint v u = 0 := by simpa [dotPoint_comm] using h
+  simp [normSqPoint, dotPoint] at h hsym ⊢
+  nlinarith
+
+private theorem normSqPoint_sub_of_dot_zero
+    {u v : Point} (h : dotPoint u v = 0) :
+    normSqPoint (u - v) = normSqPoint u + normSqPoint v := by
+  have hneg : dotPoint u (-v) = 0 := by
+    have h' : u 0 * v 0 + u 1 * v 1 = 0 := by
+      simpa [dotPoint] using h
+    simp [dotPoint]
+    nlinarith
+  have hnorm_neg : normSqPoint (-v) = normSqPoint v := by
+    simpa using normSqPoint_smul (-1) v
+  rw [sub_eq_add_neg, normSqPoint_add_of_dot_zero hneg, hnorm_neg]
+
+private def circleChordParameter (L M : Lollipop) : ℝ :=
+  (centerDistanceSq L M + L.radius ^ 2 - M.radius ^ 2) /
+    (2 * Real.sqrt (centerDistanceSq L M))
+
+private def circleChordHeightSq (L M : Lollipop) : ℝ :=
+  L.radius ^ 2 - circleChordParameter L M ^ 2
+
+private def circleChordUnit (L M : Lollipop) : Point :=
+  (Real.sqrt (centerDistanceSq L M))⁻¹ • displacement L M
+
+private theorem circleChordUnit_normSq
+    {L M : Lollipop} (hin : 0 < circleInnerMargin L M) :
+    normSqPoint (circleChordUnit L M) = 1 := by
+  have hd2_pos : 0 < centerDistanceSq L M :=
+    centerDistanceSq_pos_of_circleInnerMargin_pos hin
+  have hd_pos : 0 < Real.sqrt (centerDistanceSq L M) :=
+    Real.sqrt_pos.2 hd2_pos
+  have hd_sq :
+      (Real.sqrt (centerDistanceSq L M)) ^ 2 =
+        centerDistanceSq L M :=
+    Real.sq_sqrt hd2_pos.le
+  unfold circleChordUnit
+  rw [normSqPoint_smul]
+  change
+    (Real.sqrt (centerDistanceSq L M))⁻¹ ^ 2 *
+      centerDistanceSq L M = 1
+  field_simp [hd_pos.ne']
+  rw [hd_sq]
+
+private theorem displacement_eq_sqrt_smul_circleChordUnit
+    {L M : Lollipop} (hin : 0 < circleInnerMargin L M) :
+    displacement L M =
+      Real.sqrt (centerDistanceSq L M) • circleChordUnit L M := by
+  have hd2_pos : 0 < centerDistanceSq L M :=
+    centerDistanceSq_pos_of_circleInnerMargin_pos hin
+  have hd_pos : 0 < Real.sqrt (centerDistanceSq L M) :=
+    Real.sqrt_pos.2 hd2_pos
+  unfold circleChordUnit
+  rw [smul_smul]
+  field_simp [hd_pos.ne']
+  simp
+
+private theorem normSqPoint_smul_add_smul_perp
+    {u : Point} (hu : normSqPoint u = 1) (a b : ℝ) :
+    normSqPoint (a • u + b • perpPoint u) = a ^ 2 + b ^ 2 := by
+  have hdot : dotPoint (a • u) (b • perpPoint u) = 0 := by
+    rw [dotPoint_smul_left, dotPoint_smul_right, dotPoint_perpPoint_self]
+    ring
+  rw [normSqPoint_add_of_dot_zero hdot]
+  rw [normSqPoint_smul, normSqPoint_smul, normSqPoint_perpPoint, hu]
+  ring
+
+private theorem circleChordHeightSq_pos_of_strict_margins
+    {L M : Lollipop}
+    (hout : 0 < circleOuterMargin L M)
+    (hin : 0 < circleInnerMargin L M) :
+    0 < circleChordHeightSq L M := by
+  have hd2_pos : 0 < centerDistanceSq L M :=
+    centerDistanceSq_pos_of_circleInnerMargin_pos hin
+  have hd_pos : 0 < Real.sqrt (centerDistanceSq L M) :=
+    Real.sqrt_pos.2 hd2_pos
+  have hd_sq :
+      (Real.sqrt (centerDistanceSq L M)) ^ 2 =
+        centerDistanceSq L M :=
+    Real.sq_sqrt hd2_pos.le
+  have houter :
+      0 < (L.radius + M.radius) ^ 2 - centerDistanceSq L M := by
+    simpa [circleOuterMargin] using hout
+  have hinner :
+      0 < centerDistanceSq L M - (L.radius - M.radius) ^ 2 := by
+    simpa [circleInnerMargin] using hin
+  have hnum_pos :
+      0 <
+        ((L.radius + M.radius) ^ 2 - centerDistanceSq L M) *
+          (centerDistanceSq L M - (L.radius - M.radius) ^ 2) :=
+    mul_pos houter hinner
+  have hidentity :
+      circleChordHeightSq L M =
+        (((L.radius + M.radius) ^ 2 - centerDistanceSq L M) *
+            (centerDistanceSq L M - (L.radius - M.radius) ^ 2)) /
+          (4 * centerDistanceSq L M) := by
+    unfold circleChordHeightSq circleChordParameter
+    field_simp [hd_pos.ne', hd2_pos.ne']
+    rw [hd_sq]
+    ring_nf
+  rw [hidentity]
+  exact div_pos hnum_pos (mul_pos (by norm_num) hd2_pos)
+
 /-- Strict circle margins classify the circle--circle primitive. -/
 theorem circle_circle_ncard_eq_two
     {L M : Lollipop}
@@ -511,13 +674,61 @@ theorem circle_circle_transverse
     (hin : 0 < circleInnerMargin L M) :
     ∀ x, x ∈ cc L M → CircleCircleTransverseAt L M x := by
   intro x hx
-  exact circle_intersection_transverse_of_strict_triangle
-    L.center M.center L.radius M.radius hout hin x hx
-
-private theorem normSqPoint_eq_norm_sq (x : Point) :
-    normSqPoint x = ‖x‖ ^ 2 := by
-  rw [point_norm_sq_eq]
-  simp [normSqPoint, dotPoint, sq]
+  intro hdet
+  let u : Point := x - L.center
+  let v : Point := x - M.center
+  have hu : normSqPoint u = L.radius ^ 2 := by
+    have hxL : ‖x - L.center‖ = L.radius := by
+      simpa [cc, Lollipop.circle] using hx.1
+    rw [normSqPoint_eq_norm_sq, hxL]
+  have hv : normSqPoint v = M.radius ^ 2 := by
+    have hxM : ‖x - M.center‖ = M.radius := by
+      simpa [cc, Lollipop.circle] using hx.2
+    rw [normSqPoint_eq_norm_sq, hxM]
+  have hdetuv : detPoint u v = 0 := by
+    change detPoint (x - L.center) (x - M.center) = 0
+    exact hdet
+  have hpyth :
+      dotPoint u v ^ 2 + detPoint u v ^ 2 =
+        normSqPoint u * normSqPoint v := by
+    simp only [dotPoint, detPoint, normSqPoint]
+    ring_nf
+  have hdot_sq : dotPoint u v ^ 2 = (L.radius * M.radius) ^ 2 := by
+    rw [hdetuv] at hpyth
+    simp only [zero_pow (by norm_num : (2 : ℕ) ≠ 0), add_zero] at hpyth
+    rw [hu, hv] at hpyth
+    nlinarith
+  have hdot_cases :
+      dotPoint u v = L.radius * M.radius ∨
+        dotPoint u v = -(L.radius * M.radius) := by
+    have hsq :
+        dotPoint u v ^ 2 = (L.radius * M.radius) ^ 2 := hdot_sq
+    exact (sq_eq_sq_iff_eq_or_eq_neg.mp hsq)
+  have hdisp : displacement L M = u - v := by
+    ext i
+    simp [displacement, u, v]
+  have hdist :
+      centerDistanceSq L M =
+        L.radius ^ 2 + M.radius ^ 2 - 2 * dotPoint u v := by
+    have hnorm_sub :
+        normSqPoint (u - v) =
+          normSqPoint u + normSqPoint v - 2 * dotPoint u v := by
+      simp only [normSqPoint, dotPoint, Pi.sub_apply, WithLp.ofLp_sub]
+      ring_nf
+    rw [centerDistanceSq, hdisp, hnorm_sub, hu, hv]
+  rcases hdot_cases with hdot | hdot
+  · have hinner_eq :
+        centerDistanceSq L M = (L.radius - M.radius) ^ 2 := by
+      rw [hdist, hdot]
+      ring
+    unfold circleInnerMargin at hin
+    nlinarith
+  · have houter_eq :
+        centerDistanceSq L M = (L.radius + M.radius) ^ 2 := by
+      rw [hdist, hdot]
+      ring
+    unfold circleOuterMargin at hout
+    nlinarith
 
 private def stemPoint (L : Lollipop) (q : ℝ) : Point :=
   L.center + q • L.unitRadial
