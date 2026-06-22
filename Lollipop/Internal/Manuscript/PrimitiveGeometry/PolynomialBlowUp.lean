@@ -1,4 +1,5 @@
 import Lollipop.Internal.Manuscript.PrimitiveGeometry.Qoppa
+import Mathlib.Topology.Order.IntermediateValue
 
 /-!
 # The corrected local blow-up family
@@ -253,6 +254,92 @@ theorem circle_strict_inequalities
       nlinarith [sq_nonneg (s ^ 2 + t ^ 2)]
     nlinarith
 
+/-- Along-center coordinate of the two circle--circle intersections, measured
+from `c_s` in the `(1,1)` direction. -/
+def circleAlpha (s t : ℝ) : ℝ :=
+  (16 * t - 20 * s - s ^ 3 - s ^ 2 * t - s * t ^ 2 - t ^ 3) / 12
+
+/-- Squared perpendicular coordinate of the two circle--circle intersections.
+The strict circle inequalities prove this is positive. -/
+def circleBetaSq (s t : ℝ) : ℝ :=
+  ((18 - (s + t) ^ 2) *
+    ((2 + s ^ 2 + t ^ 2) ^ 2 - 18 * (t - s) ^ 2)) / 144
+
+/-- One of the two circle--circle intersection points.  The sign parameter
+`ε = 1` gives one point and `ε = -1` gives the other. -/
+def circleCirclePoint (s t ε : ℝ) : R2 :=
+  point2
+    (3 * s + circleAlpha s t + ε * Real.sqrt (circleBetaSq s t))
+    (3 * s + circleAlpha s t - ε * Real.sqrt (circleBetaSq s t))
+
+/-- The perpendicular coordinate is strictly positive for distinct ordered
+parameters in the local family. -/
+theorem circleBetaSq_pos
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    0 < circleBetaSq s t := by
+  rcases circle_strict_inequalities hs hst ht with ⟨hnear, hfar⟩
+  have hdelta : 0 < t - s := sub_pos.mpr hst
+  have hdelta_sq_pos : 0 < (t - s) ^ 2 := sq_pos_of_pos hdelta
+  have hfirst : 0 < 18 - (s + t) ^ 2 := by nlinarith
+  have hsecond : 0 < (2 + s ^ 2 + t ^ 2) ^ 2 - 18 * (t - s) ^ 2 := by
+    nlinarith
+  unfold circleBetaSq
+  positivity
+
+/-- The signed circle--circle point lies on the `s`-circle. -/
+theorem circleCirclePoint_mem_leftCircle
+    {s t ε : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4)
+    (hε : ε ^ 2 = 1) :
+    circleCirclePoint s t ε ∈ circleSet (lollipop s).center (lollipop s).radius := by
+  have hbeta_nonneg : 0 ≤ circleBetaSq s t :=
+    le_of_lt (circleBetaSq_pos hs hst ht)
+  have hsqrt : (Real.sqrt (circleBetaSq s t)) ^ 2 = circleBetaSq s t :=
+    Real.sq_sqrt hbeta_nonneg
+  have hbeta_def :
+      circleBetaSq s t =
+        ((18 - (s + t) ^ 2) *
+          ((2 + s ^ 2 + t ^ 2) ^ 2 - 18 * (t - s) ^ 2)) / 144 := by
+    rfl
+  unfold circleCirclePoint circleSet lollipop center point2 circleAlpha radius
+  unfold TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2
+  simp [Pi.sub_apply]
+  nlinarith [hsqrt, hε, hbeta_def]
+
+/-- The signed circle--circle point lies on the `t`-circle. -/
+theorem circleCirclePoint_mem_rightCircle
+    {s t ε : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4)
+    (hε : ε ^ 2 = 1) :
+    circleCirclePoint s t ε ∈ circleSet (lollipop t).center (lollipop t).radius := by
+  have hbeta_nonneg : 0 ≤ circleBetaSq s t :=
+    le_of_lt (circleBetaSq_pos hs hst ht)
+  have hsqrt : (Real.sqrt (circleBetaSq s t)) ^ 2 = circleBetaSq s t :=
+    Real.sq_sqrt hbeta_nonneg
+  have hbeta_def :
+      circleBetaSq s t =
+        ((18 - (s + t) ^ 2) *
+          ((2 + s ^ 2 + t ^ 2) ^ 2 - 18 * (t - s) ^ 2)) / 144 := by
+    rfl
+  unfold circleCirclePoint circleSet lollipop center point2 circleAlpha radius
+  unfold TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2
+  simp [Pi.sub_apply]
+  nlinarith [hsqrt, hε, hbeta_def]
+
+/-- The two signed circle--circle witnesses are distinct. -/
+theorem circleCirclePoint_pos_ne_neg
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    circleCirclePoint s t 1 ≠ circleCirclePoint s t (-1) := by
+  intro h
+  have hbeta_pos : 0 < circleBetaSq s t := circleBetaSq_pos hs hst ht
+  have hsqrt_pos : 0 < Real.sqrt (circleBetaSq s t) :=
+    Real.sqrt_pos.2 hbeta_pos
+  have hcoord := congrArg (fun p : R2 => p 0) h
+  simp [circleCirclePoint, point2] at hcoord
+  nlinarith
+
 /-- Uniform lower bound for the factor in `F(s,t,1)`. -/
 theorem B_lower
     {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
@@ -288,6 +375,39 @@ theorem F_one_neg
   have hB : 0 < B s t := lt_of_lt_of_le (by norm_num) (B_lower hs hst ht)
   nlinarith [mul_pos hdelta hB]
 
+/-- A convenient expanded value of `F(s,t,2)`. -/
+theorem F_two (s t : ℝ) :
+    F s t 2 =
+      (3 - 12 * t + 16 * t ^ 2 - t ^ 4) +
+        12 * s * (1 - t - s ^ 2) +
+        2 * s ^ 2 + 12 * s ^ 2 * t + 4 * s ^ 4 := by
+  unfold F
+  ring
+
+/-- The accepted mixed component has positive circle power at parameter
+`q = 2`, uniformly for `0 ≤ s < t ≤ 1/4`. -/
+theorem F_two_pos
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    0 < F s t 2 := by
+  have ht0 : 0 ≤ t := le_trans hs (le_of_lt hst)
+  have htpos : 0 < t := lt_of_le_of_lt hs hst
+  have hsle : s ≤ (1 : ℝ) / 4 := le_trans (le_of_lt hst) ht
+  rcases parameter_square_bounds hs hst ht with ⟨hs2le, ht2le, _hstle⟩
+  have ht_sq_pos : 0 < t ^ 2 := sq_pos_of_pos htpos
+  have hbase₀ : 0 ≤ 3 - 12 * t := by nlinarith
+  have hfactor : 0 < 16 - t ^ 2 := by nlinarith
+  have hbase₁ : 0 < 16 * t ^ 2 - t ^ 4 := by
+    have hmul : 0 < t ^ 2 * (16 - t ^ 2) :=
+      mul_pos ht_sq_pos hfactor
+    nlinarith
+  have hbase : 0 < 3 - 12 * t + 16 * t ^ 2 - t ^ 4 := by
+    nlinarith
+  have hstem_factor : 0 ≤ 1 - t - s ^ 2 := by nlinarith
+  have hstem : 0 ≤ 12 * s * (1 - t - s ^ 2) := by positivity
+  have hextra : 0 ≤ 2 * s ^ 2 + 12 * s ^ 2 * t + 4 * s ^ 4 := by positivity
+  rw [F_two]
+  nlinarith
+
 /-- The reverse stem anchor lies strictly outside the earlier circle. -/
 theorem G_one_pos
     {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
@@ -296,6 +416,15 @@ theorem G_one_pos
   have hdelta : 0 < t - s := sub_pos.mpr hst
   have hC : 0 < C s t := lt_trans (by norm_num) (C_lower hs hst ht)
   exact mul_pos hdelta hC
+
+/-- Taylor expansion of the reverse mixed polynomial around the anchor
+parameter `q = 1`. -/
+theorem G_taylor_one (s t q : ℝ) :
+    G s t q =
+      G s t 1 + 2 * (q - 1) * GhalfDerivativeAtOne s t +
+        (q - 1) ^ 2 * radius t ^ 2 := by
+  unfold G GhalfDerivativeAtOne radius
+  ring
 
 /-- Uniform positive derivative bound for the accepted mixed component. -/
 theorem FhalfDerivativeAtOne_lower
@@ -323,6 +452,20 @@ theorem GhalfDerivativeAtOne_pos
   have hprod : 0 ≤ 3 * (t - s) * (1 - 2 * t - t ^ 2) := by positivity
   have hsq : 0 < (1 + t ^ 2) ^ 2 := by positivity
   unfold GhalfDerivativeAtOne
+  nlinarith
+
+/-- The reverse mixed polynomial stays positive on the accepted half-line. -/
+theorem G_pos_of_one_le
+    {s t q : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4)
+    (hq : 1 ≤ q) :
+    0 < G s t q := by
+  have hG1 : 0 < G s t 1 := G_one_pos hs hst ht
+  have hderiv : 0 < GhalfDerivativeAtOne s t :=
+    GhalfDerivativeAtOne_pos hs hst ht
+  have hq0 : 0 ≤ q - 1 := sub_nonneg.mpr hq
+  have hterm₁ : 0 ≤ 2 * (q - 1) * GhalfDerivativeAtOne s t := by positivity
+  have hterm₂ : 0 ≤ (q - 1) ^ 2 * radius t ^ 2 := by positivity
+  rw [G_taylor_one]
   nlinarith
 
 /-- Determinant of the two polynomial stem directions. -/
@@ -478,6 +621,62 @@ theorem rayRayPoint_mem_pairIntersectionSet
   mem_pairIntersectionSet_of_mem_raySets
     (rayRayPoint_mem_leftRay hs hst ht)
     (rayRayPoint_mem_rightRay hs hst ht)
+
+/-- There is an accepted point where the `s`-stem meets the `t`-circle. -/
+theorem exists_rayCirclePoint
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    ∃ p : R2,
+      p ∈ raySet (lollipop s).anchor (lollipop s).rayDirection ∧
+        p ∈ circleSet (lollipop t).center (lollipop t).radius := by
+  have hcont : ContinuousOn (fun q : ℝ => F s t q) (Set.Icc (1 : ℝ) 2) := by
+    unfold F
+    fun_prop
+  have hF1 : F s t 1 < 0 := F_one_neg hs hst ht
+  have hF2 : 0 < F s t 2 := F_two_pos hs hst ht
+  have hzero_mem : (0 : ℝ) ∈ Set.Icc (F s t 1) (F s t 2) :=
+    ⟨le_of_lt hF1, le_of_lt hF2⟩
+  rcases intermediate_value_Icc (show (1 : ℝ) ≤ 2 by norm_num) hcont hzero_mem
+    with ⟨q, hqIcc, hqzero⟩
+  refine ⟨stemPoint s q, ?_, ?_⟩
+  · have hq : 1 ≤ q := hqIcc.1
+    simpa [lollipop] using
+      (stemPoint_mem_raySet (t := s) (q := q) hq)
+  · have hgeom := F_eq_geometry s t q
+    have hcircle : stemPoint s q ∈ circleSet (center t) (radius t) := by
+      simp [circleSet]
+      nlinarith
+    simpa [lollipop] using hcircle
+
+/-- The reverse mixed component is empty: no accepted point on the `t`-stem
+lies on the `s`-circle. -/
+theorem not_exists_circleRayPoint
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    ¬ ∃ p : R2,
+      p ∈ circleSet (lollipop s).center (lollipop s).radius ∧
+        p ∈ raySet (lollipop t).anchor (lollipop t).rayDirection := by
+  rintro ⟨p, hpCircle, hpRay⟩
+  rcases hpRay with ⟨a, ha, hp⟩
+  let q : ℝ := 1 + a
+  have hq : 1 ≤ q := by
+    dsimp [q]
+    nlinarith
+  have hpstem : p = stemPoint t q := by
+    rw [hp]
+    ext i
+    fin_cases i <;>
+      simp [q, lollipop, stemPoint, anchor, center, vector, point2,
+        Pi.add_apply, Pi.smul_apply] <;>
+      ring
+  have hpCircle' : stemPoint t q ∈ circleSet (center s) (radius s) := by
+    simpa [hpstem, lollipop] using hpCircle
+  have hdist :
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+          (stemPoint t q) (center s) = radius s ^ 2 := by
+    simpa [circleSet] using hpCircle'
+  have hgeom := G_eq_geometry s t q
+  have hGzero : G s t q = 0 := by nlinarith
+  have hGpos := G_pos_of_one_le hs hst ht hq
+  nlinarith
 
 /-- The complete scalar package used by the corrected local crossing proof. -/
 theorem corrected_local_pair_data
