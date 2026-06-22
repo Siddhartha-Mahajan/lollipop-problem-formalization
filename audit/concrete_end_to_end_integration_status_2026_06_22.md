@@ -43,6 +43,11 @@ Ignored archive noise:
   extensionality theorem, explicit one-point compactification transport under
   similarities, and an explicit coordinate rotation isometry replacing the
   unavailable `LinearIsometryEquiv.rotationMatrix2` helper.
+* Advanced `Lower.PairChamber` beyond API-level failures: added topology for
+  concrete lollipop parameters, continuity lemmas for the scalar diagnostics,
+  determinant/displacement swap algebra, ray-ray code symmetry, an open-chamber
+  theorem for strict pair codes, and product-neighborhood extraction from that
+  open-chamber theorem.
 
 ## Commands Run
 
@@ -90,12 +95,15 @@ Result: succeeded.
 lake build Lollipop.Concrete.EndToEnd.Lower.PairChamber
 ```
 
-Result: failed. The module now reaches the next genuine lower-construction
-gap: strict primitive-intersection classification lemmas such as the
-circle-circle two-point theorem, ray-circle strict-code cardinality theorems,
-ray-ray strict-code cardinality theorems, primitive-piece disjointness, and the
-finite union cardinality formula are still referenced but not yet proved in the
-concrete development.
+Result: failed. The module now gets through the concrete chamber topology,
+swap algebra, strict-code openness, and neighborhood-stability plumbing. The
+remaining failures are the next genuine lower-construction gap: strict
+primitive-intersection classification lemmas such as the circle-circle
+two-point theorem, ray-circle strict-code cardinality theorems, ray-ray
+strict-code cardinality theorems, primitive-piece disjointness, the finite
+four-way union cardinality formula, and the empty false ray-ray chamber
+transversality helper are still referenced but not yet proved in the concrete
+development.
 
 ## Current Interpretation
 
