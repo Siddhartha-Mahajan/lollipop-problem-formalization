@@ -8,6 +8,7 @@ the audit record for the lollipop formula project.
 - Manuscript: `manuscript/main_manuscript/main.tex`
 - Rendered PDF: `manuscript/main_manuscript/main.pdf`
 - Lean public endpoint: `Lollipop/Final/TheoremOne.lean`
+- Concrete endpoint scaffold: `Lollipop/Concrete/Basic.lean`
 - Audit verdict: `audit/AUDIT_AND_VERDICT.md`
 - Lean status note: `audit/FORMALIZATION_STATUS.md`
 - Concrete final-target note:
@@ -54,6 +55,11 @@ certificates.  It is a concrete Euclidean theorem, with lollipops,
 complements, connected-component region counts, and the maximum statement
 defined directly in Lean.  The current target note is
 `audit/UNCONDITIONAL_FORMALIZATION_VERDICT.md`.
+
+The concrete Lean scaffold now lives in `Lollipop/Concrete/Basic.lean`.  It
+defines the Euclidean lollipop model, occupied set, free space, component-count
+region function, concrete upper/lower statements, and the final
+`IsGreatest` assembly theorem those geometric proofs must feed.
 
 Build the Lean project with:
 
