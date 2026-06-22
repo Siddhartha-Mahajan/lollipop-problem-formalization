@@ -1,0 +1,27 @@
+{
+  "scope": "/Users/siddhartha/Lossfunk/lollipop_end_to_end_formalization",
+  "lean_project_files_including_lakefile": 99,
+  "lean_library_source_files": 98,
+  "source_lines": 45380,
+  "placeholder_scan_after_stripping_comments_and_strings": {
+    "sorry": [],
+    "admit": [],
+    "axiom_declaration": [],
+    "constant_declaration": [],
+    "opaque_declaration": [],
+    "unsafe_declaration": []
+  },
+  "placeholder_free_by_this_static_scan": true,
+  "public_endpoint_is_conditional_on_GeometryCertificates": true,
+  "geometry_obstruction_theorem_present": true,
+  "topological_region_semantics_term_counts": {
+    "ConnectedComponents": 0,
+    "connectedComponent": 0,
+    "IsPreconnected": 0,
+    "Alexander": 0,
+    "MayerVietoris": 0
+  },
+  "kernel_build_run_by_this_script": false,
+  "kernel_build_note": "This static audit does not run lake build; run `lake build Lollipop` separately for kernel verification.",
+  "verdict": "Substantial conditional formalization; not an unconditional end-to-end formalization of Euclidean complement regions."
+}

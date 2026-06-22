@@ -1,0 +1,743 @@
+{
+  "matrix_exhaustive": [
+    {
+      "n": 0,
+      "matrices": 1,
+      "minimum_2F": 0,
+      "M2": 0,
+      "witness": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 1,
+      "matrices": 12,
+      "minimum_2F": 3,
+      "M2": 3,
+      "witness": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "n": 2,
+      "matrices": 78,
+      "minimum_2F": 6,
+      "M2": 6,
+      "witness": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "n": 3,
+      "matrices": 364,
+      "minimum_2F": 9,
+      "M2": 9,
+      "witness": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 4,
+      "matrices": 1365,
+      "minimum_2F": 16,
+      "M2": 16,
+      "witness": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 5,
+      "matrices": 4368,
+      "minimum_2F": 25,
+      "M2": 25,
+      "witness": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        2,
+        0,
+        1,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 6,
+      "matrices": 12376,
+      "minimum_2F": 34,
+      "M2": 34,
+      "witness": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        2,
+        0,
+        1,
+        1,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 7,
+      "matrices": 31824,
+      "minimum_2F": 47,
+      "M2": 47,
+      "witness": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        2,
+        0,
+        1,
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 8,
+      "matrices": 75582,
+      "minimum_2F": 62,
+      "M2": 62,
+      "witness": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        3,
+        0,
+        1,
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 9,
+      "matrices": 167960,
+      "minimum_2F": 77,
+      "M2": 77,
+      "witness": [
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        3,
+        0,
+        1,
+        2,
+        0,
+        0
+      ]
+    },
+    {
+      "n": 10,
+      "matrices": 352716,
+      "minimum_2F": 94,
+      "M2": 94,
+      "witness": [
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        3,
+        0,
+        2,
+        2,
+        0,
+        0
+      ]
+    }
+  ],
+  "colored_turan_milp": [
+    {
+      "n": 1,
+      "edges": 0,
+      "milp_optimum": 0,
+      "S(n)": 0,
+      "status": "trivial"
+    },
+    {
+      "n": 2,
+      "edges": 1,
+      "milp_optimum": 3,
+      "S(n)": 3,
+      "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)"
+    },
+    {
+      "n": 3,
+      "edges": 3,
+      "milp_optimum": 9,
+      "S(n)": 9,
+      "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)"
+    },
+    {
+      "n": 4,
+      "edges": 6,
+      "milp_optimum": 16,
+      "S(n)": 16,
+      "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)"
+    },
+    {
+      "n": 5,
+      "edges": 10,
+      "milp_optimum": 25,
+      "S(n)": 25,
+      "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)"
+    },
+    {
+      "n": 6,
+      "edges": 15,
+      "milp_optimum": 37,
+      "S(n)": 37,
+      "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)"
+    },
+    {
+      "n": 7,
+      "edges": 21,
+      "milp_optimum": 50,
+      "S(n)": 50,
+      "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)"
+    },
+    {
+      "n": 8,
+      "edges": 28,
+      "milp_optimum": 65,
+      "S(n)": 65,
+      "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)"
+    },
+    {
+      "n": 9,
+      "edges": 36,
+      "milp_optimum": 83,
+      "S(n)": 83,
+      "status": "Optimization terminated successfully. (HiGHS Status 7: Optimal)"
+    }
+  ],
+  "formula_values": [
+    {
+      "n": 0,
+      "optimal_sorted_quadruple": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "S": 0,
+      "regions": 1
+    },
+    {
+      "n": 1,
+      "optimal_sorted_quadruple": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "S": 0,
+      "regions": 2
+    },
+    {
+      "n": 2,
+      "optimal_sorted_quadruple": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "S": 3,
+      "regions": 10
+    },
+    {
+      "n": 3,
+      "optimal_sorted_quadruple": [
+        0,
+        1,
+        1,
+        1
+      ],
+      "S": 9,
+      "regions": 25
+    },
+    {
+      "n": 4,
+      "optimal_sorted_quadruple": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "S": 16,
+      "regions": 45
+    },
+    {
+      "n": 5,
+      "optimal_sorted_quadruple": [
+        1,
+        1,
+        1,
+        2
+      ],
+      "S": 25,
+      "regions": 71
+    },
+    {
+      "n": 6,
+      "optimal_sorted_quadruple": [
+        1,
+        1,
+        2,
+        2
+      ],
+      "S": 37,
+      "regions": 104
+    },
+    {
+      "n": 7,
+      "optimal_sorted_quadruple": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "S": 50,
+      "regions": 142
+    },
+    {
+      "n": 8,
+      "optimal_sorted_quadruple": [
+        1,
+        2,
+        2,
+        3
+      ],
+      "S": 65,
+      "regions": 186
+    },
+    {
+      "n": 9,
+      "optimal_sorted_quadruple": [
+        1,
+        2,
+        3,
+        3
+      ],
+      "S": 83,
+      "regions": 237
+    },
+    {
+      "n": 10,
+      "optimal_sorted_quadruple": [
+        2,
+        2,
+        3,
+        3
+      ],
+      "S": 103,
+      "regions": 294
+    },
+    {
+      "n": 11,
+      "optimal_sorted_quadruple": [
+        2,
+        2,
+        3,
+        4
+      ],
+      "S": 124,
+      "regions": 356
+    },
+    {
+      "n": 12,
+      "optimal_sorted_quadruple": [
+        2,
+        2,
+        4,
+        4
+      ],
+      "S": 148,
+      "regions": 425
+    },
+    {
+      "n": 13,
+      "optimal_sorted_quadruple": [
+        2,
+        3,
+        4,
+        4
+      ],
+      "S": 174,
+      "regions": 500
+    },
+    {
+      "n": 14,
+      "optimal_sorted_quadruple": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "S": 201,
+      "regions": 580
+    },
+    {
+      "n": 15,
+      "optimal_sorted_quadruple": [
+        2,
+        3,
+        5,
+        5
+      ],
+      "S": 231,
+      "regions": 667
+    },
+    {
+      "n": 16,
+      "optimal_sorted_quadruple": [
+        3,
+        3,
+        5,
+        5
+      ],
+      "S": 264,
+      "regions": 761
+    },
+    {
+      "n": 17,
+      "optimal_sorted_quadruple": [
+        3,
+        3,
+        5,
+        6
+      ],
+      "S": 297,
+      "regions": 859
+    },
+    {
+      "n": 18,
+      "optimal_sorted_quadruple": [
+        3,
+        3,
+        6,
+        6
+      ],
+      "S": 333,
+      "regions": 964
+    },
+    {
+      "n": 19,
+      "optimal_sorted_quadruple": [
+        3,
+        4,
+        6,
+        6
+      ],
+      "S": 372,
+      "regions": 1076
+    },
+    {
+      "n": 20,
+      "optimal_sorted_quadruple": [
+        4,
+        4,
+        6,
+        6
+      ],
+      "S": 412,
+      "regions": 1193
+    },
+    {
+      "n": 21,
+      "optimal_sorted_quadruple": [
+        4,
+        4,
+        6,
+        7
+      ],
+      "S": 454,
+      "regions": 1316
+    },
+    {
+      "n": 22,
+      "optimal_sorted_quadruple": [
+        4,
+        4,
+        7,
+        7
+      ],
+      "S": 499,
+      "regions": 1446
+    },
+    {
+      "n": 23,
+      "optimal_sorted_quadruple": [
+        4,
+        5,
+        7,
+        7
+      ],
+      "S": 545,
+      "regions": 1581
+    },
+    {
+      "n": 24,
+      "optimal_sorted_quadruple": [
+        4,
+        5,
+        7,
+        8
+      ],
+      "S": 593,
+      "regions": 1722
+    },
+    {
+      "n": 25,
+      "optimal_sorted_quadruple": [
+        4,
+        5,
+        8,
+        8
+      ],
+      "S": 644,
+      "regions": 1870
+    },
+    {
+      "n": 26,
+      "optimal_sorted_quadruple": [
+        5,
+        5,
+        8,
+        8
+      ],
+      "S": 697,
+      "regions": 2024
+    },
+    {
+      "n": 27,
+      "optimal_sorted_quadruple": [
+        5,
+        5,
+        8,
+        9
+      ],
+      "S": 751,
+      "regions": 2183
+    },
+    {
+      "n": 28,
+      "optimal_sorted_quadruple": [
+        5,
+        5,
+        9,
+        9
+      ],
+      "S": 808,
+      "regions": 2349
+    },
+    {
+      "n": 29,
+      "optimal_sorted_quadruple": [
+        5,
+        6,
+        9,
+        9
+      ],
+      "S": 867,
+      "regions": 2521
+    },
+    {
+      "n": 30,
+      "optimal_sorted_quadruple": [
+        5,
+        6,
+        9,
+        10
+      ],
+      "S": 927,
+      "regions": 2698
+    },
+    {
+      "n": 31,
+      "optimal_sorted_quadruple": [
+        5,
+        6,
+        10,
+        10
+      ],
+      "S": 990,
+      "regions": 2882
+    },
+    {
+      "n": 32,
+      "optimal_sorted_quadruple": [
+        6,
+        6,
+        10,
+        10
+      ],
+      "S": 1056,
+      "regions": 3073
+    },
+    {
+      "n": 33,
+      "optimal_sorted_quadruple": [
+        6,
+        6,
+        10,
+        11
+      ],
+      "S": 1122,
+      "regions": 3268
+    },
+    {
+      "n": 34,
+      "optimal_sorted_quadruple": [
+        6,
+        6,
+        11,
+        11
+      ],
+      "S": 1191,
+      "regions": 3470
+    },
+    {
+      "n": 35,
+      "optimal_sorted_quadruple": [
+        6,
+        7,
+        11,
+        11
+      ],
+      "S": 1263,
+      "regions": 3679
+    },
+    {
+      "n": 36,
+      "optimal_sorted_quadruple": [
+        7,
+        7,
+        11,
+        11
+      ],
+      "S": 1336,
+      "regions": 3893
+    },
+    {
+      "n": 37,
+      "optimal_sorted_quadruple": [
+        7,
+        7,
+        11,
+        12
+      ],
+      "S": 1411,
+      "regions": 4113
+    },
+    {
+      "n": 38,
+      "optimal_sorted_quadruple": [
+        7,
+        7,
+        12,
+        12
+      ],
+      "S": 1489,
+      "regions": 4340
+    },
+    {
+      "n": 39,
+      "optimal_sorted_quadruple": [
+        7,
+        8,
+        12,
+        12
+      ],
+      "S": 1568,
+      "regions": 4572
+    },
+    {
+      "n": 40,
+      "optimal_sorted_quadruple": [
+        7,
+        8,
+        12,
+        13
+      ],
+      "S": 1649,
+      "regions": 4810
+    }
+  ],
+  "result": "PASSED"
+}

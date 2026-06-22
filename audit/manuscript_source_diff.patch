@@ -1,0 +1,1858 @@
+--- previous_corrected_manuscript.tex
++++ research_grade_manuscript.tex
+@@ -1,6 +1,6 @@
+-\documentclass[12pt]{article}
++\documentclass[11pt]{article}
+ 
+-\usepackage[a4paper,left=0.82in,right=0.82in,top=0.9in,bottom=0.95in]{geometry}
++\usepackage[a4paper,left=0.82in,right=0.82in,top=0.85in,bottom=0.9in]{geometry}
+ \usepackage[T1]{fontenc}
+ \usepackage[utf8]{inputenc}
+ \usepackage{lmodern}
+@@ -13,22 +13,17 @@
+ \usepackage{hyperref}
+ \usepackage{enumitem}
+ \usepackage{setspace}
++\usepackage{longtable}
+ 
+-\hypersetup{
+-  colorlinks=true,
+-  linkcolor=blue!55!black,
+-  citecolor=blue!55!black,
+-  urlcolor=blue!55!black
+-}
+-
+-\setstretch{1.055}
++\hypersetup{colorlinks=true,linkcolor=blue!52!black,citecolor=blue!52!black,urlcolor=blue!52!black}
++\setstretch{1.045}
+ \setlength{\parindent}{0pt}
+-\setlength{\parskip}{0.52em}
+-\setlist[itemize]{topsep=0.25em,itemsep=0.15em}
+-\setlist[enumerate]{topsep=0.25em,itemsep=0.15em}
++\setlength{\parskip}{0.45em}
++\setlist[itemize]{topsep=0.2em,itemsep=0.12em}
++\setlist[enumerate]{topsep=0.2em,itemsep=0.12em}
+ 
+ \theoremstyle{plain}
+-\newtheorem{theorem}{Theorem}
++\newtheorem{theorem}{Theorem}[section]
+ \newtheorem{lemma}[theorem]{Lemma}
+ \newtheorem{proposition}[theorem]{Proposition}
+ \newtheorem{corollary}[theorem]{Corollary}
+@@ -38,874 +33,996 @@
+ \newtheorem{remark}[theorem]{Remark}
+ 
+ \newcommand{\Lop}{\mathcal L}
+-\newcommand{\binomtwo}[1]{\binom{#1}{2}}
+-\newcommand{\floor}[1]{\left\lfloor #1\right\rfloor}
+-\newcommand{\ceil}[1]{\left\lceil #1\right\rceil}
+-\newcommand{\supp}{\operatorname{supp}}
+ \newcommand{\R}{\mathbb R}
++\newcommand{\Q}{\mathbb Q}
++\newcommand{\1}{\mathbf 1}
++\newcommand{\supp}{\operatorname{supp}}
++\newcommand{\rank}{\operatorname{rank}}
++\newcommand{\comp}{\operatorname{comp}}
++\newcommand{\betti}{\beta}
++\newcommand{\eps}{\varepsilon}
+ 
+ \begin{document}
+ 
+-\title{%
+-% \includegraphics[width=0.33\linewidth]{lossfunk-logo.jpg}\\[0.85cm]
+-A Colored Tur\'an Proof of the Lollipop Formula}
+-
+-\author{%
+-Siddhartha Mahajan\\
+-Research Fellow, Lossfunk\\
+-\texttt{siddharthamahajan03@gmail.com}
+-\and Matthias
+-Paulsen \and
+-Paras Chopra\\
+-Lossfunk\\
+-\texttt{paras@lossfunk.com}
+-}
+-
+-\date{}
++\title{A Colored Tur\'an Proof of the Lollipop Formula}
++\author{Siddhartha Mahajan \and Matthias Paulsen \and Paras Chopra}
++\date{June 21, 2026}
+ \maketitle
+ 
+ \begin{abstract}
+-Let \(a_{\Lop}(n)\) be the maximum number of connected regions into which
+-\(n\) lollipops can divide the plane.  Using Paulsen's two geometric
+-obstructions and Karlsson's four-lollipop construction, we prove the exact
+-four-cluster formula
++A lollipop is a circle together with the outward radial ray beginning at one
++point of the circle.  Let $a_{\Lop}(n)$ be the maximum number of connected
++components of the complement of a union of $n$ lollipops in the plane.  We
++prove, for every $n\geq 0$,
+ \[
+-  a_{\Lop}(n)=4\binom n2+S(n)+n+1,
++ a_{\Lop}(n)=4\binom n2+S(n)+n+1,
+ \]
+ where
+ \[
+-\begin{gathered}
+-  S(n)=\max_{a+b+c+d=n,\;0\le a\le b\le c\le d}
+-  \left(3\sum_{1\le i<j\le4}m_i m_j-2ab\right),\\
+-  (m_1,m_2,m_3,m_4)=(a,b,c,d).
+-\end{gathered}
+-\]
+-After the geometric reduction, the upper bound is entirely combinatorial.  It
+-uses a colored Zykov symmetrization, a weighted blocker lemma, and an exact
+-\(3\times4\) matrix inequality.  The matrix inequality is proved by support
+-compression: alternating four-edge path compressions and double-star
+-compressions reduce every integer matrix to star-forest normal form, where the
+-efficient degree pattern is \(K_{1,2}\cup K_2\cup K_2\).  This also explains
+-the asymptotic cluster proportions
+-\[
+-  \frac{3}{16},\frac{3}{16},\frac{5}{16},\frac{5}{16}.
+-\]
++ S(n)=\max_{\substack{a+b+c+d=n\\0\leq a\leq b\leq c\leq d}}
++ \left(3\sum_{1\leq i<j\leq4}m_i m_j-2ab\right),
++ \qquad (m_1,m_2,m_3,m_4)=(a,b,c,d).
++\]
++The upper bound is valid without a general-position assumption.  Its
++geometric input is encoded by two graphs: non-close pairs form a $K_4$-free
++graph and non-intriguing pairs form a $K_5$-free graph.  A colored Zykov
++symmetrization reduces the resulting extremal problem to a weighted blocker
++inequality.  The final inequality is an exact $3\times4$ integer-matrix
++problem, proved by support compression to star forests.  For the lower bound, we give a corrected polynomial one-parameter family
++in which every two distinct nearby copies have exactly four transverse
++intersections, and blow up an all-rational perturbation of Karlsson's
++four-lollipop configuration.  Every decisive inequality for the base
++configuration is checked by exact rational arithmetic; no floating-point
++branch or sign decision is used.
+ \end{abstract}
+ 
+-\section{The formula}
++\section{Statement and notation}\label{sec:statement}
+ 
+-A \emph{lollipop} is a circle together with a half-line attached at one point
+-of the circle and extending radially outward.  We assume arrangements are
+-generic: there are no tangencies, no triple intersection points, and no
+-intersection occurs at an anchor point.  This entails no loss for a maximum,
+-since a non-generic arrangement can be perturbed without decreasing the number
+-of regions.
+-
+-Let \(C\) be the total number of crossings between distinct lollipops.  Adding
+-one generic lollipop with \(k\) crossings increases the number of regions by
+-\(k+1\).  Indeed, compactify the plane by a point at infinity, so that all rays
+-end at the same point.  When the new lollipop is added, its \(k\) crossings
+-subdivide \(k\) old edges and contribute \(k\) new vertices.  The new anchor is
+-one further vertex.  The circle part contributes one more edge than the number
+-of new vertices on the circle, and the ray part contributes one more edge than
+-the number of new vertices on the ray.  Thus \(\Delta V=k+1\) and
+-\(\Delta E=2k+2\), whence Euler's formula gives \(\Delta F=\Delta E-\Delta V=k+1\).
+-Consequently
+-\begin{equation}\label{eq:regions}
+-  \#\hbox{regions}=C+n+1.
+-\end{equation}
+-Thus the problem is to maximize \(C\).
++For $c\in\R^2$, $r>0$, and a unit vector $u\in S^1$, write
++\[
++ C(c,r)=\{x\in\R^2:|x-c|=r\},\qquad
++ R(c,r,u)=\{c+tu:t\geq r\}.
++\]
++The associated \emph{lollipop} is
++\[
++ L(c,r,u)=C(c,r)\cup R(c,r,u),
++\]
++and its \emph{anchor} is $a=c+ru$.  No general-position hypothesis is part
++of the definition of $a_{\Lop}(n)$.
+ 
+-For \(n\ge0\), define
++For $n\geq0$, define
+ \begin{equation}\label{eq:Sdef}
+-  S(n)=\max_{a+b+c+d=n,\;0\le a\le b\le c\le d}
+-  \left(3\sum_{1\le i<j\le4}m_i m_j-2ab\right),
+-  \qquad (m_1,m_2,m_3,m_4)=(a,b,c,d).
+-\end{equation}
+-Equivalently, for a fixed multiset of four cluster sizes, the penalized pair is
+-the pair with smallest product, i.e. the two smallest clusters.
+-
+-\begin{theorem}\label{thm:lollipop-formula}
+-For every \(n\ge0\),
+-\begin{equation}\label{eq:main-formula}
+-  a_{\Lop}(n)=4\binom n2+S(n)+n+1.
++ S(n)=\max_{\substack{a+b+c+d=n\\0\leq a\leq b\leq c\leq d}}
++ \left(3\sum_{1\leq i<j\leq4}m_i m_j-2ab\right),
++ \qquad (m_1,m_2,m_3,m_4)=(a,b,c,d).
++\end{equation}
++Equivalently, for a fixed multiset of four cluster sizes, the penalized
++product is the product of the two smallest sizes.
++
++\begin{theorem}\label{thm:main}
++For every integer $n\geq0$,
++\begin{equation}\label{eq:main}
++ a_{\Lop}(n)=4\binom n2+S(n)+n+1.
+ \end{equation}
+ \end{theorem}
+ 
+-The first values obtained from \eqref{eq:main-formula} are
+-\[
+-\begin{gathered}
+-1,2,10,25,45,71,104,142,186,237,294,356,425,500,580,667,\\
+-761,859,964,1076,1193,1316,1446,1581,1722,1870,2024,2183,\\
+-2349,2521,2698,2882,3073.
+-\end{gathered}
+-\]
++The proof separates into topology, pair geometry, and an exact colored
++extremal theorem.  Cutler--Karlsson--Sloane established the first geometric
++bounds and the exact cases through four lollipops; Paulsen introduced the
++close-pair and circle-angle obstructions; and Mahajan--Chopra recast those
++obstructions as a two-graph problem, determining all cases through $17$ and
++also $n=19$ while leaving one-region gaps at $18$ and $20$
++\cite{CKS,MahajanChopra,Paulsen}.  Theorem~\ref{thm:main} closes those gaps
++and proves the resulting formula for every $n$.
++
++The topological argument below is included in order to remove a frequently
++used but unnecessary assertion that every extremizer may simply be assumed
++generic.
++
++\section{A region bound valid for arbitrary arrangements}\label{sec:topology}
++
++Let $S^2=\R^2\cup\{\infty\}$ be the one-point compactification.  For a
++lollipop $L$, put $\widehat L=L\cup\{\infty\}$.  The compactified stem is a
++closed arc from the anchor to $\infty$, so $\widehat L$ is connected and has
++first Betti number one.  All homology in this section has coefficients in
++$\Q$.
++
++For two lollipops define
++\begin{equation}\label{eq:qdef}
++ q(L,M)=\betti_0(\widehat L\cap\widehat M)-1.
++\end{equation}
++The subtraction removes the component containing $\infty$, which is present
++for every pair.  Thus $q(L,M)$ counts the other connected components of the
++compactified pair intersection, not intersection points with multiplicity.
++This definition remains meaningful for tangencies, coincident circles, and
++overlapping stems.
++
++\begin{proposition}[topological region inequality]\label{prop:top-region}
++For arbitrary lollipops $L_1,\ldots,L_n$, the number $F$ of connected
++components of
++$\R^2\setminus\bigcup_iL_i$ satisfies
++\begin{equation}\label{eq:top-region}
++ F\leq n+1+\sum_{1\leq i<j\leq n}q(L_i,L_j).
++\end{equation}
++If the arrangement has only transverse pairwise crossings, no triple point,
++no crossing at an anchor, and no parallel or overlapping stems, then equality
++holds and $q(L_i,L_j)$ is the ordinary number of pairwise crossings.
++\end{proposition}
++
++\begin{proof}
++Realize $S^2$ as the unit sphere in $\R^3$.  Under inverse stereographic
++projection, circles, rays, and the point at infinity are semialgebraic; hence
++the resulting finite family admits a compatible semialgebraic triangulation.
++In particular, every union and intersection below is a compact subcomplex;
++its Betti numbers and the number of complement components are finite
++\cite{BCR}.  Put
++$X_k=\bigcup_{i=1}^k\widehat L_i$.  Since every $\widehat L_i$ contains
++$\infty$, each $X_k$ is connected.  The Mayer--Vietoris exact sequence for
++$X_{k-1}\cup\widehat L_k$ gives
++\[
++ \betti_1(X_k)\leq \betti_1(X_{k-1})+\betti_1(\widehat L_k)
++ +\betti_0(X_{k-1}\cap\widehat L_k)-1.
++\]
++As $\betti_1(\widehat L_k)=1$, this becomes
++\begin{equation}\label{eq:mvstep}
++ \betti_1(X_k)\leq \betti_1(X_{k-1})+
++ \betti_0(X_{k-1}\cap\widehat L_k).
++\end{equation}
++Now
++\[
++ X_{k-1}\cap\widehat L_k
++ =\bigcup_{j<k}(\widehat L_j\cap\widehat L_k).
++\]
++All sets in this union contain $\infty$.  A union of sets with one common
++component has at most one common component plus the sum of their remaining
++component counts.  Consequently
++\[
++ \betti_0(X_{k-1}\cap\widehat L_k)
++ \leq1+\sum_{j<k}q(L_j,L_k).
++\]
++Starting from $\betti_1(X_1)=1$ and iterating \eqref{eq:mvstep} yields
++\begin{equation}\label{eq:b1-bound}
++ \betti_1(X_n)\leq n+\sum_{i<j}q(L_i,L_j).
++\end{equation}
++Alexander duality on $S^2$ \cite[Section~3.3]{Hatcher} gives
++\[
++ F-1=\dim \widetilde H_0(S^2\setminus X_n;\Q)
++ =\dim \widetilde H^1(X_n;\Q)=\betti_1(X_n),
++\]
++which proves \eqref{eq:top-region}.  The case $n=0$ is immediate.
++
++For a generic arrangement, $X_n$ is a finite connected graph.  If $C$ is the
++total number of finite crossings, its vertices are the $C$ crossings, the $n$
++anchors, and $\infty$, so $V=C+n+1$.  Counting circle and stem segments gives
++$E=2C+2n$: each lollipop contributes one baseline circle edge and one baseline
++stem edge, and every crossing contributes one subdivision on each of two
++lollipops.  Hence
++$\betti_1=E-V+1=C+n$, and therefore $F=C+n+1$.  In this case every finite
++pair-intersection component is one crossing, so equality also follows in
++\eqref{eq:top-region}.
++\end{proof}
+ 
+-\section{Geometric input and the two-graph reduction}
++\section{Pair geometry and the two forced obstructions}\label{sec:geometry}
+ 
+-We use Paulsen's terminology.  A pair of lollipops is \emph{close} if the
+-angle between the two stem directions is at most \(90^\circ\).  A pair is
+-\emph{intriguing} if the two circles either do not meet, or meet at angle at
+-most \(90^\circ\), after orienting the two circles in the same direction.
++For two lollipops $L_i=L(c_i,r_i,u_i)$, set $d=c_2-c_1$.
++They are called \emph{close} if
++\begin{equation}\label{eq:close}
++ u_1\cdot u_2\geq0,
++\end{equation}
++that is, the smaller angle between their stem directions is at most
++$\pi/2$.  They are called \emph{intriguing} if either their two circle curves
++are disjoint, or
++\begin{equation}\label{eq:intriguing}
++ |d|^2\leq r_1^2+r_2^2.
++\end{equation}
++When the circles meet transversely, \eqref{eq:intriguing} says that the angle
++between equally oriented circle tangents is at most $\pi/2$.
+ 
+-The following geometric facts are due to Cutler--Karlsson--Sloane and Paulsen.
+-The present paper proves the exact combinatorial extremal step that follows
+-from these facts.
++We first establish all pair bounds, including degenerate cases, directly.
+ 
+-\begin{lemma}[geometric lollipop input]\label{lem:geometry}
+-For a generic pair of lollipops:
++\begin{lemma}[mixed intersections for a close pair]\label{lem:close-mixed}
++If $u_1\cdot u_2\geq0$, then
++\[
++ \#(R(c_1,r_1,u_1)\cap C(c_2,r_2))
++ +\#(R(c_2,r_2,u_2)\cap C(c_1,r_1))\leq2.
++\]
++\end{lemma}
++
++\begin{proof}
++A ray meets a circle in at most two points.  Suppose the first mixed
++intersection has two distinct points.  Along the supporting line of the first
++ray the two intersection parameters have average $d\cdot u_1$.  Both
++parameters are at least $r_1$, and they are distinct, so
++$d\cdot u_1>r_1$.
++
++If $c_2+t u_2\in C(c_1,r_1)$ for some $t\geq r_2>0$, then
++\[
++ d\cdot u_1+t(u_2\cdot u_1)
++ =(c_2+t u_2-c_1)\cdot u_1
++ \leq |c_2+t u_2-c_1|=r_1.
++\]
++Under \eqref{eq:close} this contradicts $d\cdot u_1>r_1$.  Thus two
++intersections in one mixed component force zero in the reverse component.
++If neither mixed component has two points, each has at most one, proving the
++claim.
++\end{proof}
++
++\begin{lemma}[mixed intersections for intriguing circles]\label{lem:intr-mixed}
++Assume the circles meet and $|d|^2\leq r_1^2+r_2^2$.
+ \begin{enumerate}[label=(\roman*)]
+-  \item any pair has at most \(7\) crossings;
+-  \item a close pair has at most \(5\) crossings;
+-  \item an intriguing pair has at most \(5\) crossings;
+-  \item a pair that is both close and intriguing has at most \(4\) crossings.
++\item Each set $R(c_i,r_i,u_i)\cap C(c_j,r_j)$ contains at most one point
++outside $C(c_1,r_1)\cap C(c_2,r_2)$.
++\item If both mixed sets contain such a point, then the two stems have no
++finite intersection.
+ \end{enumerate}
+-Furthermore, among any four lollipops there is a close pair, and among any five
+-lollipops there is an intriguing pair.
+ \end{lemma}
+ 
+-For (i), two circles meet at most twice, each stem meets the other circle at
+-most twice, and the two stems meet at most once.  The remaining assertions are
+-the geometric obstructions quoted above; Appendix \ref{app:paulsen} recalls
+-Paulsen's linear-algebra proof of the forced intriguing pair.
+-
+-Given an arrangement of \(n\) lollipops, define graphs \(D,E\) on the same
+-vertex set by
+-\[
+-  ij\in D\quad\Longleftrightarrow\quad L_i,L_j\hbox{ are not close},
+-\]
+-\[
+-  ij\in E\quad\Longleftrightarrow\quad L_i,L_j\hbox{ are not intriguing}.
+-\]
+-By Lemma \ref{lem:geometry},
+-\begin{equation}\label{eq:forbidden-DE}
+-  D\hbox{ is }K_4\hbox{-free},\qquad E\hbox{ is }K_5\hbox{-free}.
+-\end{equation}
+-For a pair \(ij\), Lemma \ref{lem:geometry} gives the pointwise estimate
+-\begin{equation}\label{eq:pair-weight}
+-  c_{ij}\le
+-  4+\mathbf 1_{ij\in D}+\mathbf 1_{ij\in E}+\mathbf 1_{ij\in D\cap E}.
+-\end{equation}
+-Indeed, the four cases are respectively: close and intriguing, close only,
+-intriguing only, and neither; the corresponding upper bounds are
+-\(4,5,5,7\).  Therefore
+-\begin{equation}\label{eq:two-graph-bound}
+-  C\le 4\binom n2+\sigma(D,E),
+-  \qquad
+-  \sigma(D,E):=|D|+|E|+|D\cap E|.
+-\end{equation}
+-Theorem \ref{thm:lollipop-formula} is now reduced to the following colored
+-Tur\'an theorem.
+-
+-\begin{theorem}[colored Tur\'an theorem]\label{thm:colored-turan}
+-If \(D\) is \(K_4\)-free and \(E\) is \(K_5\)-free on the same \(n\)-vertex
+-set, then
+-\begin{equation}\label{eq:sigma-upper}
+-  \sigma(D,E)\le S(n).
+-\end{equation}
+-\end{theorem}
++\begin{proof}
++Let $p=d\cdot u_1$ and write $|d|^2=p^2+h^2$, where $h$ is the perpendicular
++distance from $c_2$ to the first supporting line.  If the first ray meets the
++second circle in two distinct points with parameters $t_-<t_+$, then
++\[
++ t_\pm=p\pm\sqrt{r_2^2-h^2},\qquad t_-\geq r_1.
++\]
++Put $z=p-r_1$.  We have $z>0$ and
++$z\geq\sqrt{r_2^2-h^2}$.  Therefore
++\[
++ |d|^2-r_1^2-r_2^2
++ =2r_1z+z^2-(r_2^2-h^2)>0,
++\]
++contrary to the hypothesis.  Thus there are not two mixed points.
++
++A singleton mixed intersection outside the common circle intersection cannot
++be a tangency.  Indeed, at a tangent parameter $t=p\geq r_1$ one has
++$|d|^2=p^2+r_2^2$; the intriguing inequality forces $p\leq r_1$, hence
++$p=r_1$, and the tangent point is the first anchor and lies on both circles.
++Consequently a singleton outside the common circle intersection is a simple
++root beyond the anchor.  Since the quadratic distance function tends to
++$+\infty$ and has exactly one root after the anchor, its value at the anchor
++is negative.  In other words, the first anchor lies strictly inside the
++second disk.  This proves (i), and gives the corresponding interior statement
++for either orientation.
++
++Assume now that both outside mixed points exist.  Let
++$a_i=c_i+r_i u_i$ be the anchors.  We have
++$|a_1-c_2|<r_2$ and $|a_2-c_1|<r_1$.  If the two rays met at a finite point,
++write
++\[
++ x=c_1+(r_1+s)u_1=c_2+(r_2+t)u_2,
++ \qquad s,t\geq0.
++\]
++Because $a_1$ is inside the second disk while every point of the second stem
++is outside that disk, $s>0$; similarly $t>0$.  Substituting for $c_2-c_1$ and
++using $u_1\cdot u_2\leq1$ gives
++\[
++ |a_1-c_2|^2=|-s u_1+(r_2+t)u_2|^2
++ \geq (r_2+t-s)^2.
++\]
++The strict inequality $|a_1-c_2|<r_2$ therefore implies $t<s$.  Interchanging
++$1$ and $2$ gives $s<t$, a contradiction.  This proves (ii).
++\end{proof}
+ 
+-The proof occupies Sections \ref{sec:zykov}--\ref{sec:matrix}.  The lower
+-construction is given in Section \ref{sec:lower}; together with
+-\eqref{eq:regions} and \eqref{eq:two-graph-bound}, it proves Theorem
+-\ref{thm:lollipop-formula}.
++\begin{proposition}[pair savings]\label{prop:pair-savings}
++For arbitrary lollipops $L,M$,
++\begin{align*}
++ q(L,M)&\leq7,\\
++ L,M\text{ close}&\Longrightarrow q(L,M)\leq5,\\
++ L,M\text{ intriguing}&\Longrightarrow q(L,M)\leq5,\\
++ L,M\text{ close and intriguing}&\Longrightarrow q(L,M)\leq4.
++\end{align*}
++\end{proposition}
+ 
+-\section{Colored Zykov symmetrization}\label{sec:zykov}
++\begin{proof}
++The circle--circle intersection has at most two connected components (two
++points, one point, one coincident circle, or none).  Each mixed ray--circle
++intersection has at most two points.  The finite part of a ray--ray
++intersection contributes at most one component not connected to $\infty$.
++This gives $q\leq2+2+2+1=7$.
++
++For a close pair, Lemma~\ref{lem:close-mixed} reduces the total mixed
++contribution to at most two, giving $q\leq2+2+1=5$.
++
++If an intriguing pair has disjoint circles, the circle--circle contribution
++vanishes and the general count gives $q\leq0+2+2+1=5$.  Otherwise the circles
++meet and satisfy \eqref{eq:intriguing}.  Let $m_{12},m_{21}\in\{0,1\}$ count
++mixed points outside the common circle intersection.  Mixed points lying on
++both circles do not create additional components beyond the circle--circle
++components.  By Lemma~\ref{lem:intr-mixed}, if
++$m_{12}=m_{21}=1$ then the finite ray--ray contribution is zero; otherwise it
++is at most one.  Hence in either case
++\[
++ q\leq2+m_{12}+m_{21}+\1_{\{\text{finite ray--ray component}\}}\leq4.
++\]
++Thus an intersecting intriguing pair actually satisfies the stronger bound
++$q\leq4$.  Finally, a pair that is both close and intriguing has bound at
++most four in the intersecting case, and at most $0+2+1=3$ in the disjoint
++case.
++\end{proof}
+ 
+-Color every unordered pair of vertices with one of four colors:
+-\[
+-  0: \hbox{neither }D\hbox{ nor }E,
+-  \qquad
+-  A: E\hbox{-only},
+-\]
+-\[
+-  B: D\hbox{-only},
+-  \qquad
+-  X: D\cap E.
+-\]
+-These colors have weights
+-\[
+-  w(0)=0,\quad w(A)=1,
+-  \quad w(B)=1,
+-  \quad w(X)=3,
+-\]
+-so that \(\sigma(D,E)\) is the total color-weight.
++The two Ramsey-type consequences are next.
+ 
+-\begin{lemma}[colored Zykov reduction]\label{lem:zykov}
+-An extremal pair \((D,E)\) for \(\sigma\) may be chosen as a blow-up of a
+-complete colored quotient: the vertex set is partitioned into classes
+-\(V_1,\ldots,V_k\), every pair inside one class has color \(0\), and every pair
+-between two distinct classes has one fixed color from \(\{A,B,X\}\).  In
+-particular, there are no color-\(0\) pairs between distinct classes.
++\begin{lemma}[forced close pair]\label{lem:forced-close}
++Among any four stem directions there is a close pair.
+ \end{lemma}
+ 
+ \begin{proof}
+-Call two vertices \emph{zero-twins} if either they are equal, or their pair has
+-color \(0\) and they have the same colored neighborhood outside the pair.  This
+-is an equivalence relation.  Among all feasible colorings attaining the maximum
+-value of \(\sigma\), choose one maximizing the sum of squares of the zero-twin
+-class sizes.
+-
+-For a zero-twin class \(P\), let \(d_w(P)\) be the total color-weight from any
+-vertex of \(P\) to vertices outside the two classes under comparison; this is
+-well-defined because vertices in \(P\) are twins.  Suppose two distinct
+-zero-twin classes \(P,Q\) have a color-\(0\) edge between them.  Then all edges
+-between \(P\) and \(Q\) have color \(0\).  If \(d_w(P)\le d_w(Q)\), clone every
+-vertex of \(P\) to a representative of \(Q\): keep all pairs inside
+-\(P\cup Q\) color \(0\), and give each vertex of \(P\) the same colors to the
+-outside as a vertex of \(Q\).  The change in \(\sigma\) is
+-\(|P|(d_w(Q)-d_w(P))\ge0\).
+-
+-This operation cannot create a \(K_4\) in \(D\).  Indeed, a new \(D\)-clique
+-using a cloned vertex from \(P\) and no vertex of \(Q\) corresponds to the old
+-clique obtained by replacing that vertex by a representative of \(Q\), while a
+-clique using vertices from both \(P\) and \(Q\) is impossible because all pairs
+-inside \(P\cup Q\) have color \(0\).  The same argument forbids creation of a
+-\(K_5\) in \(E\).  Thus feasibility is preserved.  If \(d_w(P)<d_w(Q)\), this
+-contradicts extremality of \(\sigma\); if \(d_w(P)=d_w(Q)\), it preserves
+-\(\sigma\) but merges \(P\) and \(Q\) into one larger zero-twin class,
+-contradicting the tie-breaker.  The case \(d_w(Q)<d_w(P)\) is symmetric.
+-
+-Hence no color-\(0\) edge joins two distinct zero-twin classes.  Between two
+-classes all edges have one fixed nonzero color, because vertices within each
+-class have identical colored neighborhoods.  This is precisely the claimed
+-quotient form.
++Place the four directions in cyclic order on $S^1$.  Their four cyclic gaps
++sum to $2\pi$, so one gap is at most $\pi/2$.
+ \end{proof}
+ 
+-Let the quotient class sizes be \(x_1,\ldots,x_k\), with
+-\(\sum_i x_i=n\), and put
++\begin{lemma}[forced intriguing pair]\label{lem:forced-intriguing}
++Among any five circles there is an intriguing pair.
++\end{lemma}
++
++\begin{proof}
++Suppose not.  Then every two circle curves meet, and for their center distance
++$d_{ij}=|c_i-c_j|$ one has
++\begin{equation}\label{eq:nonintr}
++ r_i^2+r_j^2<d_{ij}^2\leq(r_i+r_j)^2.
++\end{equation}
++External tangencies can be removed uniformly: because the family is finite,
++there is a number $\lambda>1$, arbitrarily close to one, such that replacing
++all $r_i$ by $\lambda r_i$ preserves
++$d_{ij}^2>\lambda^2(r_i^2+r_j^2)$ and
++$d_{ij}>\lambda|r_i-r_j|$, while making
++$d_{ij}<\lambda(r_i+r_j)$.  Thus the enlarged circles meet transversely and
++at an obtuse equally oriented angle.  We rename their radii $r_i$.
++
++For each circle set
+ \[
+-  Q=\sum_i x_i^2.
++ v_i=\frac1{r_i}(1,r_i^2-|c_i|^2,c_i)\in\R^4
+ \]
+-Let
++and equip triples $(\alpha,\beta,x)$ with the symmetric bilinear form
+ \[
+-  a=\sum_{ij\in A}x_i x_j,
+-  \qquad
+-  b=\sum_{ij\in B}x_i x_j,
++ \langle(\alpha,\beta,x),(\alpha',\beta',x')\rangle
++ =\frac12(\alpha\beta'+\beta\alpha')+x\cdot x'.
+ \]
+-where \(A\) and \(B\) now also denote the graphs of \(A\)-colored and
+-\(B\)-colored quotient edges.  The total cross-class mass is
++A direct calculation gives
+ \[
+-  P=\sum_{i<j}x_i x_j=\frac{n^2-Q}{2}.
++ \langle v_i,v_i\rangle=1,
++ \qquad
++ \langle v_i,v_j\rangle
++ =\frac{r_i^2+r_j^2-d_{ij}^2}{2r_ir_j}\in(-1,0).
+ \]
+-Since \(X\)-edges have weight \(3\), while \(A\)- and \(B\)-edges have weight
+-\(1\),
+-\begin{equation}\label{eq:sigma-quotient}
+-  \sigma=3P-2a-2b=\frac32(n^2-Q)-2a-2b.
+-\end{equation}
++The five vectors are linearly dependent.  In a nonzero relation, positive
++and negative coefficients both occur because every first coordinate is
++positive.  After changing the sign if necessary, write
++\[
++ \sum_{i\in P}a_i v_i=\sum_{j\in N}b_j v_j,
++ \qquad a_i,b_j>0,
++\]
++with $1\leq|P|\leq2$.  Put $w=\sum_{i\in P}v_i$.  If $P=\{i\}$, the inner
++product of the left side with $w$ is $a_i>0$.  If $P=\{i,k\}$, it is
++$(a_i+a_k)(1+\langle v_i,v_k\rangle)>0$.  The inner product of the right side
++with $w$ is strictly negative, because every cross inner product is negative.
++This contradiction proves the lemma.
++\end{proof}
+ 
+-The forbidden cliques translate into blocker conditions.  Since
+-\(D\) consists of colors \(B\cup X\), every four quotient vertices contain an
+-\(A\)-edge; otherwise they form a \(K_4\) in \(D\).  Thus
+-\begin{equation}\label{eq:alphaA}
+-  \alpha(A)\le3.
++\section{The two-graph reduction}\label{sec:reduction}
++
++Given an arbitrary arrangement, define graphs $D,E$ on the lollipops by
++\[
++ ij\in D\iff L_i,L_j\text{ are not close},
++ \qquad
++ ij\in E\iff L_i,L_j\text{ are not intriguing}.
++\]
++Lemmas~\ref{lem:forced-close} and \ref{lem:forced-intriguing} imply
++\begin{equation}\label{eq:forbidden}
++ D\text{ is }K_4\text{-free},\qquad E\text{ is }K_5\text{-free}.
++\end{equation}
++Proposition~\ref{prop:pair-savings} gives, for every pair,
++\begin{equation}\label{eq:pointwise-q}
++ q(L_i,L_j)\leq
++ 4+\1_{ij\in D}+\1_{ij\in E}+\1_{ij\in D\cap E}.
++\end{equation}
++Indeed, the four cases have respective bounds $4,5,5,7$.  Put
++\[
++ \sigma(D,E)=|D|+|E|+|D\cap E|.
++\]
++Combining Proposition~\ref{prop:top-region} with \eqref{eq:pointwise-q},
++\begin{equation}\label{eq:region-upper-reduction}
++ F\leq4\binom n2+\sigma(D,E)+n+1.
+ \end{equation}
+-Similarly, since \(E\) consists of colors \(A\cup X\),
+-\begin{equation}\label{eq:alphaB}
+-  \alpha(B)\le4.
++Thus the upper bound in Theorem~\ref{thm:main} follows from the next purely
++combinatorial theorem.
++
++\begin{theorem}[colored Tur\'an theorem]\label{thm:colored}
++If $D$ is $K_4$-free and $E$ is $K_5$-free on the same $n$-vertex set, then
++\begin{equation}\label{eq:colored}
++ \sigma(D,E)\leq S(n).
+ \end{equation}
++\end{theorem}
+ 
+-\section{The weighted blocker lemma}\label{sec:blocker}
++\section{Colored Zykov symmetrization}\label{sec:zykov}
+ 
+-For nonnegative integer weights \(x_1,\ldots,x_k\) with total \(n\), define
+-\(Q=\sum_i x_i^2\).  If \(G\) is a graph on \([k]\), write
++Color each unordered pair by
+ \[
+-  w(G)=\sum_{ij\in E(G)}x_i x_j.
++ 0:\text{ neither graph},\quad
++ A:E\setminus D,\quad
++ B:D\setminus E,\quad
++ X:D\cap E.
+ \]
++The weights are $0,1,1,3$, respectively, and their total is $\sigma(D,E)$.
+ 
+-For \(r\ge1\), let
++\begin{lemma}[colored Zykov reduction]\label{lem:zykov}
++An extremal feasible coloring can be chosen as a blow-up of a complete
++nonzero-colored quotient: the vertices are partitioned into classes
++$V_1,\ldots,V_k$, pairs inside a class have color $0$, and every pair between
++two classes has one fixed color in $\{A,B,X\}$.
++\end{lemma}
++
++\begin{proof}
++Call two vertices \emph{zero-twins} if they are equal, or their mutual color
++is $0$ and their colored neighborhoods agree outside the pair.  This is an
++equivalence relation.  Among all feasible colorings of maximum weight, choose
++one maximizing the sum of squares of the zero-twin class sizes.
++
++Suppose distinct zero-twin classes $P,Q$ are joined by color $0$.  Then every
++$P$--$Q$ pair has color $0$.  Let $d_w(P)$ be the weighted degree of a vertex
++of $P$ to vertices outside $P\cup Q$, and define $d_w(Q)$ similarly.  If
++$d_w(P)\leq d_w(Q)$, replace every vertex of $P$ by a clone of a representative
++of $Q$, keeping all pairs inside $P\cup Q$ color $0$.  The total weight changes
++by
++\[
++ |P|\bigl(d_w(Q)-d_w(P)\bigr)\geq0.
++\]
++No new $K_4$ in $D$ or $K_5$ in $E$ is created: a new clique containing a
++clone from $P$ but no vertex of $Q$ is obtained from an old clique by replacing
++the clone by its model in $Q$, while a clique cannot use vertices from both
++$P$ and $Q$ because their mutual pairs have color $0$.  If the weighted
++degrees are unequal, extremality is contradicted; if they are equal, $P$ and
++$Q$ merge and the square-sum tie-breaker is contradicted.  The opposite
++inequality is symmetric.  Hence no zero-colored pair joins distinct classes,
++and the zero-twin definition makes every cross-class color constant.
++\end{proof}
++
++Let the quotient class sizes be $x_1,\ldots,x_k$, with $\sum_i x_i=n$, and
++put
++\[
++ Q=\sum_i x_i^2,
++ \qquad P=\sum_{i<j}x_i x_j=\frac{n^2-Q}{2}.
++\]
++Let $a$ and $b$ be the total weighted masses $\sum x_i x_j$ on quotient
++edges of colors $A$ and $B$.  Since all other cross-edges have color $X$,
++\begin{equation}\label{eq:sigmaquot}
++ \sigma=3P-2a-2b=\frac32(n^2-Q)-2a-2b.
++\end{equation}
++Because $D$ consists of colors $B,X$, every four quotient vertices contain an
++$A$-edge; hence $\alpha(A)\leq3$.  Similarly $\alpha(B)\leq4$.
++
++\section{Weighted blockers}\label{sec:blocker}
++
++For nonnegative integer weights $x_1,\ldots,x_k$ of total $n$, and a graph
++$G$ on $[k]$, write
++\[
++ w(G)=\sum_{ij\in E(G)}x_i x_j.
++\]
++For $r\geq1$, define
+ \[
+-  \rho_r(x)=\min_{\mathcal P}\sum_{P\in\mathcal P}
+-  \left(\sum_{i\in P}x_i\right)^2,
++ \rho_r(x)=\min_{\mathcal P}\sum_{P\in\mathcal P}
++ \left(\sum_{i\in P}x_i\right)^2,
+ \]
+-where the minimum is over all partitions of \([k]\) into \(r\) possibly empty
+-parts.
++where $\mathcal P$ ranges over partitions into $r$ possibly empty parts.
+ 
+ \begin{lemma}[weighted Tur\'an theorem]\label{lem:weighted-turan}
+-If \(G\) is \(K_{r+1}\)-free, then
+-\begin{equation}\label{eq:weighted-turan}
+-  w(G)\le\frac12\bigl(n^2-\rho_r(x)\bigr).
+-\end{equation}
++If $G$ is $K_{r+1}$-free, then
++\[
++ w(G)\leq\frac12\bigl(n^2-\rho_r(x)\bigr).
++\]
+ \end{lemma}
+ 
+ \begin{proof}
+-The usual Zykov symmetrization works with vertex weights.  If two nonadjacent
+-vertices \(u,v\) have weighted neighborhoods
+-\(d_w(u)=\sum_{z\sim u}x_z\) and \(d_w(v)=\sum_{z\sim v}x_z\), and
+-\(d_w(u)\le d_w(v)\), then replacing \(u\) by a clone of \(v\) changes
+-\(w(G)\) by \(x_u(d_w(v)-d_w(u))\ge0\).  It also preserves
+-\(K_{r+1}\)-freeness, for the same reason as in Lemma \ref{lem:zykov}.
+-After the standard finite tie-breaking, an extremal weighted graph is complete
+-multipartite.  Since it is \(K_{r+1}\)-free, it has at most \(r\) parts.  For a
+-partition with part weights \(s_1,\ldots,s_r\), its edge weight is
++Zero-weight vertices may be deleted, so assume every $x_i>0$.  Call two
++nonadjacent vertices twins when their open neighborhoods agree, and partition
++the vertices into twin classes.  Among all maximum-weight
++$K_{r+1}$-free graphs, choose one maximizing the sum of the squares of the
++total weights of its twin classes.
++
++Suppose two distinct twin classes $P,Q$ are nonadjacent.  Let $d_w(P)$ and
++$d_w(Q)$ denote the weighted degrees of their vertices outside
++$P\cup Q$; these are constant on each class.  If
++$d_w(P)\leq d_w(Q)$, replace every vertex of $P$ by a clone of a
++representative of $Q$, keeping all pairs in $P\cup Q$ nonadjacent.  The edge
++weight changes by
++\[
++ \left(\sum_{u\in P}x_u\right)\bigl(d_w(Q)-d_w(P)\bigr)\geq0.
++\]
++The operation preserves $K_{r+1}$-freeness: a new clique cannot use vertices
++from both $P$ and $Q$, and a clique using a clone from $P$ maps to an old
++clique by replacing that clone with its model in $Q$.  Strict inequality
++contradicts maximality; equality merges $P$ and $Q$ and strictly increases the
++tie-breaker.  The opposite ordering is symmetric.  Hence distinct twin
++classes are pairwise adjacent.
++
++The graph is therefore complete multipartite, and $K_{r+1}$-freeness leaves
++at most $r$ parts.  If their total weights are $s_1,\ldots,s_r$, its edge
++weight is
+ \[
+-  \sum_{i<j}s_i s_j=\frac12\left(n^2-\sum_i s_i^2\right),
++ \sum_{i<j}s_i s_j=\frac12\left(n^2-\sum_i s_i^2\right).
+ \]
+-which is maximized exactly when \(\sum_i s_i^2\) is minimized.
++Minimizing the final square-sum over partitions of the original vertex
++weights is exactly the definition of $\rho_r(x)$.
+ \end{proof}
+ 
+ Define
+ \begin{equation}\label{eq:Mdef}
+-  M(n)=\min_{a+b+c+d=n,\;a,b,c,d\in\mathbb Z_{\ge0}}
+-  \left[\frac32(a^2+b^2+c^2+d^2)+2ab\right].
++ M(n)=\min_{\substack{a+b+c+d=n\\a,b,c,d\in\mathbb Z_{\geq0}}}
++ \left[\frac32(a^2+b^2+c^2+d^2)+2ab\right].
+ \end{equation}
+-Since
+-\[
+-  \frac32n^2-
+-  \left[\frac32(a^2+b^2+c^2+d^2)+2ab\right]
+-  =3\sum_{i<j}m_i m_j-2ab,
+-\]
+-where \((m_1,m_2,m_3,m_4)=(a,b,c,d)\), and since the two variables in the
+-penalized product may be labelled as the two smallest cluster sizes, the
+-definitions imply
+-\begin{equation}\label{eq:S-M}
+-  S(n)=\frac32 n^2-M(n).
++For a fixed multiset, the $2ab$ term is minimized by assigning $a,b$ to the
++two smallest entries.  Hence
++\begin{equation}\label{eq:SM}
++ S(n)=\frac32n^2-M(n).
+ \end{equation}
+ 
+ \begin{lemma}[weighted blocker lemma]\label{lem:blocker}
+-Let \(A,B\) be graphs on \([k]\) with \(\alpha(A)\le3\) and
+-\(\alpha(B)\le4\).  With the notation above,
++If $\alpha(A)\leq3$ and $\alpha(B)\leq4$, then
+ \begin{equation}\label{eq:blocker}
+-  \frac32Q+2w(A)+2w(B)\ge M(n).
++ \frac32Q+2w(A)+2w(B)\geq M(n).
+ \end{equation}
+ \end{lemma}
+ 
+ \begin{proof}
+-The complement of \(A\) is \(K_4\)-free.  By Lemma \ref{lem:weighted-turan},
++The complement of $A$ is $K_4$-free.  Lemma~\ref{lem:weighted-turan} gives
+ \[
+-  \frac12(n^2-Q)-w(A)
+-  \le \frac12(n^2-\rho_3(x)),
++ \frac12(n^2-Q)-w(A)\leq\frac12(n^2-\rho_3(x)),
++ \qquad
++ w(A)\geq\frac12(\rho_3(x)-Q).
+ \]
+-and hence
+-\begin{equation}\label{eq:a-lower}
+-  w(A)\ge\frac12(\rho_3(x)-Q).
+-\end{equation}
+-Likewise, the complement of \(B\) is \(K_5\)-free, so
+-\begin{equation}\label{eq:b-lower}
+-  w(B)\ge\frac12(\rho_4(x)-Q).
++Likewise
++$w(B)\geq\frac12(\rho_4(x)-Q)$.  Therefore
++\begin{equation}\label{eq:rho}
++ \frac32Q+2w(A)+2w(B)
++ \geq\rho_3(x)+\rho_4(x)-\frac12Q.
+ \end{equation}
+-Combining \eqref{eq:a-lower} and \eqref{eq:b-lower},
+-\begin{equation}\label{eq:rho-bound}
+-  \frac32Q+2w(A)+2w(B)
+-  \ge \rho_3(x)+\rho_4(x)-\frac12Q.
+-\end{equation}
+-
+-Choose partitions attaining \(\rho_3(x)\) and \(\rho_4(x)\), and intersect
+-them.  This gives a \(3\times4\) nonnegative integer matrix
+-\(U=(u_{ij})\), where \(u_{ij}\) is the total weight lying in the \(i\)-th
+-part of the \(3\)-partition and the \(j\)-th part of the \(4\)-partition.
+-Let
++Choose partitions attaining $\rho_3$ and $\rho_4$, and intersect their parts.
++Let $U=(u_{ij})$ be the resulting $3\times4$ nonnegative integer matrix, with
++row sums $r_i$ and column sums $c_j$.  Then
+ \[
+-  r_i=\sum_j u_{ij},\qquad c_j=\sum_i u_{ij}.
++ \rho_3=\sum_i r_i^2,
++ \qquad \rho_4=\sum_j c_j^2,
++ \qquad Q\leq\sum_{i,j}u_{ij}^2,
+ \]
+-Then
+-\[
+-  \rho_3(x)=\sum_i r_i^2,
+-  \qquad
+-  \rho_4(x)=\sum_j c_j^2.
+-\]
+-Also
++the last inequality following from $\sum z_\ell^2\leq(\sum z_\ell)^2$ in
++each cell.  Thus the right side of \eqref{eq:rho} is at least
+ \[
+-  Q=\sum_\ell x_\ell^2\le \sum_{i,j}u_{ij}^2,
++ F(U):=\sum_i r_i^2+\sum_jc_j^2-\frac12\sum_{i,j}u_{ij}^2.
+ \]
+-because squaring after grouping can only increase the sum of squares.  Thus
+-\eqref{eq:rho-bound} gives
+-\[
+-  \frac32Q+2w(A)+2w(B)
+-  \ge
+-  \sum_i r_i^2+
+-  \sum_j c_j^2-\frac12\sum_{i,j}u_{ij}^2.
+-\]
+-The right side is at least \(M(n)\) by the matrix theorem proved in
+-Section \ref{sec:matrix}.
++The matrix theorem in Section~\ref{sec:matrix} proves $F(U)\geq M(n)$.
+ \end{proof}
+ 
+-We now prove Theorem \ref{thm:colored-turan}, assuming the matrix theorem for a
+-moment.
+-
+-\begin{proof}[Proof of Theorem \ref{thm:colored-turan}]
+-By Lemma \ref{lem:zykov}, assume \((D,E)\) is in quotient form.  Then
+-\eqref{eq:alphaA} and \eqref{eq:alphaB} allow Lemma \ref{lem:blocker}, so
++\begin{proof}[Proof of Theorem~\ref{thm:colored}]
++Use Lemma~\ref{lem:zykov} and the quotient notation above.  The blocker lemma
++implies
++$\frac32Q+2a+2b\geq M(n)$.  Equation \eqref{eq:sigmaquot} and
++\eqref{eq:SM} give
+ \[
+-  \frac32Q+2a+2b\ge M(n).
++ \sigma=\frac32n^2-\left(\frac32Q+2a+2b\right)
++ \leq\frac32n^2-M(n)=S(n).
+ \]
+-Using \eqref{eq:sigma-quotient},
+-\[
+-  \sigma
+-  =\frac32n^2-\left(\frac32Q+2a+2b\right)
+-  \le \frac32n^2-M(n)=S(n),
+-\]
+-by \eqref{eq:S-M}.  This proves \eqref{eq:sigma-upper}.
+ \end{proof}
+ 
+-\section{The \texorpdfstring{\(3\times4\)}{3 x 4} matrix theorem}\label{sec:matrix}
+-
+-For a \(3\times4\) nonnegative integer matrix \(U=(u_{ij})\) with total sum
+-\(n\), row sums \(r_i\), and column sums \(c_j\), put
+-\begin{equation}\label{eq:Fdef}
+-  F(U)=\sum_{i=1}^3 r_i^2+
+-        \sum_{j=1}^4 c_j^2-\frac12\sum_{i,j}u_{ij}^2.
+-\end{equation}
++\section{The exact $3\times4$ matrix inequality}\label{sec:matrix}
+ 
+ \begin{theorem}[matrix theorem]\label{thm:matrix}
+-For every \(3\times4\) nonnegative integer matrix \(U\) of total sum \(n\),
+-\begin{equation}\label{eq:matrix-theorem}
+-  F(U)\ge M(n).
++For every $3\times4$ nonnegative integer matrix $U$ of total sum $n$,
++\begin{equation}\label{eq:matrix}
++ F(U)=\sum_i r_i^2+\sum_jc_j^2-\frac12\sum_{i,j}u_{ij}^2\geq M(n).
+ \end{equation}
+ \end{theorem}
+ 
+-The proof is the main technical point.  Think of the positive entries of
+-\(U\) as edge masses on the bipartite graph \(K_{3,4}\), whose left vertices
+-are the rows and whose right vertices are the columns.  If two positive cells
+-share a row or a column, call the corresponding edges adjacent.  Expanding
+-\eqref{eq:Fdef} gives
+-\begin{equation}\label{eq:F-edge}
+-  F(U)=\frac32\sum_e u_e^2+2\sum_{e\sim f}u_eu_f.
++View positive cells as weighted edges of $K_{3,4}$.  Expanding row and column
++squares gives
++\begin{equation}\label{eq:Fedge}
++ F(U)=\frac32\sum_eu_e^2+2\sum_{e\sim f}u_eu_f,
+ \end{equation}
+-
+-\subsection*{Compression to a star forest}
+-
+-The next lemma is the normal-form step needed below: every matrix can be
+-compressed to a star forest without increasing \(F\).  Equality may occur during
+-compression, so the conclusion concerns the compressed matrix rather than the
+-original support.
++where adjacency means sharing a row or column vertex.
+ 
+ \begin{lemma}[support compression]\label{lem:compression}
+-For every nonnegative integer matrix \(U\), there is a nonnegative integer
+-matrix \(U'\) with the same total sum such that
+-\[
+-  F(U')\le F(U)
+-\]
+-and the support graph of \(U'\) is a forest whose connected components are
+-stars.
++Every nonnegative integer matrix $U$ can be replaced by a matrix $U'$ of the
++same total sum, with $F(U')\leq F(U)$, whose support graph is a star forest.
+ \end{lemma}
+ 
+ \begin{proof}
+-First remove cycles.  If the support contains a cycle, add \(\varepsilon\) and
+-\(-\varepsilon\) alternately around the cycle.  Row sums and column sums, and
+-therefore the first two terms of \eqref{eq:Fdef}, remain fixed.  The final
+-term \(-\frac12\sum u_{ij}^2\) is a concave quadratic in \(\varepsilon\), so one
+-endpoint of the maximal integer interval of allowed \(\varepsilon\)'s does not
+-increase \(F\) and makes at least one entry zero.  Repeating leaves a forest.
+-
+-Now suppose a tree component has diameter at least \(4\).  Choose four
+-consecutive edges on a path in that component, with masses
+-\(x_1,x_2,x_3,x_4\).  Replace them by
+-\[
+-  x_1+\varepsilon,
+-  \quad x_2-\varepsilon,
+-  \quad x_3+\varepsilon,
+-  \quad x_4-\varepsilon.
+-\]
+-The total mass is preserved.  The three internal vertex sums on this four-edge
+-path are unchanged; only the two endpoint vertex sums change.  In the expression
+-\eqref{eq:F-edge}, the coefficient of \(\varepsilon^2\) is
+-\[
+-  2-\frac12\cdot4=0,
+-\]
+-so \(F\) is linear in \(\varepsilon\) on the allowed integer interval.  One
+-endpoint of that interval does not increase \(F\) and kills at least one of the
+-four entries.  Repeating, no component of diameter at least \(4\) remains.
+-
+-It remains to treat a component of diameter exactly \(3\), i.e. a double-star.
+-Let \(y\) be the mass of the central edge.  Choose a leaf edge of mass \(x\)
+-on one side and a leaf edge of mass \(z\) on the other.  Let \(A\) be the sum
+-of the other leaf-edge masses incident with the center on the \(x\)-side, and
+-let \(B\) be the analogous sum on the \(z\)-side.  If we delete the central
+-edge and add its mass \(y\) to the \(x\)-edge, a direct calculation from
+-\eqref{eq:F-edge} gives the change
+-\[
+-  F_{\rm old}-F_x = y(2B+2z-x).
+-\]
+-If instead we add \(y\) to the \(z\)-edge, then
+-\[
+-  F_{\rm old}-F_z = y(2A+2x-z).
+-\]
+-At least one of these two quantities is nonnegative: otherwise
+-\(x>2B+2z\ge2z\) and \(z>2A+2x\ge2x\), impossible.  Hence one of the two
+-operations preserves the total mass, keeps all masses integral and
+-nonnegative, deletes the central edge, and does not increase \(F\).  Repeating
+-this step removes all diameter-\(3\) components.
+-
+-A forest whose components have diameter at most \(2\) is precisely a star
+-forest.  This proves the lemma.
++If the support contains a cycle, add $\eps$ and $-\eps$ alternately around it.
++All row and column sums remain fixed, while
++$-\frac12\sum u_{ij}^2$ is a concave quadratic in $\eps$.  The allowed
++integer values form a finite interval containing zero.  At least one endpoint
++has value no larger than at zero and makes an entry vanish.  Repetition removes
++all cycles.
++
++Suppose next that a tree component has diameter at least four.  On four
++consecutive path edges of masses $x_1,x_2,x_3,x_4$, use
++\[
++ (x_1,x_2,x_3,x_4)\mapsto
++ (x_1+\eps,x_2-\eps,x_3+\eps,x_4-\eps).
++\]
++The three internal vertex sums are fixed and the two endpoint-square terms
++contribute $2\eps^2$.  The four cell-square terms contribute
++$-\frac12\cdot4\eps^2=-2\eps^2$.  Hence $F$ is affine in $\eps$ on the
++allowed integer interval.  An endpoint does not increase $F$ and deletes an
++edge.  Repetition leaves a forest of diameter at most three.
++
++A diameter-three component is a double star.  Let its central edge have mass
++$y$.  Choose leaf masses $x,z$ on opposite sides, and let $A,B$ be the sums of
++the other leaf masses at the respective centers.  Deleting the central edge
++and adding $y$ to the $x$-edge gives, by \eqref{eq:Fedge},
++\[
++ F_{\rm old}-F_x=y(2B+2z-x).
++\]
++Adding $y$ to the $z$-edge instead gives
++\[
++ F_{\rm old}-F_z=y(2A+2x-z).
++\]
++Both expressions cannot be negative, since that would imply
++$x>2B+2z\geq2z$ and $z>2A+2x\geq2x$.  One move therefore does not increase
++$F$ and deletes the central edge.  Repetition removes every diameter-three
++component.  A forest of diameter at most two is a star forest.
+ \end{proof}
+ 
+-\subsection*{Star forests}
++For a star of degree $t$, edge masses $z_1,\ldots,z_t$, and total mass
++$s=\sum z_i$, its contribution is
++\begin{equation}\label{eq:star}
++ s^2+\frac12\sum_i z_i^2
++ \geq\left(1+\frac1{2t}\right)s^2
++ =\frac{s^2}{\eta_t},
++ \qquad \eta_t=\frac{2t}{2t+1}.
++\end{equation}
+ 
+-For a star component with \(t\) positive edges of masses
+-\(z_1,\ldots,z_t\) and total mass \(s=\sum_\ell z_\ell\), its contribution to
+-\(F\) is
+-\begin{equation}\label{eq:star-cost}
+-  s^2+\frac12\sum_{\ell=1}^t z_\ell^2.
+-\end{equation}
+-In particular,
+-\begin{equation}\label{eq:star-efficiency}
+-  s^2+\frac12\sum_{\ell=1}^t z_\ell^2
+-  \ge \left(1+\frac1{2t}\right)s^2
+-  =\frac{s^2}{\eta_t},
+-  \qquad
+-  \eta_t:=\frac{2t}{2t+1}.
+-\end{equation}
+-
+-\begin{lemma}[star-forest minimum]\label{lem:star-forest}
+-If \(U\) is a nonnegative integer matrix whose support is a star forest, then
+-\(F(U)\ge M(n)\), where \(n\) is the total sum of its entries.
++\begin{lemma}[star-forest bound]\label{lem:starforest}
++Every star-forest matrix $U$ of total mass $n$ satisfies $F(U)\geq M(n)$.
+ \end{lemma}
+ 
+ \begin{proof}
+-If \(n=0\), then \(F(U)=M(0)=0\).  Hence assume \(n>0\).  Let the star
+-components have degrees \(t_\nu\) and total masses \(s_\nu\).  If the degree
+-list is not \((2,1,1)\), then
+-\begin{equation}\label{eq:Gamma-bound}
+-  \Gamma:=\sum_\nu \eta_{t_\nu}\le2.
+-\end{equation}
+-Indeed, a star forest in \(K_{3,4}\) has at most three nontrivial components,
+-because each such component uses at least one of the three row vertices.  One
+-or two components give \(\Gamma<2\), since each \(\eta_t<1\).  If there are
+-three components, then the seven vertices of \(K_{3,4}\) give
+-\(\sum_\nu(t_\nu+1)\le7\), so the only possible degree lists are
+-\((2,1,1)\) and \((1,1,1)\).  Excluding \((2,1,1)\) leaves \((1,1,1)\), for
+-which \(\Gamma=3\cdot(2/3)=2\).
+-
+-By \eqref{eq:star-efficiency} and Cauchy's inequality,
+-\[
+-  F(U)\ge\sum_\nu\frac{s_\nu^2}{\eta_{t_\nu}}
+-  \ge\frac{(\sum_\nu s_\nu)^2}{\sum_\nu\eta_{t_\nu}}
+-  =\frac{n^2}{\Gamma}
+-  \ge\frac{n^2}{2}.
+-\]
+-For \(n\ge4\), the balanced quadruple in \eqref{eq:Mdef} gives
+-\(M(n)\le n^2/2\).  Explicitly, for \(n=4q+r\), use
+-\((q,q,q,q)\), \((q,q,q,q+1)\), \((q,q,q+1,q+1)\), or
+-\((q,q+1,q+1,q+1)\) according as \(r=0,1,2,3\).  The resulting value is at
+-most \(n^2/2\) for \(n\ge4\).  For \(n\le3\), the identity
+-\[
+-  F(U)=\frac32n
+-      +3\sum_{i,j}\binom{u_{ij}}2
+-      +2\sum_{\substack{(i,j)<(i',j')\\
+-             (i=i'\;\text{or}\;j=j'),\;(i,j)\ne(i',j')}}u_{ij}u_{i'j'}
+-\]
+-shows \(F(U)\ge\frac32n=M(n)\).  Thus every non-\((2,1,1)\) star forest
+-satisfies the desired bound.
+-
+-Now suppose the degree list is \((2,1,1)\).  The degree-two star must be
+-centered at a row vertex: if it were centered at a column vertex, only one row
+-vertex would remain for the two disjoint \(K_2\) components.  Thus, up to row
+-and column permutation, its four positive edge masses are
+-\[
+-  \begin{pmatrix}
+-  a&b&0&0\\
+-  0&0&c&0\\
+-  0&0&0&d
+-  \end{pmatrix}.
++If $n=0$, then $U=0$ and $F(U)=M(0)=0$.  Assume henceforth that $n>0$.
++Let the nontrivial star components have degrees $t_\nu$ and masses $s_\nu$.
++Except for degree list $(2,1,1)$,
++\begin{equation}\label{eq:Gamma}
++ \Gamma:=\sum_\nu\eta_{t_\nu}\leq2.
++\end{equation}
++Indeed, there are at most three nontrivial components because each uses a row
++vertex.  One or two components give $\Gamma<2$.  With three components, their
++vertex counts satisfy $\sum(t_\nu+1)\leq7$, so the only degree lists are
++$(1,1,1)$ and $(2,1,1)$; the former has $\Gamma=2$.
++
++For all nonexceptional degree lists, \eqref{eq:star} and Cauchy's inequality
++give
++\[
++ F(U)\geq\sum_\nu\frac{s_\nu^2}{\eta_{t_\nu}}
++ \geq\frac{n^2}{\Gamma}\geq\frac{n^2}{2}.
+ \]
+-For this matrix,
++For $n\geq4$, $M(n)\leq n^2/2$: if $n=4q+r$, use respectively
+ \[
+-  F(U)=(a+b)^2+c^2+d^2+\frac12(a^2+b^2+c^2+d^2)
+-  =\frac32(a^2+b^2+c^2+d^2)+2ab.
++ (q,q,q,q),\ (q,q,q,q+1),\ (q,q,q+1,q+1),\ (q,q+1,q+1,q+1)
+ \]
+-Since \(a+b+c+d=n\), this is at least \(M(n)\) by definition.
++for $r=0,1,2,3$ in \eqref{eq:Mdef}; direct substitution gives the claimed
++inequality.  For $1\leq n\leq3$, the inequality $z^2\geq z$ for
++$z\in\mathbb Z_{\geq0}$ gives $M(n)\geq3n/2$, and the quadruples displayed
++in Section~\ref{sec:values} attain equality.  Meanwhile
++\[
++ F(U)=\frac32n+3\sum_{i,j}\binom{u_{ij}}2
++ +2\sum_{e\sim f}u_eu_f\geq\frac32n.
++\]
++
++It remains to treat degree list $(2,1,1)$.  The degree-two star must be centered
++at a row: if centered at a column it uses two rows, leaving only one row for
++two disjoint edges.  After row and column permutations the positive entries
++are
++\[
++ \begin{pmatrix}a&b&0&0\\0&0&c&0\\0&0&0&d\end{pmatrix}.
++\]
++Then
++\[
++ F(U)=\frac32(a^2+b^2+c^2+d^2)+2ab\geq M(n)
++\]
++by the definition of $M(n)$.
+ \end{proof}
+ 
+-\begin{proof}[Proof of Theorem \ref{thm:matrix}]
+-Apply Lemma \ref{lem:compression} to replace \(U\) by a star-forest matrix
+-\(U'\) with the same total sum and \(F(U')\le F(U)\).  Lemma
+-\ref{lem:star-forest} gives \(F(U')\ge M(n)\).  Hence \(F(U)\ge M(n)\).
++\begin{proof}[Proof of Theorem~\ref{thm:matrix}]
++Compress $U$ to a star-forest matrix $U'$ by Lemma~\ref{lem:compression}.
++Then $F(U)\geq F(U')\geq M(n)$ by Lemma~\ref{lem:starforest}.
+ \end{proof}
+ 
++Combining Theorem~\ref{thm:colored} with
++\eqref{eq:region-upper-reduction} proves the upper bound in
++Theorem~\ref{thm:main} for all arrangements, including degenerate ones.
++
+ \section{The lower construction}\label{sec:lower}
+ 
+-The lower construction is a blow-up of Karlsson's optimal four-lollipop
+-configuration.  We record explicit parameters to make the construction
+-reproducible.  Write \(Q_{\rm anch}(x,y,r,\theta)\) for the lollipop with
+-anchor \((x,y)\), radius \(r\), and stem direction
+-\((\cos\theta,\sin\theta)\); its center is
+-\((x,y)-r(\cos\theta,\sin\theta)\).  Write
+-\(Q_{\rm cent}(x,y,r,\theta)\) for the same object specified by center
+-\((x,y)\).  Let
++We now construct generic arrangements attaining the upper bound.  Two
++stability lemmas are stated explicitly because stems are unbounded.
++
++\subsection{An all-rational four-lollipop base}
++
++Write $Q_{\rm anch}(a,r,u)$ for the lollipop specified by its anchor
++$a\in\Q^2$, radius $r\in\Q_{>0}$, and unit stem direction $u\in\Q^2$, and
++write $Q_{\rm cent}(c,r,u)$ when the center is specified instead.  Set
++\[
++ u_0=(1,0),\qquad
++ u_1=\frac1{145}(144,-17),\qquad
++ u_2=\frac1{85}(-36,-77),\qquad
++ u_3=\frac1{145}(-17,144).
++\]
++The identities $144^2+17^2=145^2$ and $36^2+77^2=85^2$ show that every
++$u_i$ is a unit vector.  Consider
+ \begin{align*}
+-L_1&=Q_{\rm anch}(0,0,200,0),\\
+-L_2&=Q_{\rm cent}(0.45,0.4,0.55,-0.01),\\
+-L_3&=Q_{\rm anch}\left(1.15,0.65,100,-\frac{\pi}{2}-\frac{2\pi}{15}\right),\\
+-L_4&=Q_{\rm anch}\left(1.0488116827495215,-0.05,100,
+-        \frac{\pi}{2}+\frac{\pi}{30}\right).
++ Q_0&=Q_{\rm anch}\bigl((0,0),200,u_0\bigr),\\
++ Q_1&=Q_{\rm cent}\bigl((9/20,2/5),11/20,u_1\bigr),\\
++ Q_2&=Q_{\rm anch}\bigl((23/20,13/20),100,u_2\bigr),\\
++ Q_3&=Q_{\rm anch}\bigl((21/20,-1/20),100,u_3\bigr).
+ \end{align*}
+-These coordinates are Karlsson's four-lollipop arrangement, as listed with the
+-OEIS entry A389624.  Solving the elementary pairwise equations for
+-circle--circle, circle--ray, and ray--ray intersections gives the crossing
+-table
+-\[
+-\begin{array}{c|cccc}
+- &1&2&3&4\\
+-\hline
+-1&*&5&7&7\\
+-2&&*&7&7\\
+-3&&&*&7\\
+-4&&&&*
++This is a rational perturbation of Karlsson's four-lollipop construction.
++
++\begin{proposition}[exact rational base table]\label{prop:base}
++Every component intersection in the following table is transverse; the
++supporting stem lines are pairwise nonparallel; no listed intersection is an
++anchor; and the component counts are
++\[
++\begin{array}{c|cccc|c}
++\toprule
++\text{pair}&C_i\cap C_j&R_i\cap C_j&R_j\cap C_i&R_i\cap R_j&\text{total}\\
++\midrule
++Q_0,Q_1&2&2&0&1&5\\
++Q_0,Q_2&2&2&2&1&7\\
++Q_0,Q_3&2&2&2&1&7\\
++Q_1,Q_2&2&2&2&1&7\\
++Q_1,Q_3&2&2&2&1&7\\
++Q_2,Q_3&2&2&2&1&7\\
++\bottomrule
+ \end{array}
+ \]
+-and all listed intersections are transverse, away from anchors, and away from
+-parallel stem degeneracies.
++Thus the base has forty crossings.
++\end{proposition}
+ 
+-We first record two elementary stability facts.  They are stated explicitly
+-because stems are unbounded, so compactness alone does not control ray--ray
+-intersections.
+-
+-\begin{lemma}[pairwise chamber stability]\label{lem:pairwise-chamber}
+-Let \(L,M\) be two lollipops.  Suppose that their two circles are not tangent
+-or coincident, every circle--stem intersection is transverse and away from an
+-anchor, the supporting stem lines are nonparallel, and their line intersection
+-is not an anchor of either lollipop.  Then there are parameter neighborhoods
+-\(\mathcal V_L,\mathcal V_M\) in which the number of intersections in each of
+-the four components
+-\[
+-  (\text{circle},\text{circle}),\quad
+-  (\text{circle},\text{stem}),\quad
+-  (\text{stem},\text{circle}),\quad
+-  (\text{stem},\text{stem})
+-\]
+-is constant.
++\begin{proof}
++All coordinates are rational, so the verification reduces to strict rational
++inequalities.  For an ordered pair $i,j$, put $d=c_j-c_i$,
++$p=d\cdot u_i$, and
++\[
++ \Delta_{ij}=r_j^2-(|d|^2-p^2),\qquad
++ A_{ij}=|d-r_i u_i|^2-r_j^2,\qquad
++ T_{ij}=p-r_i.
++\]
++The circle--circle component has two transverse points exactly when
++\[
++ (r_i-r_j)^2<|d|^2<(r_i+r_j)^2.
++\]
++When $\Delta_{ij}>0$, the supporting line meets the circle twice.  The
++accepted ray component has one point if $A_{ij}<0$, two points if
++$A_{ij}>0$ and $T_{ij}>0$, and no point if $A_{ij}>0$ and $T_{ij}<0$.
++These alternatives follow by evaluating the convex quadratic
++$|c_i+t u_i-c_j|^2-r_j^2$ at $t=r_i$ and locating its vertex at $t=p$.
++
++For the two supporting stem lines, put
++$D_{ij}=\det(u_i,u_j)$.  When $D_{ij}\ne0$, the parameters of their unique
++line intersection are
++\[
++ t_i=\frac{\det(d,u_j)}{D_{ij}},\qquad
++ t_j=\frac{\det(d,u_i)}{D_{ij}}.
++\]
++It is a ray--ray point precisely when $t_i>r_i$ and $t_j>r_j$.
++
++Substitution of the displayed rational data into these tests gives the six
++rows of the table.  The ancillary program
++\path{scripts/certify_rational_base.py} performs exactly those
++substitutions using \texttt{fractions.Fraction}; its branches and sign
++decisions use no floating-point arithmetic.  The full reduced fractions for
++every decisive expression are recorded in
++\path{verification/rational_base_verification.json}.  In particular all
++circle inequalities are strict, every accepted mixed root is simple and away
++from its anchor, all $D_{ij}$ are nonzero, and both ray--ray parameters are
++strictly beyond their anchor thresholds.  The smallest absolute decisive
++quantity in this exact calculation is $151/23400>0$.
++\end{proof}
++
++\subsection{Pairwise chambers and a corrected local family}
++
++\begin{lemma}[pairwise chamber stability]\label{lem:chamber}
++Let $L,M$ be a pair for which the circles are neither tangent nor coincident,
++every accepted circle--stem intersection is transverse and away from an
++anchor, the supporting stem lines are nonparallel, and their finite line
++intersection is not an anchor.  Then there are parameter neighborhoods of
++$L$ and $M$ on which the number of intersections in each of the four
++component pairs is constant.  All the stated strict conditions remain valid
++in those neighborhoods.
+ \end{lemma}
+ 
+ \begin{proof}
+-Write a lollipop by its center, positive radius, and unit outward stem vector.
+-The circle--circle alternatives are determined by strict inequalities between
+-the center distance and the sum and difference of the radii.  A mixed
+-component is governed by a quadratic in the stem parameter.  Its unordered
+-pair of roots varies continuously with the coefficients.  An accepted root is
+-simple by transversality; a rejected double root, if present, stays in a small
+-interval strictly outside the half-line.  Thus the strict inequalities saying
+-that a root is accepted, rejected, or distinct from the anchor persist.  For the two stems, the supporting-line parameters
+-are rational functions of the lollipop parameters with denominator the
+-determinant of the two direction vectors.  Nonparallelity makes this
+-determinant nonzero, and the strict signs deciding whether the line
+-intersection lies on either half-line persist.  Intersecting these finitely
+-many open conditions gives the required neighborhoods.
++Circle--circle alternatives are determined by strict inequalities involving
++the center distance and the sum and difference of radii.  A mixed component
++is determined by a quadratic in the stem parameter.  Simple accepted roots
++vary continuously.  A double root can occur only outside the accepted
++half-line under the hypotheses; its positive distance from the anchor
++threshold persists under a small perturbation.  Thus the number of accepted
++roots is locally constant.  For the stems, the two supporting-line parameters
++are rational functions of the geometric parameters, with denominator the
++nonzero determinant of the direction vectors.  Their strict positions
++relative to the two anchor thresholds persist.  Intersecting the finitely
++many resulting open conditions proves the lemma.
+ \end{proof}
+ 
+-\begin{lemma}[a local four-crossing family]\label{lem:local-four-family}
+-Let \(\Lambda\) be the unit lollipop with center \((0,0)\), radius \(1\), and
+-stem \(\{(q,0):q\ge1\}\).  There is a continuous family
+-\((\Gamma_t)_{0\le t\le1/4}\), with \(\Gamma_0=\Lambda\), such that any two
++The following family replaces a previously proposed motion that produced
++only three intersections.
++
++\begin{lemma}[local four-crossing family]\label{lem:local4}
++Let $\Lambda$ be the unit lollipop centered at the origin with stem
++$\{(q,0):q\geq1\}$.  There is a continuous family
++$(\Gamma_t)_{0\leq t\leq1/4}$, with $\Gamma_0=\Lambda$, such that every two
+ distinct members have exactly four transverse crossings, none at an anchor.
+ \end{lemma}
+ 
+ \begin{proof}
+-For \(0\le t\le1/4\), put
++Set
+ \[
+-  c_t=(3t,3t),\qquad v_t=(1-t^2,-2t),\qquad r_t=1+t^2,
++ c_t=(3t,3t),\qquad v_t=(1-t^2,-2t),\qquad r_t=1+t^2,
+ \]
+-and let \(\Gamma_t\) have circle center \(c_t\), radius \(r_t\), and stem
+-\[
+-  \{c_t+qv_t:q\ge1\}.
+-\]
+-The identity
+-\[
+-  |v_t|^2=(1-t^2)^2+4t^2=(1+t^2)^2=r_t^2
+-\]
+-shows that the stem is attached radially outward, and \(\Gamma_0=\Lambda\).
++and let $\Gamma_t$ have center $c_t$, radius $r_t$, and stem
++$\{c_t+qv_t:q\geq1\}$.  Since
++$|v_t|^2=(1-t^2)^2+4t^2=(1+t^2)^2=r_t^2$, the stem is radial and outward.
+ 
+-Fix \(0\le s<t\le1/4\) and write \(\delta=t-s\).  The squared center distance
+-is \(18\delta^2\), while the radius difference and radius sum are
+-\(\delta(s+t)\) and \(2+s^2+t^2\).  Since \(s+t\le1/2\) and
+-\(\delta\le1/4\),
++Fix $0\leq s<t\leq1/4$ and put $\delta=t-s$.  The squared center distance is
++$18\delta^2$, while the radius difference is $\delta(s+t)$.  Hence
+ \[
+-  \delta^2(s+t)^2<18\delta^2<(2+s^2+t^2)^2.
++ \delta^2(s+t)^2<18\delta^2<(2+s^2+t^2)^2,
+ \]
+-Thus the two circles meet transversely in two points.
++so the circles meet transversely twice.
+ 
+-For the stem of \(\Gamma_s\) against the circle of \(\Gamma_t\), define
++For the stem of $\Gamma_s$ against the circle of $\Gamma_t$, put
+ \[
+-  F_{s,t}(q)=|c_s+qv_s-c_t|^2-r_t^2.
++ F_{s,t}(q)=|c_s+qv_s-c_t|^2-r_t^2.
+ \]
+-At the anchor parameter,
++A direct expansion gives
+ \[
+-  F_{s,t}(1)=-\delta B_{s,t},
++ F_{s,t}(1)=-\delta B_{s,t},
+ \]
+ where
+ \[
+-  B_{s,t}=6+8s-16t-6s^2+s^3+s^2t+st^2+t^3.
+-\]
+-On the stated interval,
+-\[
+-  B_{s,t}\ge6-16t-6s^2\ge\frac{13}{8},
++ B_{s,t}=6+8s-16t-6s^2+s^3+s^2t+st^2+t^3
++ \geq6-16t-6s^2\geq\frac{13}{8}.
+ \]
+-so \(F_{s,t}(1)<0\).  Moreover
++Moreover
+ \[
+-  \frac12F'_{s,t}(1)
+-  =(1+s^2)^2-3\delta(1-2s-s^2)
+-  \ge1-3\delta\ge\frac14.
++ \frac12F'_{s,t}(1)
++ =(1+s^2)^2-3\delta(1-2s-s^2)
++ \geq1-3\delta\geq\frac14.
+ \]
+-Since \(F''_{s,t}(q)=2|v_s|^2>0\), the function is strictly increasing on
+-\([1,\infty)\); it tends to infinity, and hence has exactly one zero there.
+-That zero is simple, so this mixed crossing is transverse.
++Since $F''_{s,t}=2|v_s|^2>0$, the function is strictly increasing on
++$[1,\infty)$, begins negative, and tends to infinity.  It has exactly one
++simple zero there.
+ 
+-In the reverse direction put
++In the reverse direction, define
+ \[
+-  G_{s,t}(q)=|c_t+qv_t-c_s|^2-r_s^2.
++ G_{s,t}(q)=|c_t+qv_t-c_s|^2-r_s^2.
+ \]
+ Then
+ \[
+-  G_{s,t}(1)=\delta C_{s,t},
+-\]
+-where
+-\[
+-  C_{s,t}=6-16s+8t-6t^2+s^3+s^2t+st^2+t^3.
+-\]
+-Because \(s<t\le1/4\),
+-\[
+-  C_{s,t}>6-8t-6t^2\ge\frac{29}{8}.
++ G_{s,t}(1)=\delta C_{s,t},
++\quad
++ C_{s,t}=6-16s+8t-6t^2+s^3+s^2t+st^2+t^3
++ >6-8t-6t^2\geq\frac{29}{8},
+ \]
+-Also
++and
+ \[
+-  \frac12G'_{s,t}(1)
+-  =(1+t^2)^2+3\delta(1-2t-t^2)>0,
++ \frac12G'_{s,t}(1)
++ =(1+t^2)^2+3\delta(1-2t-t^2)>0.
+ \]
+-since \(1-2t-t^2\ge7/16\).  As \(G''_{s,t}=2|v_t|^2>0\), the function is
+-positive and increasing for \(q\ge1\).  Hence this mixed component is empty.
++Thus $G_{s,t}$ is positive and increasing on $[1,\infty)$, so this mixed
++component is empty.
+ 
+ Finally,
+ \[
+-  \det(v_s,v_t)=2(s-t)(1+st)\ne0,
++ \det(v_s,v_t)=2(s-t)(1+st)\ne0.
+ \]
+-so the supporting stem lines meet once.  Solving
+-\(c_s+\lambda v_s=c_t+\mu v_t\) gives
++Solving $c_s+\lambda v_s=c_t+\mu v_t$ gives
+ \[
+-  \lambda=\frac{3(1+2t-t^2)}{2(1+st)},\qquad
+-  \mu=\frac{3(1+2s-s^2)}{2(1+st)}.
++ \lambda=\frac{3(1+2t-t^2)}{2(1+st)},\qquad
++ \mu=\frac{3(1+2s-s^2)}{2(1+st)}.
+ \]
+-Both are greater than \(1\): after clearing the positive denominator, the two
+-inequalities are respectively
++Both exceed one, because
+ \[
+-  1+6t-3t^2-2st>0,
+-  \qquad
+-  1+6s-3s^2-2st>0.
++ 1+6t-3t^2-2st>0,
++ \qquad 1+6s-3s^2-2st>0;
+ \]
+-Indeed, in either expression the two negative terms have total magnitude at
+-most \(5/16\), even before the nonnegative linear term is used.  Thus the
+-line intersection is one transverse stem--stem crossing.
+-
+-A point \(c_u+qv_u\) with \(q>1\) lies strictly outside the circle of
+-\(\Gamma_u\).  Consequently the stem--stem point cannot coincide with a
+-circle crossing, and the unique mixed point cannot coincide with either a
+-circle--circle point or the stem--stem point.  The strict values of
+-\(F_{s,t}(1)\) and \(G_{s,t}(1)\) exclude anchor incidences.  The total is
+-therefore
+-\[
+-  2+1+0+1=4.
+-\]
+-All parameters converge to those of \(\Lambda\) as \(t\to0\), proving the
+-locality assertion.
++the negative terms in either expression have total magnitude at most
++$5/16$.  Hence the stems meet once beyond both anchors.  A point strictly
++beyond an anchor lies outside its own circle, which also prevents coincidence
++of this point with any circle crossing and prevents the unique mixed point
++from being a triple component intersection.  The total is
++$2+1+0+1=4$.
+ \end{proof}
+ 
+ \begin{lemma}[genericization inside a chamber]\label{lem:genericize}
+-Let a finite lollipop arrangement have only transverse pairwise crossings,
+-none at anchors, and let every pair of supporting stem lines be nonparallel.
+-Every sufficiently small parameter neighborhood of the arrangement contains a
+-generic arrangement with the same componentwise crossing count for every
+-pair.
++Let a finite lollipop arrangement have transverse pairwise crossings away from
++anchors and pairwise nonparallel supporting stem lines.  Every sufficiently
++small product neighborhood preserving its pairwise chambers contains an
++arrangement with no finite triple point and with all pairwise component counts
++unchanged.
+ \end{lemma}
+ 
+ \begin{proof}
+-By Lemma~\ref{lem:pairwise-chamber}, shrink to a product neighborhood on which
+-all pairwise component counts, transversality conditions, anchor exclusions,
+-and nonparallelity conditions persist.  Choose the lollipops successively
+-inside this neighborhood.  After the first \(k-1\) have been chosen, their
+-pairwise intersection set is finite.  For any fixed point \(p\), the parameters
+-of a lollipop whose circle contains \(p\) lie in the proper real-analytic
+-hypersurface
+-\[
+-  |p-c|^2-r^2=0,
+-\]
+-and the parameters of one whose stem contains \(p\) lie in the zero set of
+-\(\det(p-a,u)\), together with a half-line inequality.  Each of these sets has
+-empty interior.  A finite union of them cannot fill the available open
+-parameter neighborhood, so the \(k\)-th lollipop can be chosen to avoid every
+-intersection point of the preceding ones.  Induction removes all triple
+-points.  The already imposed open conditions preserve all pairwise crossing
+-counts and exclude tangencies and anchor incidences.
++Shrink to a product of connected coordinate balls on which
++Lemma~\ref{lem:chamber} preserves every pairwise count and strict condition.
++Choose the lollipops successively.  After $k-1$ have been chosen generically,
++their finite pairwise intersection set $P$ is finite.  For a fixed $p\in P$,
++the parameters $(c,r,\theta)$ for which the next circle contains $p$ lie in
++the zero set of the nonzero real-analytic function
++\[
++ g_p(c,r,\theta)=|p-c|^2-r^2.
++\]
++The parameters for which its supporting stem line contains $p$ lie in the
++zero set of the nonzero real-analytic function
++\[
++ h_p(c,r,\theta)=\det(p-c,u_\theta).
++\]
++Neither function vanishes identically on a coordinate ball: vary $r$ for
++$g_p$, and vary $c$ transversely to $u_\theta$ for $h_p$.  A proper
++real-analytic zero set is closed with empty interior, hence nowhere dense.
++A finite union of these closed nowhere-dense sets cannot contain the open
++parameter ball.  Choose the $k$-th lollipop outside that union.  It avoids all
++old pairwise intersection points, while the chamber conditions retain all
++pairwise counts, transversality, nonparallelity, and anchor exclusions.
++Induction removes every finite triple point.
+ \end{proof}
+ 
+-\begin{lemma}[blow-up stability]\label{lem:blowup}
+-For any nonnegative integers \(m_1,m_2,m_3,m_4\), there is a generic
+-arrangement of \(m_1+m_2+m_3+m_4\) lollipops whose crossing number is
+-\begin{equation}\label{eq:lower-L}
+-  L(m_1,m_2,m_3,m_4)
+-  =4\sum_i\binom{m_i}{2}
+-   +5m_1m_2
+-   +7\sum_{\substack{i<j\\(i,j)\ne(1,2)}}m_i m_j.
++\begin{lemma}[four-cluster blow-up]\label{lem:blowup}
++For any nonnegative integers $m_0,m_1,m_2,m_3$, there is a generic arrangement
++of $n=\sum_i m_i$ lollipops having
++\begin{equation}\label{eq:Lm}
++ 4\sum_i\binom{m_i}{2}+5m_0m_1
++ +7\sum_{\substack{i<j\\(i,j)\ne(0,1)}}m_i m_j
+ \end{equation}
++finite crossings.
+ \end{lemma}
+ 
+ \begin{proof}
+-Apply Lemma~\ref{lem:pairwise-chamber} to the six distinct base pairs and
+-shrink neighborhoods \(\mathcal U_i\) of \(L_i\) so that every pair selected
+-from \(\mathcal U_i\times\mathcal U_j\), \(i\ne j\), has the corresponding
+-base component counts.  In particular, its total is \(5\) for the pair
+-\((1,2)\) and \(7\) for the other five pairs.
+-
+-For each \(i\), apply a similarity carrying \(\Lambda\) to \(L_i\) to the
+-family in Lemma~\ref{lem:local-four-family}.  Since \(\Gamma_t\to\Lambda\), a
+-sufficiently short initial parameter interval maps into \(\mathcal U_i\).
+-Choose \(m_i\) distinct parameters in that interval.  Every pair in one
+-cluster has four crossings, and every pair in different clusters has its base
+-crossing number.  All these pairwise crossings are transverse and away from
+-anchors, and all supporting stem lines are nonparallel.
+-
+-The resulting finite arrangement may still contain accidental triple points.
+-Apply Lemma~\ref{lem:genericize} in a product neighborhood small enough to
+-remain inside every pairwise chamber.  The genericized arrangement has the
+-same pairwise counts.  Summing the \(4\) intra-cluster contributions, the
+-\(5\) contributions between clusters \(1,2\), and the \(7\) contributions
+-between every other two clusters gives \eqref{eq:lower-L}.
++By Proposition~\ref{prop:base} and Lemma~\ref{lem:chamber}, choose
++neighborhoods $\mathcal U_i$ of $Q_i$ such that every cross-cluster pair in
++$\mathcal U_i\times\mathcal U_j$ has the base component counts and nonparallel
++stems.  Map the local family of Lemma~\ref{lem:local4} to $Q_i$ by a
++similarity.  A sufficiently short initial interval lies in $\mathcal U_i$.
++Choose $m_i$ distinct parameters from it.  Same-cluster pairs have four
++crossings, while cross-cluster pairs have five for $(0,1)$ and seven otherwise.
++All pairwise intersections are transverse and away from anchors.  Apply
++Lemma~\ref{lem:genericize} in a sufficiently small product chamber to remove
++accidental triple points without changing any pair count.  Summing gives
++\eqref{eq:Lm}.
+ \end{proof}
+-Subtracting \(4\binom n2\) from \eqref{eq:lower-L}, with
+-\(n=m_1+m_2+m_3+m_4\), gives
++
++For $n=\sum_i m_i$, subtracting $4\binom n2$ from \eqref{eq:Lm} gives
+ \[
+-  L(m_1,m_2,m_3,m_4)-4\binom n2
+-  =3\sum_{i<j}m_i m_j-2m_1m_2.
++ 3\sum_{i<j}m_i m_j-2m_0m_1.
+ \]
+-For a fixed multiset of four nonnegative cluster sizes, the smallest
+-pairwise product is the product of the two smallest entries.  The only
+-label-dependent term above is \(-2m_1m_2\), so assigning those two entries to
+-clusters \(1,2\) maximizes \(L\).  Writing the sorted sizes as
+-\(a\le b\le c\le d\) and then maximizing over all such quadruples of sum
+-\(n\), definition~\eqref{eq:Sdef} gives
++For a fixed multiset of cluster sizes, this is maximized by assigning the two
++smallest sizes to $m_0,m_1$.  Maximizing over all quadruples gives $S(n)$.
++The final arrangement is generic, so the equality case of
++Proposition~\ref{prop:top-region} gives
+ \[
+-  \max_{m_1+m_2+m_3+m_4=n} L(m_1,m_2,m_3,m_4)
+-  =4\binom n2+S(n).
++ a_{\Lop}(n)\geq4\binom n2+S(n)+n+1.
+ \]
+-By \eqref{eq:regions}, this gives
+-\begin{equation}\label{eq:lower-bound}
+-  a_{\Lop}(n)\ge4\binom n2+S(n)+n+1.
+-\end{equation}
+-
+-The upper bound follows from Lemma \ref{lem:geometry}, Theorem
+-\ref{thm:colored-turan}, and \eqref{eq:two-graph-bound}.  Thus
+-\eqref{eq:lower-bound} is sharp, proving Theorem \ref{thm:lollipop-formula}.
++Together with the upper bound already proved, this completes the proof of
++Theorem~\ref{thm:main}.
+ 
+-\section{Numerical table and asymptotics}
++\section{Asymptotics and values}\label{sec:values}
+ 
+-The continuous relaxation of \eqref{eq:Mdef} is minimized at
++The continuous relaxation of \eqref{eq:Mdef} has its unique minimum at
+ \[
+-  a=b=\frac{3n}{16},\qquad c=d=\frac{5n}{16}.
++ a=b=\frac{3n}{16},\qquad c=d=\frac{5n}{16}.
+ \]
+-Consequently
++Rounding changes the quadratic objective by $O(1)$, so
+ \[
+-  S(n)=\frac{33}{32}n^2+O(1),
++ M(n)=\frac{15}{32}n^2+O(1),
++ \qquad S(n)=\frac{33}{32}n^2+O(1),
+ \]
+-and
++and therefore
+ \[
+-  a_{\Lop}(n)=4\binom n2+\frac{33}{32}n^2+n+O(1)
+-  =\frac{97}{32}n^2-n+O(1).
++ a_{\Lop}(n)=\frac{97}{32}n^2-n+O(1).
+ \]
++The first values are shown below.
+ 
+-\begin{table}[!htbp]
+-\centering
+-\begin{tabular}{@{}c c r r@{}}
++\begin{center}
++\begin{tabular}{@{}rcrr@{}}
+ \toprule
+-\(n\)&one optimal \((a,b,c,d)\)&\(S(n)\)&\(a_{\Lop}(n)\)\\
++$n$&one optimal $(a,b,c,d)$&$S(n)$&$a_{\Lop}(n)$\\
+ \midrule
+ 0&(0,0,0,0)&0&1\\
+ 1&(0,0,0,1)&0&2\\
+@@ -928,52 +1045,50 @@
+ 18&(3,3,6,6)&333&964\\
+ 19&(3,4,6,6)&372&1076\\
+ 20&(4,4,6,6)&412&1193\\
+-21&(4,4,6,7)&454&1316\\
+-22&(4,4,7,7)&499&1446\\
+-23&(4,5,7,7)&545&1581\\
+-24&(4,5,7,8)&593&1722\\
+-25&(4,5,8,8)&644&1870\\
+-26&(5,5,8,8)&697&2024\\
+-27&(5,5,8,9)&751&2183\\
+-28&(5,5,9,9)&808&2349\\
+-29&(5,6,9,9)&867&2521\\
+-30&(5,6,9,10)&927&2698\\
+ \bottomrule
+ \end{tabular}
+-\caption{Values from the closed formula.}
+-\end{table}
++\end{center}
+ 
+-\clearpage
+-\section*{Acknowledgments}
++\section*{Reproducibility statement}
+ 
+-We thank David O. H. Cutler, Jonas Karlsson, and Neil J. A. Sloane for the lollipop problem and for the geometric ideas and constructions
+-on which this note builds.
++The ancillary bundle contains the complete \LaTeX{} source, the exact
++rational verifier for Proposition~\ref{prop:base}, an independent finite
++checker for the colored and matrix extremal problems, their machine outputs,
++and SHA-256 checksums.  The base verifier uses no floating-point branch or sign
++decision.  The finite extremal checks are corroborative only; the proofs in
++Sections~\ref{sec:zykov}--\ref{sec:matrix} are symbolic and do not depend on
++them.
+ 
+ \begin{thebibliography}{9}
+ 
+ \bibitem{CKS}
+-David O. H. Cutler, Jonas Karlsson, and Neil J. A. Sloane,
++D. O. H. Cutler, J. Karlsson, and N. J. A. Sloane,
+ \emph{Cutting a Pancake with an Exotic Knife},
+-arXiv:2511.15864v3 [math.CO], 19 Apr. 2026.
+-\url{https://arxiv.org/abs/2511.15864}.
++arXiv:2511.15864v3, 2026.
+ 
+-\bibitem{Paulsen}
+-Matthias Paulsen,
+-\emph{The Lollipop Problem}, 2026.
+-\url{https://math.mp42.de/lollipop/}.
++\bibitem{MahajanChopra}
++S. Mahajan and P. Chopra,
++\emph{A Two-Graph Refinement of Paulsen's Lollipop Bounds},
++arXiv:2606.06064, 2026.
+ 
+ \bibitem{OEIS}
+ OEIS Foundation Inc.,
+ \emph{The On-Line Encyclopedia of Integer Sequences}, entry A389624,
+-``Maximum number of regions that can be formed in the plane by drawing
+-\(n\) lollipop (or qoppa) shapes of any size and orientation.''
+-\url{https://oeis.org/A389624}.
+-
+-\bibitem{KarlssonCoords}
+-Jonas Karlsson,
+-\emph{Coordinates for a four-lollipop arrangement with 40 intersections},
+-ancillary file for OEIS A389624.
+-\url{https://oeis.org/A389624/a389624_1.txt}.
++2026.
++
++\bibitem{Paulsen}
++M. Paulsen,
++\emph{The Lollipop Problem}, 2026,
++\url{https://math.mp42.de/lollipop/}.
++
++
++\bibitem{BCR}
++J. Bochnak, M. Coste, and M.-F. Roy,
++\emph{Real Algebraic Geometry}, Springer, 1998.
++
++\bibitem{Hatcher}
++A. Hatcher,
++\emph{Algebraic Topology}, Cambridge University Press, 2002.
+ 
+ \bibitem{Turan}
+ P. Tur\'an,
+@@ -987,51 +1102,4 @@
+ 
+ \end{thebibliography}
+ 
+-\clearpage
+-\appendix
+-
+-\section{Paulsen's forced intriguing pair}\label{app:paulsen}
+-
+-We recall the short linear-algebra proof that among five circles some pair is
+-intriguing.  Suppose five circles with centers \(x_i\in\R^2\) and radii
+-\(r_i>0\) are pairwise non-intriguing.  Then every pair intersects at an
+-obtuse angle, equivalently
+-\begin{equation}\label{eq:obtuse}
+-  r_i^2+r_j^2<|x_i-x_j|^2<(r_i+r_j)^2.
+-\end{equation}
+-For each circle set
+-\[
+-  v_i=\frac1{r_i}(1,\,r_i^2-|x_i|^2,\,x_i)\in\R^4,
+-\]
+-and endow \(\R^4\), written as triples \((\alpha,\beta,x)\), with the
+-symmetric bilinear form
+-\[
+-  \langle(\alpha,\beta,x),(\alpha',\beta',x')\rangle
+-  =\frac12\alpha\beta'+\frac12\beta\alpha'+x\cdot x'.
+-\]
+-A direct calculation using \eqref{eq:obtuse} gives
+-\[
+-  \langle v_i,v_i\rangle=1,
+-  \qquad
+-  -1<\langle v_i,v_j\rangle<0\quad(i\ne j).
+-\]
+-Five vectors in \(\R^4\) are linearly dependent.  In a nontrivial relation
+-\(\sum_i\lambda_i v_i=0\), the coefficients cannot all have the same sign,
+-because the first coordinate of every \(v_i\) is \(1/r_i>0\).  Therefore we may
+-move the negative terms to the other side and write
+-\[
+-  \sum_{i\in P}a_i v_i=\sum_{j\in N}b_j v_j,
+-  \qquad a_i,b_j>0,
+-\]
+-with \(P,N\) nonempty and disjoint.  Replacing the relation by its negative if
+-necessary, assume \(|P|\le2\).  Put \(w=\sum_{i\in P}v_i\).  If \(|P|=1\),
+-then \(\langle\sum_{i\in P}a_i v_i,w\rangle>0\).  If
+-\(P=\{1,2\}\), it equals
+-\((a_1+a_2)(1+\langle v_1,v_2\rangle)>0\).  But
+-\[
+-  \left\langle\sum_{j\in N}b_j v_j,w\right\rangle<0,
+-\]
+-since all cross inner products are negative.  This contradicts the linear
+-relation.  Therefore five pairwise non-intriguing circles cannot exist.
+-
+ \end{document}

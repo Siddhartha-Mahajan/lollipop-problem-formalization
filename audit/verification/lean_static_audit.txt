@@ -1,0 +1,29 @@
+Lean source audit
+=================
+Lean project .lean files (including lakefile.lean): 99
+Lean library source files: 98
+Source lines: 45,380
+
+Placeholder/declaration scan after stripping nested comments and strings:
+  sorry: 0
+  admit: 0
+  axiom_declaration: 0
+  constant_declaration: 0
+  opaque_declaration: 0
+  unsafe_declaration: 0
+
+Public theorem endpoint conditional on GeometryCertificates: True
+Geometry obstruction theorem present: True
+Concrete complement-topology identifier counts:
+  ConnectedComponents: 0
+  connectedComponent: 0
+  IsPreconnected: 0
+  Alexander: 0
+  MayerVietoris: 0
+
+Lean kernel build run by this script: NO
+Reason: this script is a static source audit. Run `lake build Lollipop` separately for kernel verification.
+
+VERDICT: The tree is a substantial, statically placeholder-free conditional development,
+but it is not an unconditional end-to-end formalization of the theorem about actual
+connected components of Euclidean lollipop complements.

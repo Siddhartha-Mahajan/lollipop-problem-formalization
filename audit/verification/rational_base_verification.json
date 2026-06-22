@@ -1,0 +1,605 @@
+{
+  "method": "exact rational arithmetic using fractions.Fraction",
+  "floating_point_used_for_decisions": false,
+  "unit_direction_checks": {
+    "Q0": {
+      "exact": "1",
+      "decimal": "1"
+    },
+    "Q1": {
+      "exact": "1",
+      "decimal": "1"
+    },
+    "Q2": {
+      "exact": "1",
+      "decimal": "1"
+    },
+    "Q3": {
+      "exact": "1",
+      "decimal": "1"
+    }
+  },
+  "geometry": {
+    "Q0": {
+      "center": [
+        {
+          "exact": "-200",
+          "decimal": "-200"
+        },
+        {
+          "exact": "0",
+          "decimal": "0"
+        }
+      ],
+      "anchor": [
+        {
+          "exact": "0",
+          "decimal": "0"
+        },
+        {
+          "exact": "0",
+          "decimal": "0"
+        }
+      ],
+      "radius": {
+        "exact": "200",
+        "decimal": "200"
+      },
+      "direction": [
+        {
+          "exact": "1",
+          "decimal": "1"
+        },
+        {
+          "exact": "0",
+          "decimal": "0"
+        }
+      ]
+    },
+    "Q1": {
+      "center": [
+        {
+          "exact": "9/20",
+          "decimal": "0.45"
+        },
+        {
+          "exact": "2/5",
+          "decimal": "0.4"
+        }
+      ],
+      "anchor": [
+        {
+          "exact": "2889/2900",
+          "decimal": "0.996206896551724138"
+        },
+        {
+          "exact": "973/2900",
+          "decimal": "0.335517241379310345"
+        }
+      ],
+      "radius": {
+        "exact": "11/20",
+        "decimal": "0.55"
+      },
+      "direction": [
+        {
+          "exact": "144/145",
+          "decimal": "0.993103448275862069"
+        },
+        {
+          "exact": "-17/145",
+          "decimal": "-0.117241379310344828"
+        }
+      ]
+    },
+    "Q2": {
+      "center": [
+        {
+          "exact": "14791/340",
+          "decimal": "43.5029411764705882"
+        },
+        {
+          "exact": "31021/340",
+          "decimal": "91.2382352941176471"
+        }
+      ],
+      "anchor": [
+        {
+          "exact": "23/20",
+          "decimal": "1.15"
+        },
+        {
+          "exact": "13/20",
+          "decimal": "0.65"
+        }
+      ],
+      "radius": {
+        "exact": "100",
+        "decimal": "100"
+      },
+      "direction": [
+        {
+          "exact": "-36/85",
+          "decimal": "-0.423529411764705882"
+        },
+        {
+          "exact": "-77/85",
+          "decimal": "-0.905882352941176471"
+        }
+      ]
+    },
+    "Q3": {
+      "center": [
+        {
+          "exact": "7409/580",
+          "decimal": "12.7741379310344828"
+        },
+        {
+          "exact": "-57629/580",
+          "decimal": "-99.3603448275862069"
+        }
+      ],
+      "anchor": [
+        {
+          "exact": "21/20",
+          "decimal": "1.05"
+        },
+        {
+          "exact": "-1/20",
+          "decimal": "-0.05"
+        }
+      ],
+      "radius": {
+        "exact": "100",
+        "decimal": "100"
+      },
+      "direction": [
+        {
+          "exact": "-17/145",
+          "decimal": "-0.117241379310344828"
+        },
+        {
+          "exact": "144/145",
+          "decimal": "0.993103448275862069"
+        }
+      ]
+    }
+  },
+  "pairs": [
+    {
+      "pair": [
+        "Q0",
+        "Q1"
+      ],
+      "components": {
+        "circle_circle": 2,
+        "ray_Q0_circle_Q1": 2,
+        "ray_Q1_circle_Q0": 0,
+        "ray_ray": 1,
+        "total": 5
+      },
+      "checks": {
+        "circle_circle.inner_margin": {
+          "required_sign": "+",
+          "exact": "20003/50",
+          "decimal": "400.06"
+        },
+        "circle_circle.outer_margin": {
+          "required_sign": "+",
+          "exact": "1997/50",
+          "decimal": "39.94"
+        },
+        "ray_Q0_circle_Q1.line_discriminant": {
+          "required_sign": "+",
+          "exact": "57/400",
+          "decimal": "0.1425"
+        },
+        "ray_Q0_circle_Q1.anchor_power": {
+          "required_sign": "+",
+          "exact": "3/50",
+          "decimal": "0.06"
+        },
+        "ray_Q0_circle_Q1.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "9/20",
+          "decimal": "0.45"
+        },
+        "ray_Q1_circle_Q0.line_discriminant": {
+          "required_sign": "+",
+          "exact": "13263872679/336400",
+          "decimal": "39428.8724108204518"
+        },
+        "ray_Q1_circle_Q0.anchor_power": {
+          "required_sign": "+",
+          "exact": "2317609/5800",
+          "decimal": "399.587758620689655"
+        },
+        "ray_Q1_circle_Q0.vertex_ahead": {
+          "required_sign": "-",
+          "exact": "-115751/580",
+          "decimal": "-199.570689655172414"
+        },
+        "ray_ray.direction_determinant": {
+          "required_sign": "-",
+          "exact": "-17/145",
+          "decimal": "-0.117241379310344828"
+        },
+        "ray_ray.Q0_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "261/68",
+          "decimal": "3.83823529411764706"
+        },
+        "ray_ray.Q1_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "973/340",
+          "decimal": "2.86176470588235294"
+        }
+      }
+    },
+    {
+      "pair": [
+        "Q0",
+        "Q2"
+      ],
+      "components": {
+        "circle_circle": 2,
+        "ray_Q0_circle_Q2": 2,
+        "ray_Q2_circle_Q0": 2,
+        "ray_ray": 1,
+        "total": 7
+      },
+      "checks": {
+        "circle_circle.inner_margin": {
+          "required_sign": "+",
+          "exact": "195901533/3400",
+          "decimal": "57618.0979411764706"
+        },
+        "circle_circle.outer_margin": {
+          "required_sign": "+",
+          "exact": "76098467/3400",
+          "decimal": "22381.9020588235294"
+        },
+        "ray_Q0_circle_Q2.line_discriminant": {
+          "required_sign": "+",
+          "exact": "193697559/115600",
+          "decimal": "1675.58442041522491"
+        },
+        "ray_Q0_circle_Q2.anchor_power": {
+          "required_sign": "+",
+          "exact": "737533/3400",
+          "decimal": "216.921470588235294"
+        },
+        "ray_Q0_circle_Q2.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "14791/340",
+          "decimal": "43.5029411764705882"
+        },
+        "ray_Q2_circle_Q0.line_discriminant": {
+          "required_sign": "+",
+          "exact": "19931654191/2890000",
+          "decimal": "6896.76615605536332"
+        },
+        "ray_Q2_circle_Q0.anchor_power": {
+          "required_sign": "+",
+          "exact": "92349/200",
+          "decimal": "461.745"
+        },
+        "ray_Q2_circle_Q0.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "145829/1700",
+          "decimal": "85.7817647058823529"
+        },
+        "ray_ray.direction_determinant": {
+          "required_sign": "-",
+          "exact": "-77/85",
+          "decimal": "-0.905882352941176471"
+        },
+        "ray_ray.Q0_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "1303/1540",
+          "decimal": "0.846103896103896104"
+        },
+        "ray_ray.Q2_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "221/308",
+          "decimal": "0.717532467532467532"
+        }
+      }
+    },
+    {
+      "pair": [
+        "Q0",
+        "Q3"
+      ],
+      "components": {
+        "circle_circle": 2,
+        "ray_Q0_circle_Q3": 2,
+        "ray_Q3_circle_Q0": 2,
+        "ray_ray": 1,
+        "total": 7
+      },
+      "checks": {
+        "circle_circle.inner_margin": {
+          "required_sign": "+",
+          "exact": "261842809/5800",
+          "decimal": "45145.3118965517241"
+        },
+        "circle_circle.outer_margin": {
+          "required_sign": "+",
+          "exact": "202157191/5800",
+          "decimal": "34854.6881034482759"
+        },
+        "ray_Q0_circle_Q3.line_discriminant": {
+          "required_sign": "+",
+          "exact": "42898359/336400",
+          "decimal": "127.521875743162901"
+        },
+        "ray_Q0_circle_Q3.anchor_power": {
+          "required_sign": "+",
+          "exact": "206809/5800",
+          "decimal": "35.6567241379310345"
+        },
+        "ray_Q0_circle_Q3.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "7409/580",
+          "decimal": "12.7741379310344828"
+        },
+        "ray_Q3_circle_Q0.line_discriminant": {
+          "required_sign": "+",
+          "exact": "1150893951/8410000",
+          "decimal": "136.848270035671819"
+        },
+        "ray_Q3_circle_Q0.anchor_power": {
+          "required_sign": "+",
+          "exact": "84221/200",
+          "decimal": "421.105"
+        },
+        "ray_Q3_circle_Q0.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "68501/2900",
+          "decimal": "23.6210344827586207"
+        },
+        "ray_ray.direction_determinant": {
+          "required_sign": "+",
+          "exact": "144/145",
+          "decimal": "0.993103448275862069"
+        },
+        "ray_ray.Q0_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "3007/2880",
+          "decimal": "1.04409722222222222"
+        },
+        "ray_ray.Q3_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "29/576",
+          "decimal": "0.0503472222222222222"
+        }
+      }
+    },
+    {
+      "pair": [
+        "Q1",
+        "Q2"
+      ],
+      "components": {
+        "circle_circle": 2,
+        "ray_Q1_circle_Q2": 2,
+        "ray_Q2_circle_Q1": 2,
+        "ray_ray": 1,
+        "total": 7
+      },
+      "checks": {
+        "circle_circle.inner_margin": {
+          "required_sign": "+",
+          "exact": "14609/68",
+          "decimal": "214.838235294117647"
+        },
+        "circle_circle.outer_margin": {
+          "required_sign": "+",
+          "exact": "351/68",
+          "decimal": "5.16176470588235294"
+        },
+        "ray_Q1_circle_Q2.line_discriminant": {
+          "required_sign": "+",
+          "exact": "562449451551/607622500",
+          "decimal": "925.656063676048863"
+        },
+        "ray_Q1_circle_Q2.anchor_power": {
+          "required_sign": "+",
+          "exact": "17286209/246500",
+          "decimal": "70.1266085192697769"
+        },
+        "ray_Q1_circle_Q2.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "388928/12325",
+          "decimal": "31.5560243407707911"
+        },
+        "ray_Q2_circle_Q1.line_discriminant": {
+          "required_sign": "+",
+          "exact": "67821/2890000",
+          "decimal": "0.0234674740484429066"
+        },
+        "ray_Q2_circle_Q1.anchor_power": {
+          "required_sign": "+",
+          "exact": "1/4",
+          "decimal": "0.25"
+        },
+        "ray_Q2_circle_Q1.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "889/1700",
+          "decimal": "0.522941176470588235"
+        },
+        "ray_ray.direction_determinant": {
+          "required_sign": "-",
+          "exact": "-468/493",
+          "decimal": "-0.949290060851926978"
+        },
+        "ray_ray.Q1_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "151/23400",
+          "decimal": "0.00645299145299145299"
+        },
+        "ray_ray.Q2_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "8143/23400",
+          "decimal": "0.347991452991452991"
+        }
+      }
+    },
+    {
+      "pair": [
+        "Q1",
+        "Q3"
+      ],
+      "components": {
+        "circle_circle": 2,
+        "ray_Q1_circle_Q3": 2,
+        "ray_Q3_circle_Q1": 2,
+        "ray_ray": 1,
+        "total": 7
+      },
+      "checks": {
+        "circle_circle.inner_margin": {
+          "required_sign": "+",
+          "exact": "309877/1450",
+          "decimal": "213.708275862068966"
+        },
+        "circle_circle.outer_margin": {
+          "required_sign": "+",
+          "exact": "9123/1450",
+          "decimal": "6.29172413793103448"
+        },
+        "ray_Q1_circle_Q3.line_discriminant": {
+          "required_sign": "+",
+          "exact": "207269701311/442050625",
+          "decimal": "468.882271823504378"
+        },
+        "ray_Q1_circle_Q3.anchor_power": {
+          "required_sign": "+",
+          "exact": "32792513/420500",
+          "decimal": "77.9845731272294887"
+        },
+        "ray_Q1_circle_Q3.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "983347/42050",
+          "decimal": "23.3851843043995244"
+        },
+        "ray_Q3_circle_Q1.line_discriminant": {
+          "required_sign": "+",
+          "exact": "317/42050",
+          "decimal": "0.00753864447086801427"
+        },
+        "ray_Q3_circle_Q1.anchor_power": {
+          "required_sign": "+",
+          "exact": "13/50",
+          "decimal": "0.26"
+        },
+        "ray_Q3_circle_Q1.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "15/29",
+          "decimal": "0.517241379310344828"
+        },
+        "ray_ray.direction_determinant": {
+          "required_sign": "+",
+          "exact": "20447/21025",
+          "decimal": "0.972508917954815696"
+        },
+        "ray_ray.Q1_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "247/29210",
+          "decimal": "0.00845600821636425882"
+        },
+        "ray_ray.Q3_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "1131/2921",
+          "decimal": "0.387196165696679219"
+        }
+      }
+    },
+    {
+      "pair": [
+        "Q2",
+        "Q3"
+      ],
+      "components": {
+        "circle_circle": 2,
+        "ray_Q2_circle_Q3": 2,
+        "ray_Q3_circle_Q2": 2,
+        "ray_ray": 1,
+        "total": 7
+      },
+      "checks": {
+        "circle_circle.inner_margin": {
+          "required_sign": "+",
+          "exact": "36750269/986",
+          "decimal": "37272.0780933062880"
+        },
+        "circle_circle.outer_margin": {
+          "required_sign": "+",
+          "exact": "2689731/986",
+          "decimal": "2727.92190669371197"
+        },
+        "ray_Q2_circle_Q3.line_discriminant": {
+          "required_sign": "+",
+          "exact": "7002650391/972196",
+          "decimal": "7202.92038950993421"
+        },
+        "ray_Q2_circle_Q3.anchor_power": {
+          "required_sign": "+",
+          "exact": "7957/58",
+          "decimal": "137.189655172413793"
+        },
+        "ray_Q2_circle_Q3.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "84475/986",
+          "decimal": "85.6744421906693712"
+        },
+        "ray_Q3_circle_Q2.line_discriminant": {
+          "required_sign": "+",
+          "exact": "4378230968959/607622500",
+          "decimal": "7205.51159471382314"
+        },
+        "ray_Q3_circle_Q2.anchor_power": {
+          "required_sign": "+",
+          "exact": "4617/34",
+          "decimal": "135.794117647058824"
+        },
+        "ray_Q3_circle_Q2.vertex_ahead": {
+          "required_sign": "+",
+          "exact": "2112047/24650",
+          "decimal": "85.6814198782961460"
+        },
+        "ray_ray.direction_determinant": {
+          "required_sign": "-",
+          "exact": "-6493/12325",
+          "decimal": "-0.526815415821501014"
+        },
+        "ray_ray.Q2_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "4471/12986",
+          "decimal": "0.344293854920683813"
+        },
+        "ray_ray.Q3_parameter_minus_radius": {
+          "required_sign": "+",
+          "exact": "5075/12986",
+          "decimal": "0.390805482827660558"
+        }
+      }
+    }
+  ],
+  "pair_totals": [
+    5,
+    7,
+    7,
+    7,
+    7,
+    7
+  ],
+  "total_crossings": 40,
+  "smallest_absolute_decisive_value": {
+    "label": "Q1-Q2.ray_ray.Q1_parameter_minus_radius",
+    "exact": "151/23400",
+    "decimal": "0.00645299145299145299"
+  },
+  "result": "PASSED"
+}
