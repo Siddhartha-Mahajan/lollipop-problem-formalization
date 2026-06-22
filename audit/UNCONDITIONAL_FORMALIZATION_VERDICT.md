@@ -11,12 +11,17 @@ recommends:
   handoff endpoint and names a concrete certificate-free maximum theorem as
   the intended final target.
 * `lake build Lollipop` was rerun successfully on June 22, 2026 and completed
-  all 3320 jobs.
+  all 3338 jobs.
 * Several closed arithmetic/table facts were changed from `native_decide` to
   ordinary kernel-checked Lean proofs.
 * The refreshed `#print axioms Lollipop.Final.theorem_one` output is recorded
   verbatim in `README.md`; only three `native_decide` graph-classification
   certificates remain in that public theorem's axiom list.
+* `Lollipop.Concrete.EndToEnd` now builds as a concrete endpoint with explicit
+  remaining theorem packages instead of broken placeholder proof scripts.  Its
+  endpoint has no `GeometryCertificates` argument, and
+  `#print axioms Lollipop.Concrete.EndToEnd.lollipopMaximum` reports only
+  `[propext, Classical.choice, Quot.sound]`.
 
 ## Verdict
 

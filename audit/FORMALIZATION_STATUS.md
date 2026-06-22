@@ -2,7 +2,20 @@
 
 ## What is present
 
-The source tree contains the combinatorial/algebraic framework, colored Turan development, matrix compression machinery, finite carrier models, exact base-coordinate work, abstract upper/lower assembly, and an algebraic module for the polynomial local family.
+The source tree contains the combinatorial/algebraic framework, colored Turan development, matrix compression machinery, finite carrier models, exact base-coordinate work, abstract upper/lower assembly, and concrete Euclidean lollipop modules.
+
+`Lollipop/Concrete/EndToEnd/Final.lean` now builds a concrete endpoint
+
+```lean
+theorem Lollipop.Concrete.EndToEnd.lollipopMaximum
+    (ports : Lollipop.Concrete.EndToEnd.EndToEndPorts) (n : ℕ) :
+    Lollipop.Concrete.LollipopMaximumStatement n
+```
+
+This endpoint has no `GeometryCertificates` argument.  Its remaining
+assumptions are explicit concrete theorem packages: `UpperPorts`, `LowerPorts`,
+`BlowUpPorts`, `BlowUpRealizationPorts`, `GenericityAvoidance`,
+`PlanarTopologyPorts`, and `PairGeometryPorts`.
 
 A comment/string-stripped static scan reports no `sorry`, `admit`, top-level `axiom`, `constant`, `opaque`, or `unsafe` declaration in the repository Lean sources. See `verification/lean_static_audit.txt`.
 
@@ -18,19 +31,38 @@ for an abstract `MaxProblemFamily P`. Those certificates carry the model-specifi
 
 `Lollipop/Final/GeometryObstruction.lean` proves that a constructor of `GeometryCertificates P` for every abstract `P` is impossible. Therefore the missing step cannot be solved by filling a universally quantified certificate stub; the endpoint must be specialized to a genuine Euclidean model and the topology must be formalized.
 
-Missing end-to-end layers include:
+Missing end-to-end layers are now represented by named concrete port
+structures:
 
-- concrete complement connected-component semantics;
-- the arbitrary-arrangement Mayer-Vietoris/Alexander-duality region bound;
-- the full close/intriguing pair-component theorems for the concrete carrier;
-- chamber stability and genericization;
-- similarity transport and all-size four-cluster realization;
-- an unconditional final theorem for the concrete maximum.
+- `UpperPorts`: concrete upper bound for every Euclidean arrangement;
+- `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
+  Euler equation;
+- `PairGeometryPorts`: robust close/intriguing pair-component savings;
+- `GenericityAvoidance`: finite bad-locus avoidance for perturbations;
+- `BlowUpPorts`: uniform inter-cluster chambers, similarity invariance, and
+  generic region equation;
+- `BlowUpRealizationPorts`: realization of all intended blow-up pair chambers;
+- removing the `EndToEndPorts` argument from the final concrete theorem.
 
 ## Build status
 
 In this integrated repository checkout, `lake build Lollipop` was run
-successfully on June 22, 2026.  The build completed all 3320 jobs.
+successfully on June 22, 2026.  The build completed all 3338 jobs.
+
+The concrete endpoint was also checked with:
+
+```sh
+lake build Lollipop.Concrete.EndToEnd
+```
+
+That build completed successfully on June 22, 2026 with 3334 jobs.
+
+The concrete endpoint axiom print is:
+
+```text
+'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms:
+[propext, Classical.choice, Quot.sound]
+```
 
 Pinned versions:
 

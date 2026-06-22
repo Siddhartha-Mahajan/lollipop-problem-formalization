@@ -146,7 +146,12 @@ theorem interClusterCode_crossings
     ((interClusterCode r s).crossings : ℚ) =
       karlssonClusterPairCrossing r s := by
   fin_cases r <;> fin_cases s <;>
-    first | contradiction | native_decide
+    first
+    | contradiction
+    | norm_num [interClusterCode, RationalBase.baseCode,
+        StrictPairCode.crossings, StrictPairCode.five,
+        StrictPairCode.seven, StrictPairCode.swap,
+        MixedCode.crossings, karlssonClusterPairCrossing]
 
 @[simp] theorem strictPairCode_swap_swap (code : StrictPairCode) :
     code.swap.swap = code := by

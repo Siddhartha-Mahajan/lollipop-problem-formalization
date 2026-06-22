@@ -8,7 +8,7 @@ the audit record for the lollipop formula project.
 - Manuscript: `manuscript/main_manuscript/main.tex`
 - Rendered PDF: `manuscript/main_manuscript/main.pdf`
 - Lean public endpoint: `Lollipop/Final/TheoremOne.lean`
-- Concrete endpoint scaffold: `Lollipop/Concrete/Basic.lean`
+- Concrete endpoint: `Lollipop/Concrete/EndToEnd/Final.lean`
 - Audit verdict: `audit/AUDIT_AND_VERDICT.md`
 - Lean status note: `audit/FORMALIZATION_STATUS.md`
 - Concrete final-target note:
@@ -56,10 +56,28 @@ complements, connected-component region counts, and the maximum statement
 defined directly in Lean.  The current target note is
 `audit/UNCONDITIONAL_FORMALIZATION_VERDICT.md`.
 
-The concrete Lean scaffold now lives in `Lollipop/Concrete/Basic.lean`.  It
-defines the Euclidean lollipop model, occupied set, free space, component-count
-region function, concrete upper/lower statements, and the final
-`IsGreatest` assembly theorem those geometric proofs must feed.
+The concrete Lean endpoint now lives in `Lollipop/Concrete/EndToEnd/Final.lean`.
+It states the final theorem directly for Euclidean lollipops and
+connected-component region counts:
+
+```lean
+theorem Lollipop.Concrete.EndToEnd.lollipopMaximum
+    (ports : Lollipop.Concrete.EndToEnd.EndToEndPorts) (n : ℕ) :
+    Lollipop.Concrete.LollipopMaximumStatement n
+```
+
+This is not yet an unconditional theorem: `EndToEndPorts` explicitly packages
+the remaining concrete theorem targets.  The current port boundary is:
+
+- `UpperPorts`: concrete upper bound for every arrangement.
+- `LowerPorts`: lower construction from blow-up geometry and genericity.
+- `BlowUpPorts`: inter-cluster chambers, similarity invariance, and generic
+  region equation.
+- `BlowUpRealizationPorts`: constructed pre-arrangements realize the intended
+  pair chambers.
+- `GenericityAvoidance`: finite bad-locus avoidance for generic perturbations.
+- `PlanarTopologyPorts` and `PairGeometryPorts`: lower-level topology and
+  pair-component estimates used by the intended upper proof.
 
 Build the Lean project with:
 
@@ -99,6 +117,15 @@ repository:
   formula from `GeometryCertificates P`; it does not yet construct those
   certificates for the actual Euclidean lollipop model without remaining
   geometric assumptions.
+- Concrete endpoint: conditionally, but with no `GeometryCertificates`.
+  `lake build Lollipop.Concrete.EndToEnd` completed successfully on
+  June 22, 2026 with 3334 jobs.  The exact axiom check for the concrete
+  endpoint was:
+
+  ```text
+  'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms:
+  [propext, Classical.choice, Quot.sound]
+  ```
 
 ## Geometry And Lower Construction
 
@@ -117,8 +144,9 @@ Lollipop/Final/TheoremOne.lean
 ```
 
 `GeometryObstruction.lean` records why `GeometryCertificates P` cannot be
-constructed uniformly for every abstract `MaxProblemFamily`; a concrete
-Euclidean model still has to supply the genuine geometry/topology semantics.
+constructed uniformly for every abstract `MaxProblemFamily`; the concrete
+endpoint now avoids that abstraction, but still exposes the remaining
+geometry/topology as concrete theorem packages.
 
 ## Audit Folder
 
@@ -164,7 +192,7 @@ lean-toolchain
 ## Build Notes
 
 After integrating the research-grade tree on June 22, 2026,
-`lake build Lollipop` completed successfully with 3320 jobs.  With the
+`lake build Lollipop` completed successfully with 3338 jobs.  With the
 existing local `.lake/` cache, that build took 9.45 seconds after the one
 local proof-script repair in `PolynomialBlowUp.lean`.
 
@@ -172,3 +200,6 @@ On this machine, the first fresh build of the earlier standalone repository
 from an empty `.lake/` cache took about 25 minutes, including cloning and
 compiling mathlib dependencies.  After the local `.lake/` cache existed, a
 no-op `lake build Lollipop` took 3.83 seconds.
+
+The concrete endpoint build `lake build Lollipop.Concrete.EndToEnd` completed
+successfully on June 22, 2026 with 3334 jobs after the explicit-port refactor.
