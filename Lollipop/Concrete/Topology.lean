@@ -94,6 +94,35 @@ theorem isConnected_carrier (L : Lollipop) : IsConnected L.carrier := by
   simpa [carrier] using
     (isConnected_circle L).union hmeet (isConnected_stem L)
 
+/-- Actual unit stem direction. -/
+def unitRadial (L : Lollipop) : Point := L.radius⁻¹ • L.radial
+
+@[simp] theorem norm_unitRadial (L : Lollipop) : ‖L.unitRadial‖ = 1 := by
+  rw [unitRadial, norm_smul, Real.norm_eq_abs]
+  rw [abs_inv]
+  rw [abs_of_pos L.radius_pos]
+  exact inv_mul_cancel₀ L.radius_ne_zero
+
+theorem radial_eq_radius_smul_unitRadial (L : Lollipop) :
+    L.radial = L.radius • L.unitRadial := by
+  simp [unitRadial, smul_smul, L.radius_ne_zero]
+
+/-- Unit-speed form of the stem. -/
+def stemByDistance (L : Lollipop) : Set Point :=
+  {x | ∃ q : ℝ, L.radius ≤ q ∧ x = L.center + q • L.unitRadial}
+
+@[simp] theorem stem_eq_stemByDistance (L : Lollipop) :
+    L.stem = L.stemByDistance := by
+  ext x
+  constructor
+  · rintro ⟨t, ht, rfl⟩
+    refine ⟨t * L.radius, by nlinarith [L.radius_pos], ?_⟩
+    rw [L.radial_eq_radius_smul_unitRadial, smul_smul]
+  · rintro ⟨q, hq, rfl⟩
+    refine ⟨q / L.radius, (le_div_iff₀ L.radius_pos).2 (by simpa using hq), ?_⟩
+    rw [L.radial_eq_radius_smul_unitRadial, smul_smul]
+    field_simp [L.radius_ne_zero]
+
 end Lollipop
 
 end Concrete
