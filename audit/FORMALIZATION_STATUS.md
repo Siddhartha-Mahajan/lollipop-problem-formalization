@@ -33,7 +33,11 @@ for an abstract `MaxProblemFamily P`. Those certificates carry the model-specifi
 Missing end-to-end layers are now represented by named concrete port
 structures:
 
-- `UpperPorts`: concrete upper bound for every Euclidean arrangement;
+- `UpperPorts`: upper-bound inputs still needed by the concrete colored-Turan
+  assembly: `PlanarTopologyPorts`, `PairGeometryPorts`, and five-circle
+  forcing for the concrete `Intriguing` relation.  The four-direction close
+  forcing and colored-Turan reduction are proved in
+  `Lollipop/Concrete/EndToEnd/Upper.lean`;
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation;
 - `PairGeometryPorts`: robust close/intriguing pair-component savings; the
@@ -66,9 +70,16 @@ That build completed successfully on June 22, 2026 with 3334 jobs.
 The concrete endpoint axiom print is:
 
 ```text
-'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms:
-[propext, Classical.choice, Quot.sound]
+'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound,
+ Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1,
+ Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1,
+ Lollipop.supportRelabel_card._native.native_decide.ax_1_1]
 ```
+
+The three nonstandard entries come from the existing colored-Turan finite
+graph-classification backend, now used by the concrete upper assembly.
 
 Pinned versions:
 

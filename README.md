@@ -69,7 +69,11 @@ theorem Lollipop.Concrete.EndToEnd.lollipopMaximum
 This is not yet an unconditional theorem: `EndToEndPorts` explicitly packages
 the remaining concrete theorem targets.  The current port boundary is:
 
-- `UpperPorts`: concrete upper bound for every arrangement.
+- `UpperPorts`: upper-bound inputs that still need geometry/topology:
+  `PlanarTopologyPorts`, `PairGeometryPorts`, and the five-circle forcing
+  statement for the concrete `Intriguing` relation.  The four-direction close
+  forcing is proved as `close_pair_in_every_four`, and the colored-Turan
+  reduction is now run in Lean by `regionCountRat_le_candidate`.
 - `LowerPorts`: lower construction from genericity and the planar topology
   generic Euler equation.
 - The blow-up chamber-realization layer is now proved in Lean.  Canonical
@@ -80,8 +84,10 @@ the remaining concrete theorem targets.  The current port boundary is:
 - `GenericityAvoidance`: density of the complement of the finite bad locus.
   Points outside that locus are proved generic as
   `Lower.GenericityPort.good_is_generic`.
-- `PlanarTopologyPorts` and `PairGeometryPorts`: lower-level topology and the
-  close/intriguing pair-component savings used by the intended upper proof.
+- `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
+  Euler equation.
+- `PairGeometryPorts`: close/intriguing pair-component savings used by the
+  upper proof.
   The universal `2+2+2+1` pair bound is now proved as
   `PairGeometry.pairExcess_le_seven`.
 
@@ -129,9 +135,17 @@ repository:
   endpoint was:
 
   ```text
-  'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms:
-  [propext, Classical.choice, Quot.sound]
+  'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms: [propext,
+   Classical.choice,
+   Quot.sound,
+   Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1,
+   Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1,
+   Lollipop.supportRelabel_card._native.native_decide.ax_1_1]
   ```
+
+  The concrete endpoint now runs the existing colored-Turán backend, so it has
+  the same three finite graph-classification `native_decide` dependencies as
+  `Lollipop.Final.theorem_one`.
 
 ## Geometry And Lower Construction
 

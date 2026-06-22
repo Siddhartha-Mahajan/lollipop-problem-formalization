@@ -19,9 +19,12 @@ recommends:
   certificates remain in that public theorem's axiom list.
 * `Lollipop.Concrete.EndToEnd` now builds as a concrete endpoint with explicit
   remaining theorem packages instead of broken placeholder proof scripts.  Its
-  endpoint has no `GeometryCertificates` argument, and
-  `#print axioms Lollipop.Concrete.EndToEnd.lollipopMaximum` reports only
-  `[propext, Classical.choice, Quot.sound]`.
+  endpoint has no `GeometryCertificates` argument.  After the concrete upper
+  endpoint was connected to the existing colored-Turan backend,
+  `#print axioms Lollipop.Concrete.EndToEnd.lollipopMaximum` reports the same
+  three `native_decide` graph-classification dependencies as
+  `Lollipop.Final.theorem_one`; these remain to replace before the strictest
+  no-trusted-computation claim.
 
 ## Verdict
 

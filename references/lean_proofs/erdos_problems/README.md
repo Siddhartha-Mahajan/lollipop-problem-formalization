@@ -72,6 +72,21 @@ statement-only and contains `sorry`, but it includes the `formal_proof` link to
 the full proof source in `plby/lean-proofs`.  This is useful as provenance, but
 it is not a proof source.
 
+## TEOrth Erdős Repository Check
+
+The local checkout
+
+```text
+/Users/siddhartha/Lossfunk/erdos_problems/source/teorth_erdosproblems/
+```
+
+was inspected as a comparison source.  It is a problem-status and website
+repository: it contains YAML metadata, scripts, generated site assets, and
+links to the Formal Conjectures statement files.  It does not contain the
+full Lean proof sources themselves.  For full proof scripts rather than
+statement-only conjecture files, the useful source is the `plby/lean-proofs`
+tree copied in this folder.
+
 ## Lessons For The Lollipop Repo
 
 - Keep a single final theorem endpoint and make it easy to find.
