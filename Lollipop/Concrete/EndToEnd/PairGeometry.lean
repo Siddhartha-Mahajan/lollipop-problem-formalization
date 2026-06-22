@@ -25,6 +25,32 @@ def hatPiece (S : Set Point) : Set Sphere2 := finiteLift S ∪ {infinity}
 
 def pieceExcess (S : Set Point) : ℕ := componentCount (hatPiece S) - 1
 
+/-- The compactified pair intersection is the union of the four compactified
+primitive intersections. -/
+theorem hatPairIntersection_decompose (L M : Lollipop) :
+    hatPairIntersection L M =
+      hatPiece (cc L M) ∪ hatPiece (rc L M) ∪
+        hatPiece (cr L M) ∪ hatPiece (rr L M) := by
+  ext x
+  cases x using OnePoint.rec with
+  | infty =>
+      change infinity ∈ hatPairIntersection L M ↔
+        infinity ∈
+          hatPiece (cc L M) ∪ hatPiece (rc L M) ∪
+            hatPiece (cr L M) ∪ hatPiece (rr L M)
+      constructor
+      · intro _h
+        simp [hatPiece]
+      · intro _h
+        exact infinity_mem_hatPairIntersection L M
+  | coe p =>
+      change finitePoint p ∈ hatPairIntersection L M ↔
+        finitePoint p ∈
+          hatPiece (cc L M) ∪ hatPiece (rc L M) ∪
+            hatPiece (cr L M) ∪ hatPiece (rr L M)
+      simp [hatPairIntersection, hatPiece, cc, rc, cr, rr, Lollipop.carrier]
+      tauto
+
 /-- Close means the smaller angle between actual stem directions is at most a
 right angle. -/
 def Close (L M : Lollipop) : Prop :=
