@@ -162,20 +162,109 @@ theorem interClusterCode_crossings
     StrictPairCode.four.swap.crossings = 4 := by
   rfl
 
-/-- Remaining theorem package for the concrete blow-up layer.
+/-- A one-sided nonnegative interval inside an open neighborhood of `0`. -/
+theorem exists_nonneg_interval_subset_of_isOpen
+    {U : Set ℝ} (hU : IsOpen U) (h0 : (0 : ℝ) ∈ U) :
+    ∃ δ : ℝ, 0 < δ ∧ ∀ x : ℝ, 0 ≤ x → x ≤ δ → x ∈ U := by
+  rcases (Metric.isOpen_iff.mp hU 0 h0) with ⟨δ, hδ, hsub⟩
+  refine ⟨δ / 2, by positivity, ?_⟩
+  intro x hx0 hx
+  apply hsub
+  rw [Metric.mem_ball, Real.dist_eq]
+  have habs : |x - 0| = x := by
+    simpa using abs_of_nonneg hx0
+  rw [habs]
+  nlinarith
 
-The fields are concrete statements, not project axioms.  They name the exact
-facts still to prove in this file: a uniform strict inter-cluster chamber,
-similarity invariance of strict pair codes, and the generic Euler/region
-equation supplied by planar topology. -/
-structure BlowUpPorts : Prop where
-  uniform_intercluster_radius :
+/-- A strict chamber for one ordered distinct base pair persists on a small
+rectangle of polynomial perturbation parameters. -/
+theorem exists_intercluster_radius (r s : Fin 4) (hrs : r ≠ s) :
+    ∃ δ : ℝ, 0 < δ ∧
+      ∀ u v : ℝ, 0 ≤ u → u ≤ δ → 0 ≤ v → v ≤ δ →
+        RealizesStrictPairCode (interClusterCode r s)
+          (PolynomialFamily.around (RationalBase.base r) u)
+          (PolynomialFamily.around (RationalBase.base s) v) := by
+  have hbase : RealizesStrictPairCode (interClusterCode r s)
+      (RationalBase.base r) (RationalBase.base s) := by
+    change RealizesStrictPairCode (RationalBase.baseCode r s)
+      (RationalBase.base r) (RationalBase.base s)
+    exact RationalBase.base_realizes_code hrs
+  rcases exists_pair_chamber_neighborhood hbase with
+    ⟨U, V, hU, hV, hbaseU, hbaseV, hsub⟩
+  have hpreU : IsOpen
+      {t : ℝ | PolynomialFamily.around (RationalBase.base r) t ∈ U} :=
+    hU.preimage (PolynomialFamily.continuous_around (RationalBase.base r))
+  have hpreV : IsOpen
+      {t : ℝ | PolynomialFamily.around (RationalBase.base s) t ∈ V} :=
+    hV.preimage (PolynomialFamily.continuous_around (RationalBase.base s))
+  have h0U : (0 : ℝ) ∈
+      {t : ℝ | PolynomialFamily.around (RationalBase.base r) t ∈ U} := by
+    simpa using hbaseU
+  have h0V : (0 : ℝ) ∈
+      {t : ℝ | PolynomialFamily.around (RationalBase.base s) t ∈ V} := by
+    simpa using hbaseV
+  rcases exists_nonneg_interval_subset_of_isOpen hpreU h0U with
+    ⟨δU, hδU, hsubU⟩
+  rcases exists_nonneg_interval_subset_of_isOpen hpreV h0V with
+    ⟨δV, hδV, hsubV⟩
+  refine ⟨min δU δV, lt_min hδU hδV, ?_⟩
+  intro u v hu0 hu hv0 hv
+  exact hsub
+    (PolynomialFamily.around (RationalBase.base r) u)
+    (hsubU u hu0 (le_trans hu (min_le_left _ _)))
+    (PolynomialFamily.around (RationalBase.base s) v)
+    (hsubV v hv0 (le_trans hv (min_le_right _ _)))
+
+/-- Uniform inter-cluster chamber radius for all ordered distinct base pairs. -/
+theorem exists_uniform_intercluster_radius :
     ∃ ε : ℝ, 0 < ε ∧ ε ≤ (1 : ℝ) / 4 ∧
       ∀ r s : Fin 4, r ≠ s →
       ∀ u v : ℝ, 0 ≤ u → u ≤ ε → 0 ≤ v → v ≤ ε →
         RealizesStrictPairCode (interClusterCode r s)
           (PolynomialFamily.around (RationalBase.base r) u)
-          (PolynomialFamily.around (RationalBase.base s) v)
+          (PolynomialFamily.around (RationalBase.base s) v) := by
+  classical
+  let δ : Fin 4 → Fin 4 → ℝ := fun r s =>
+    if h : r = s then 1 else Classical.choose (exists_intercluster_radius r s h)
+  have hδpos : ∀ r s : Fin 4, 0 < δ r s := by
+    intro r s
+    by_cases h : r = s
+    · simp [δ, h]
+    · simpa [δ, h] using
+        (Classical.choose_spec (exists_intercluster_radius r s h)).1
+  have hnonempty : (Finset.univ : Finset (Fin 4 × Fin 4)).Nonempty := by
+    simp
+  let ε := min ((1 : ℝ) / 4)
+    (Finset.univ.inf' hnonempty
+      (fun p : Fin 4 × Fin 4 => δ p.1 p.2 / 2))
+  have hinfpos :
+      0 < Finset.univ.inf' hnonempty
+        (fun p : Fin 4 × Fin 4 => δ p.1 p.2 / 2) := by
+    rw [Finset.lt_inf'_iff hnonempty]
+    intro p _hp
+    exact half_pos (hδpos p.1 p.2)
+  have hεpos : 0 < ε := by
+    exact lt_min (by norm_num) hinfpos
+  refine ⟨ε, hεpos, min_le_left _ _, ?_⟩
+  intro r s hrs u v hu0 hu hv0 hv
+  have hεδ : ε ≤ δ r s / 2 := by
+    exact le_trans (min_le_right _ _)
+      (Finset.inf'_le _ (Finset.mem_univ (r, s)))
+  have huδ : u ≤ δ r s := by
+    nlinarith [hu, hεδ, hδpos r s]
+  have hvδ : v ≤ δ r s := by
+    nlinarith [hv, hεδ, hδpos r s]
+  have hlocal :=
+    (Classical.choose_spec (exists_intercluster_radius r s hrs)).2
+  exact hlocal u v hu0 (by simpa [δ, hrs] using huδ)
+    hv0 (by simpa [δ, hrs] using hvδ)
+
+/-- Remaining theorem package for the concrete blow-up layer.
+
+The fields are concrete statements, not project axioms.  They name the exact
+facts still to prove in this file: similarity invariance of strict pair codes
+and the generic Euler/region equation supplied by planar topology. -/
+structure BlowUpPorts : Prop where
   realizes_map_iff :
     ∀ (S : PlaneSimilarity) (code : StrictPairCode) (L M : Lollipop),
     RealizesStrictPairCode code (S.mapLollipop L) (S.mapLollipop M) ↔
@@ -185,15 +274,15 @@ structure BlowUpPorts : Prop where
       regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (n : ℚ) + 1
 
 /-- Choose one uniform radius once and for all. -/
-def epsilon (P : BlowUpPorts) : ℝ :=
-  Classical.choose P.uniform_intercluster_radius
+def epsilon (_P : BlowUpPorts) : ℝ :=
+  Classical.choose exists_uniform_intercluster_radius
 
 @[simp] theorem epsilon_pos (P : BlowUpPorts) : 0 < epsilon P :=
-  (Classical.choose_spec P.uniform_intercluster_radius).1
+  (Classical.choose_spec exists_uniform_intercluster_radius).1
 
 @[simp] theorem epsilon_le_quarter (P : BlowUpPorts) :
     epsilon P ≤ (1 : ℝ) / 4 :=
-  (Classical.choose_spec P.uniform_intercluster_radius).2.1
+  (Classical.choose_spec exists_uniform_intercluster_radius).2.1
 
 /-- Concrete pre-arrangement before genericization. -/
 def preArrangement (P : BlowUpPorts)
