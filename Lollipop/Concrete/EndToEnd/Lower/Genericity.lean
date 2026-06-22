@@ -267,18 +267,128 @@ theorem mem_allBad_of_parallelBad {n : ℕ}
     Set.mem_iUnion.mpr ⟨j,
       Set.mem_iUnion.mpr ⟨hij, hbad⟩⟩⟩
 
+theorem primitivePairwiseTransverse_of_not_allBad {n : ℕ}
+    {p : ArrangementParameter n} (hgood : p ∉ allBad)
+    (i j : Fin n) (hij : i ≠ j) :
+    PrimitivePairwiseTransverse (p.toArrangement i) (p.toArrangement j) := by
+  refine ⟨?_, ?_, ?_, ?_⟩
+  · intro x hx hnot
+    exact hgood (mem_allBad_of_pairBad i j hij
+      PrimitiveKind.circle PrimitiveKind.circle
+      ⟨x, by simpa [ArrangementParameter.toArrangement, primitive, cc] using hx,
+        by
+          intro ht
+          change detPoint (x - (p.toArrangement i).center)
+            (x - (p.toArrangement j).center) ≠ 0 at ht
+          exact ht hnot⟩)
+  · intro x hx hnot
+    exact hgood (mem_allBad_of_pairBad i j hij
+      PrimitiveKind.circle PrimitiveKind.stem
+      ⟨x, by simpa [ArrangementParameter.toArrangement, primitive, cr] using hx,
+        by
+          intro ht
+          change dotPoint (p.toArrangement j).radial
+            (x - (p.toArrangement i).center) ≠ 0 at ht
+          exact ht hnot⟩)
+  · intro x hx hnot
+    exact hgood (mem_allBad_of_pairBad i j hij
+      PrimitiveKind.stem PrimitiveKind.circle
+      ⟨x, by simpa [ArrangementParameter.toArrangement, primitive, rc] using hx,
+        by
+          intro ht
+          change dotPoint (p.toArrangement i).radial
+            (x - (p.toArrangement j).center) ≠ 0 at ht
+          exact ht hnot⟩)
+  · intro hnon hnot
+    rcases hnon with ⟨x, hx⟩
+    exact hgood (mem_allBad_of_pairBad i j hij
+      PrimitiveKind.stem PrimitiveKind.stem
+      ⟨x, by simpa [ArrangementParameter.toArrangement, primitive, rr] using hx,
+        by
+          intro ht
+          change detPoint (p.toArrangement i).radial
+            (p.toArrangement j).radial ≠ 0 at ht
+          exact ht hnot⟩)
+
+theorem pairCrossingSet_finite_of_not_allBad {n : ℕ}
+    {p : ArrangementParameter n} (hgood : p ∉ allBad)
+    (i j : Fin n) (hij : i ≠ j) :
+    (pairCrossingSet (p.toArrangement i) (p.toArrangement j)).Finite := by
+  let L := p.toArrangement i
+  let M := p.toArrangement j
+  have htrans : PrimitivePairwiseTransverse L M := by
+    simpa [L, M] using primitivePairwiseTransverse_of_not_allBad hgood i j hij
+  have hccFin : (cc L M).Finite := by
+    by_cases hcc : (cc L M).Nonempty
+    · rcases hcc with ⟨x, hx⟩
+      have hsphere : concreteSphere L ≠ concreteSphere M := by
+        intro hsphere
+        have hcenter : L.center = M.center :=
+          congrArg EuclideanGeometry.Sphere.center hsphere
+        have hzero : detPoint (x - L.center) (x - M.center) = 0 := by
+          rw [hcenter]
+          unfold detPoint
+          ring
+        exact (htrans.cc x hx) hzero
+      apply finite_of_forall_mem_eq_left_or_right
+      intro a b y ha hb hy hab
+      exact eq_or_eq_of_mem_cc_of_two_witnesses hsphere hab ha hb hy
+    · rw [Set.not_nonempty_iff_eq_empty.mp hcc]
+      exact finite_empty
+  have hrcFin : (rc L M).Finite := finite_ray_circle_intersection L M
+  have hcrFin : (cr L M).Finite := finite_circle_ray_intersection L M
+  have hrrFin : (rr L M).Finite := by
+    by_cases hrr : (rr L M).Nonempty
+    · exact finite_of_subsingleton_of_mem
+        (rr_subsingleton_of_transverse (htrans.rr hrr)) hrr.some_mem
+    · rw [Set.not_nonempty_iff_eq_empty.mp hrr]
+      exact finite_empty
+  rw [pairCrossingSet_decompose]
+  exact ((hccFin.union hrcFin).union hcrFin).union hrrFin
+
+theorem good_is_generic {n : ℕ}
+    {p : ArrangementParameter n} (hgood : p ∉ allBad) :
+    IsGeneric p.toArrangement := by
+  refine
+    { pair_finite := ?_
+      pair_transverse := ?_
+      away_left_anchor := ?_
+      away_right_anchor := ?_
+      no_triple := ?_
+      nonparallel_stems := ?_ }
+  · intro i j hij
+    exact pairCrossingSet_finite_of_not_allBad hgood i j hij
+  · intro i j hij
+    exact primitivePairwiseTransverse_of_not_allBad hgood i j hij
+  · intro i j hij hx
+    exact hgood (mem_allBad_of_anchorBad i j hij (Or.inl (by
+      simpa [ArrangementParameter.toArrangement, pairCrossingSet] using hx.2)))
+  · intro i j hij hx
+    exact hgood (mem_allBad_of_anchorBad i j hij (Or.inr (by
+      simpa [ArrangementParameter.toArrangement, pairCrossingSet] using hx.1)))
+  · intro i j k hij hik hjk
+    ext x
+    constructor
+    · intro hx
+      exact False.elim (hgood (mem_allBad_of_tripleBad i j k hij hik hjk
+        ⟨x, by
+          simpa only [ArrangementParameter.toArrangement, pairCrossingSet,
+            Set.mem_inter_iff] using hx⟩))
+    · intro hx
+      exact False.elim hx
+  · intro i j hij hdet
+    exact hgood (mem_allBad_of_parallelBad i j hij (by
+      change detPoint ((p i).toLollipop).radial ((p j).toLollipop).radial = 0
+      simpa only [ArrangementParameter.toArrangement] using hdet))
+
 /-- The remaining finite-avoidance theorem needed to finish the lower
 genericization step.
 
 This is intentionally a proposition, not an axiom and not a caller-facing
 certificate for the final endpoint.  It records the concrete theorem still to
-prove: the complement of the explicitly defined bad locus is dense, and every
-point outside that locus satisfies the genericity predicate used by the graph
-Euler theorem. -/
+prove: the complement of the explicitly defined bad locus is dense. -/
 structure GenericityAvoidance (n : ℕ) : Prop where
   dense_good : Dense ((allBad : Set (ArrangementParameter n))ᶜ)
-  good_is_generic :
-    ∀ {p : ArrangementParameter n}, p ∉ allBad → IsGeneric p.toArrangement
 
 end GenericityPort
 
@@ -297,7 +407,7 @@ theorem exists_generic_realizing_pair_codes_of_avoidance
   rcases havoid.dense_good.exists_mem_open hUopen hUne with
     ⟨p, hpGood, hpU⟩
   refine ⟨p.toArrangement, hpU, ?_⟩
-  exact havoid.good_is_generic hpGood
+  exact GenericityPort.good_is_generic hpGood
 
 /-- Genericization preserves every exact pair crossing count encoded by the
 strict chamber, assuming the remaining concrete finite-avoidance theorem. -/

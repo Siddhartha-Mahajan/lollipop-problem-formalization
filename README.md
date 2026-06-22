@@ -76,7 +76,9 @@ the remaining concrete theorem targets.  The current port boundary is:
   `Lower.BlowUp.exists_uniform_intercluster_radius`, and the constructed
   pre-arrangements are proved to realize the intended pair chambers as
   `Lower.BlowUp.preArrangement_realizes_concrete`.
-- `GenericityAvoidance`: finite bad-locus avoidance for generic perturbations.
+- `GenericityAvoidance`: density of the complement of the finite bad locus.
+  Points outside that locus are proved generic as
+  `Lower.GenericityPort.good_is_generic`.
 - `PlanarTopologyPorts` and `PairGeometryPorts`: lower-level topology and
   pair-component estimates used by the intended upper proof.
 

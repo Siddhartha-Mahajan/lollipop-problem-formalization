@@ -38,7 +38,9 @@ structures:
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation;
 - `PairGeometryPorts`: robust close/intriguing pair-component savings;
-- `GenericityAvoidance`: finite bad-locus avoidance for perturbations;
+- `GenericityAvoidance`: density of the complement of the finite bad locus;
+  points outside that locus are proved generic as
+  `Lower.GenericityPort.good_is_generic`;
 - `BlowUpPorts`: similarity invariance and the generic region equation; the
   uniform inter-cluster chamber radius is now proved as
   `Lower.BlowUp.exists_uniform_intercluster_radius`, and realization of all
