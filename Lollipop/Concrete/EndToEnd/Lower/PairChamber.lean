@@ -514,6 +514,109 @@ theorem circle_circle_transverse
   exact circle_intersection_transverse_of_strict_triangle
     L.center M.center L.radius M.radius hout hin x hx
 
+private theorem normSqPoint_eq_norm_sq (x : Point) :
+    normSqPoint x = ‖x‖ ^ 2 := by
+  rw [point_norm_sq_eq]
+  simp [normSqPoint, dotPoint, sq]
+
+/-- If the supporting stem line has negative circle discriminant, the accepted
+ray--circle primitive is empty. -/
+theorem ray_circle_ncard_eq_zero_of_negative_discriminant
+    {L M : Lollipop}
+    (hquad :
+      ∀ q : ℝ,
+        normSqPoint (L.center + q • L.unitRadial - M.center) -
+            M.radius ^ 2 =
+          (q - projectedCenterParameter L M) ^ 2 -
+            lineDiscriminant L M)
+    (hdisc : lineDiscriminant L M < 0) :
+    (rc L M).ncard = 0 := by
+  have hempty : rc L M = ∅ := by
+    ext x
+    constructor
+    · intro hx
+      rcases hx with ⟨hxStem, hxCircle⟩
+      have hxStem' : x ∈ L.stemByDistance := by
+        simpa using hxStem
+      rcases hxStem' with ⟨q, _hq, hxq⟩
+      have hzero :
+          normSqPoint (L.center + q • L.unitRadial - M.center) -
+              M.radius ^ 2 = 0 := by
+        rw [← hxq]
+        rw [normSqPoint_eq_norm_sq]
+        have hcircle : ‖x - M.center‖ = M.radius := by
+          simpa [Lollipop.circle] using hxCircle
+        rw [hcircle]
+        ring
+      have hquadq := hquad q
+      have hsq : 0 ≤ (q - projectedCenterParameter L M) ^ 2 :=
+        sq_nonneg _
+      nlinarith
+    · intro hx
+      simp at hx
+  rw [hempty]
+  simp
+
+/-- If the anchor is already outside the circle and the quadratic vertex lies
+strictly behind the anchor, the accepted ray sees no roots. -/
+theorem ray_circle_ncard_eq_zero_of_anchor_positive_vertex_behind
+    {L M : Lollipop}
+    (hquad :
+      ∀ q : ℝ,
+        normSqPoint (L.center + q • L.unitRadial - M.center) -
+            M.radius ^ 2 =
+          (q - projectedCenterParameter L M) ^ 2 -
+            lineDiscriminant L M)
+    (hanchor :
+      anchorPower L M =
+        (L.radius - projectedCenterParameter L M) ^ 2 -
+          lineDiscriminant L M)
+    (hpower : 0 < anchorPower L M)
+    (hvertex : vertexAhead L M < 0) :
+    (rc L M).ncard = 0 := by
+  have hanchor_pos :
+      0 <
+        (L.radius - projectedCenterParameter L M) ^ 2 -
+          lineDiscriminant L M := by
+    simpa [hanchor] using hpower
+  have hvertex_pos :
+      0 < L.radius - projectedCenterParameter L M := by
+    simpa [vertexAhead] using neg_pos.2 hvertex
+  have hempty : rc L M = ∅ := by
+    ext x
+    constructor
+    · intro hx
+      rcases hx with ⟨hxStem, hxCircle⟩
+      have hxStem' : x ∈ L.stemByDistance := by
+        simpa using hxStem
+      rcases hxStem' with ⟨q, hq, hxq⟩
+      have hzero :
+          normSqPoint (L.center + q • L.unitRadial - M.center) -
+              M.radius ^ 2 = 0 := by
+        rw [← hxq]
+        rw [normSqPoint_eq_norm_sq]
+        have hcircle : ‖x - M.center‖ = M.radius := by
+          simpa [Lollipop.circle] using hxCircle
+        rw [hcircle]
+        ring
+      have hquadq := hquad q
+      have hle :
+          L.radius - projectedCenterParameter L M ≤
+            q - projectedCenterParameter L M := by
+        linarith
+      have hq_nonneg :
+          0 ≤ q - projectedCenterParameter L M :=
+        le_trans hvertex_pos.le hle
+      have hsqle :
+          (L.radius - projectedCenterParameter L M) ^ 2 ≤
+            (q - projectedCenterParameter L M) ^ 2 :=
+        (sq_le_sq₀ hvertex_pos.le hq_nonneg).2 hle
+      nlinarith
+    · intro hx
+      simp at hx
+  rw [hempty]
+  simp
+
 /-- Strict mixed diagnostics classify exactly the accepted roots of the ray
 quadratic. -/
 theorem mixed_ncard_eq
@@ -547,16 +650,6 @@ theorem mixed_transverse
   exact ray_circle_transverse_of_strict_discriminant_and_anchor_code
     (mixed_quadratic_identity L M) h x hx
 
-/-- Nonparallel supporting lines with both parameters beyond the anchors have
-exactly one ray--ray point. -/
-theorem ray_ray_ncard_eq_one
-    {L M : Lollipop}
-    (h : RayRayCodeRealized true L M) :
-    (rr L M).ncard = 1 := by
-  simp only [RayRayCodeRealized, if_true] at h
-  exact ray_ray_ncard_eq_one_of_nonparallel_parameters
-    h.1 h.2.1 h.2.2
-
 /-- The true ray--ray chamber is transverse. -/
 theorem ray_ray_transverse
     {L M : Lollipop}
@@ -573,6 +666,194 @@ theorem ray_ray_transverse
   apply hdir
   rw [hscale, hzero]
   ring
+
+/-- Any common point of two nonparallel supporting stem lines has the
+displayed Cramer-rule parameters. -/
+private theorem line_parameters_of_mem_rr
+    {L M : Lollipop} {x : Point}
+    (hdet : directionDet L M ≠ 0)
+    (hx : x ∈ rr L M) :
+    ∃ qL qM : ℝ,
+      L.radius ≤ qL ∧ M.radius ≤ qM ∧
+      x = L.center + qL • L.unitRadial ∧
+      x = M.center + qM • M.unitRadial ∧
+      qL = leftLineParameter L M ∧
+      qM = rightLineParameter L M := by
+  rcases hx with ⟨hxL, hxM⟩
+  have hxL' : x ∈ L.stemByDistance := by
+    simpa using hxL
+  have hxM' : x ∈ M.stemByDistance := by
+    simpa using hxM
+  rcases hxL' with ⟨qL, hqL, hxLq⟩
+  rcases hxM' with ⟨qM, hqM, hxMq⟩
+  have hcoord (i : Fin 2) :
+      qL * L.unitRadial i - qM * M.unitRadial i =
+        displacement L M i := by
+    have hxi := congrArg (fun y : Point => y i) (hxLq.symm.trans hxMq)
+    simp [displacement] at hxi ⊢
+    linarith
+  have hleft_num :
+      detPoint (displacement L M) M.unitRadial =
+        qL * directionDet L M := by
+    unfold directionDet
+    unfold detPoint
+    rw [← hcoord 0, ← hcoord 1]
+    ring_nf
+  have hright_num :
+      detPoint (displacement L M) L.unitRadial =
+        qM * directionDet L M := by
+    unfold directionDet
+    unfold detPoint
+    rw [← hcoord 0, ← hcoord 1]
+    ring_nf
+  refine ⟨qL, qM, hqL, hqM, hxLq, hxMq, ?_, ?_⟩
+  · unfold leftLineParameter
+    rw [hleft_num]
+    field_simp [hdet]
+  · unfold rightLineParameter
+    rw [hright_num]
+    field_simp [hdet]
+
+/-- The false strict ray--ray chamber has no accepted stem--stem point. -/
+theorem ray_ray_empty_of_false_strict_code
+    {L M : Lollipop}
+    (h : RayRayCodeRealized false L M) :
+    rr L M = ∅ := by
+  simp only [RayRayCodeRealized, if_false] at h
+  ext x
+  constructor
+  · intro hx
+    rcases line_parameters_of_mem_rr h.1 hx with
+      ⟨qL, qM, hqL, hqM, _hxL, _hxM, hleft, hright⟩
+    rcases h.2 with hbehind | hbehind
+    · have : qL < L.radius := by simpa [hleft] using hbehind
+      exact False.elim (not_lt_of_ge hqL this)
+    · have : qM < M.radius := by simpa [hright] using hbehind
+      exact False.elim (not_lt_of_ge hqM this)
+  · intro hx
+    simp at hx
+
+/-- Cardinal form of the false ray--ray chamber. -/
+theorem ray_ray_ncard_eq_zero_of_false_strict_code
+    {L M : Lollipop}
+    (h : RayRayCodeRealized false L M) :
+    (rr L M).ncard = 0 := by
+  rw [ray_ray_empty_of_false_strict_code h]
+  simp
+
+/-- Cramer's rule reconstructs the supporting-line intersection point from
+the displayed parameters. -/
+private theorem left_right_parameter_equation
+    {L M : Lollipop}
+    (hdet : directionDet L M ≠ 0) :
+    leftLineParameter L M • L.unitRadial -
+        rightLineParameter L M • M.unitRadial =
+      displacement L M := by
+  have hD :
+      L.unitRadial 0 * M.unitRadial 1 -
+          L.unitRadial 1 * M.unitRadial 0 ≠ 0 := by
+    simpa [directionDet, detPoint] using hdet
+  have hD' :
+      M.unitRadial 1 * L.unitRadial 0 -
+          M.unitRadial 0 * L.unitRadial 1 ≠ 0 := by
+    convert hD using 1 <;> ring
+  ext i <;> fin_cases i
+  · simp [leftLineParameter, rightLineParameter, directionDet, detPoint]
+    field_simp [hD']
+    ring_nf
+  · simp [leftLineParameter, rightLineParameter, directionDet, detPoint]
+    field_simp [hD']
+    ring_nf
+
+/-- Nonparallel supporting lines whose Cramer parameters are both accepted by
+the rays have exactly one stem--stem intersection. -/
+theorem ray_ray_ncard_eq_one_of_nonparallel_parameters
+    {L M : Lollipop}
+    (hdet : directionDet L M ≠ 0)
+    (hleft : L.radius < leftLineParameter L M)
+    (hright : M.radius < rightLineParameter L M) :
+    (rr L M).ncard = 1 := by
+  let x : Point := L.center + leftLineParameter L M • L.unitRadial
+  have hparam := left_right_parameter_equation (L := L) (M := M) hdet
+  have hxM_eq :
+      x = M.center + rightLineParameter L M • M.unitRadial := by
+    ext i
+    have hi := congrArg (fun y : Point => y i) hparam
+    simp [x, displacement] at hi ⊢
+    linarith
+  have hx : x ∈ rr L M := by
+    refine ⟨?_, ?_⟩
+    · have hxL : x ∈ L.stemByDistance :=
+        ⟨leftLineParameter L M, le_of_lt hleft, rfl⟩
+      simpa using hxL
+    · have hxM : x ∈ M.stemByDistance :=
+        ⟨rightLineParameter L M, le_of_lt hright, hxM_eq⟩
+      simpa using hxM
+  have hsingleton : rr L M = {x} := by
+    ext y
+    constructor
+    · intro hy
+      rcases line_parameters_of_mem_rr hdet hy with
+        ⟨qL, _qM, _hqL, _hqM, hyL, _hyM, hqL, _hqM⟩
+      have hyx : y = x := by
+        calc
+          y = L.center + qL • L.unitRadial := hyL
+          _ = L.center + leftLineParameter L M • L.unitRadial := by rw [hqL]
+          _ = x := rfl
+      simpa [hyx]
+    · intro hy
+      have hyx : y = x := by simpa using hy
+      simpa [hyx] using hx
+  rw [hsingleton]
+  simp
+
+/-- Nonparallel supporting lines with both parameters beyond the anchors have
+exactly one ray--ray point. -/
+theorem ray_ray_ncard_eq_one
+    {L M : Lollipop}
+    (h : RayRayCodeRealized true L M) :
+    (rr L M).ncard = 1 := by
+  simp only [RayRayCodeRealized, if_true] at h
+  exact ray_ray_ncard_eq_one_of_nonparallel_parameters
+    h.1 h.2.1 h.2.2
+
+/-- Cardinality of four finite pairwise-disjoint sets.  The finiteness
+hypothesis is essential for `Set.ncard`, which is zero on infinite sets. -/
+private theorem ncard_union_four_of_pairwiseDisjoint
+    {α : Type*} {s : Fin 4 → Set α}
+    (hdisj : (Set.univ : Set (Fin 4)).PairwiseDisjoint s)
+    (hfin : ∀ i, (s i).Finite) :
+    (s 0 ∪ s 1 ∪ s 2 ∪ s 3).ncard =
+      (s 0).ncard + (s 1).ncard + (s 2).ncard + (s 3).ncard := by
+  have h01 : Disjoint (s 0) (s 1) :=
+    hdisj (by simp) (by simp) (by decide)
+  have h02 : Disjoint (s 0) (s 2) :=
+    hdisj (by simp) (by simp) (by decide)
+  have h03 : Disjoint (s 0) (s 3) :=
+    hdisj (by simp) (by simp) (by decide)
+  have h12 : Disjoint (s 1) (s 2) :=
+    hdisj (by simp) (by simp) (by decide)
+  have h13 : Disjoint (s 1) (s 3) :=
+    hdisj (by simp) (by simp) (by decide)
+  have h23 : Disjoint (s 2) (s 3) :=
+    hdisj (by simp) (by simp) (by decide)
+  have h01_2 : Disjoint (s 0 ∪ s 1) (s 2) := by
+    rw [disjoint_left]
+    intro x hx hx2
+    rcases hx with hx0 | hx1
+    · exact (disjoint_left.mp h02) hx0 hx2
+    · exact (disjoint_left.mp h12) hx1 hx2
+  have h012_3 : Disjoint (s 0 ∪ s 1 ∪ s 2) (s 3) := by
+    rw [disjoint_left]
+    intro x hx hx3
+    rcases hx with hx01 | hx2
+    · rcases hx01 with hx0 | hx1
+      · exact (disjoint_left.mp h03) hx0 hx3
+      · exact (disjoint_left.mp h13) hx1 hx3
+    · exact (disjoint_left.mp h23) hx2 hx3
+  rw [Set.ncard_union_eq h012_3 (((hfin 0).union (hfin 1)).union (hfin 2)) (hfin 3)]
+  rw [Set.ncard_union_eq h01_2 ((hfin 0).union (hfin 1)) (hfin 2)]
+  rw [Set.ncard_union_eq h01 (hfin 0) (hfin 1)]
 
 /-- Under strict pair diagnostics, the four primitive crossing sets are
 pairwise disjoint.  Anchor coincidences and triple primitive coincidences would
@@ -601,14 +882,35 @@ theorem pairCrossingCount_eq_code
       mixed_ncard_eq code.rightRayLeftCircle hcr
   have hrrCard : (rr L M).ncard = (if code.rayRay then 1 else 0) := by
     cases hcode : code.rayRay
-    · simpa only [hcode, if_false] using
+    · simpa [hcode] using
         ray_ray_ncard_eq_zero_of_false_strict_code (by simpa [hcode] using hrr)
-    · simpa only [hcode, if_true] using
+    · simpa [hcode] using
         ray_ray_ncard_eq_one (by simpa [hcode] using hrr)
   have hdisj := primitive_pieces_pairwise_disjoint
     (show RealizesStrictPairCode code L M from ⟨hout, hin, hrc, hcr, hrr⟩)
+  have hccFin : (cc L M).Finite := by
+    exact Set.finite_of_ncard_ne_zero (by rw [hccCard]; norm_num)
+  have hrrFin : (rr L M).Finite := by
+    cases hcode : code.rayRay
+    · have hempty := ray_ray_empty_of_false_strict_code
+        (by simpa [hcode] using hrr)
+      rw [hempty]
+      exact finite_empty
+    · exact Set.finite_of_ncard_ne_zero (by rw [hrrCard]; simp [hcode])
+  have hpieceFin : ∀ k : Fin 4,
+      (match k with
+      | 0 => cc L M
+      | 1 => rc L M
+      | 2 => cr L M
+      | 3 => rr L M).Finite := by
+    intro k
+    fin_cases k
+    · exact hccFin
+    · exact finite_ray_circle_intersection L M
+    · exact finite_circle_ray_intersection L M
+    · exact hrrFin
   rw [pairCrossingCount, pairCrossingSet_decompose,
-    Set.ncard_union_four_of_pairwiseDisjoint hdisj,
+    ncard_union_four_of_pairwiseDisjoint hdisj hpieceFin,
     hccCard, hrcCard, hcrCard, hrrCard]
   rfl
 
@@ -625,10 +927,12 @@ theorem pair_transverse
     simpa [StemCircleTransverseAt] using
       mixed_transverse code.rightRayLeftCircle hcr x hx'
   · exact mixed_transverse code.leftRayRightCircle hrc
-  · intro _
+  · intro hnon
     cases hcode : code.rayRay
-    · exact False.elim (ray_ray_empty_of_false_strict_code
-        (by simpa [hcode] using hrr) ‹(rr L M).Nonempty›)
+    · have hempty := ray_ray_empty_of_false_strict_code
+        (by simpa [hcode] using hrr)
+      rcases hnon with ⟨x, hx⟩
+      exact False.elim (by simpa [hempty] using hx)
     · exact ray_ray_transverse (by simpa [hcode] using hrr)
 
 end PairChamberPort

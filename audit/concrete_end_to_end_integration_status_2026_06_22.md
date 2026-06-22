@@ -96,14 +96,16 @@ lake build Lollipop.Concrete.EndToEnd.Lower.PairChamber
 ```
 
 Result: failed. The module now gets through the concrete chamber topology,
-swap algebra, strict-code openness, and neighborhood-stability plumbing. The
-remaining failures are the next genuine lower-construction gap: strict
-primitive-intersection classification lemmas such as the circle-circle
-two-point theorem, ray-circle strict-code cardinality theorems, ray-ray
-strict-code cardinality theorems, primitive-piece disjointness, the finite
-four-way union cardinality formula, and the empty false ray-ray chamber
-transversality helper are still referenced but not yet proved in the concrete
-development.
+swap algebra, strict-code openness, neighborhood-stability plumbing, the
+finite four-way union cardinality formula for primitive pieces, both empty
+mixed ray-circle strict-code cases, and both true/false ray-ray strict-code
+cardinality cases.
+
+The remaining failures are the next genuine lower-construction gap:
+circle-circle strict classification/transversality, positive-discriminant
+mixed ray-circle root counting/transversality, and primitive-piece
+disjointness under strict diagnostics are still referenced but not yet proved
+in the concrete development.
 
 ## Current Interpretation
 
