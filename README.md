@@ -10,6 +10,8 @@ the audit record for the lollipop formula project.
 - Lean public endpoint: `Lollipop/Final/TheoremOne.lean`
 - Audit verdict: `audit/AUDIT_AND_VERDICT.md`
 - Lean status note: `audit/FORMALIZATION_STATUS.md`
+- Concrete final-target note:
+  `audit/UNCONDITIONAL_FORMALIZATION_VERDICT.md`
 
 ## Manuscript
 
@@ -47,6 +49,12 @@ This repository is not claiming a certificate-free formalization of actual
 Euclidean complement connected components.  The precise boundary is recorded
 in `audit/FORMALIZATION_STATUS.md`.
 
+The intended complete endpoint is not `theorem_one` with better abstract
+certificates.  It is a concrete Euclidean theorem, with lollipops,
+complements, connected-component region counts, and the maximum statement
+defined directly in Lean.  The current target note is
+`audit/UNCONDITIONAL_FORMALIZATION_VERDICT.md`.
+
 Build the Lean project with:
 
 ```sh
@@ -66,11 +74,21 @@ repository:
 - Main proof checked by the build: yes.  `Lollipop.lean` imports
   `Lollipop.Final`, which imports `Lollipop/Final/TheoremOne.lean`.
 - Standard axioms only: not yet under the strict checklist test.
-  `#print axioms Lollipop.Final.theorem_one` reports the usual
-  `propext`, `Classical.choice`, and `Quot.sound`, plus several
-  `native_decide` computation certificates for closed finite checks.  These
-  should be replaced or independently justified before claiming the strictest
-  Lean-community verification standard.
+  After `lake build Lollipop` on June 22, 2026, the exact output was:
+
+  ```text
+  'Lollipop.Final.theorem_one' depends on axioms: [propext,
+   Classical.choice,
+   Quot.sound,
+   Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1,
+   Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1,
+   Lollipop.supportRelabel_card._native.native_decide.ax_1_1]
+  ```
+
+  The remaining nonstandard entries are closed finite graph classifications
+  proved with `native_decide`.  They should be replaced by explicit
+  kernel-checked finite proofs or independently justified before claiming the
+  strictest Lean-community verification standard.
 - Does it prove the claimed theorem: conditionally.  Lean proves the final
   formula from `GeometryCertificates P`; it does not yet construct those
   certificates for the actual Euclidean lollipop model without remaining
@@ -104,6 +122,7 @@ Euclidean model still has to supply the genuine geometry/topology semantics.
 audit/AUDIT_AND_VERDICT.md
 audit/CHANGELOG.md
 audit/FORMALIZATION_STATUS.md
+audit/UNCONDITIONAL_FORMALIZATION_VERDICT.md
 audit/proof_audit_checklist.md
 audit/theorem_dependency_map.md
 audit/verification/
