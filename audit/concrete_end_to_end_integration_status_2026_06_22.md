@@ -99,13 +99,14 @@ Result: failed. The module now gets through the concrete chamber topology,
 swap algebra, strict-code openness, neighborhood-stability plumbing, the
 finite four-way union cardinality formula for primitive pieces, both empty
 mixed ray-circle strict-code cases, and both true/false ray-ray strict-code
-cardinality cases.
+cardinality cases. It also proves mixed ray-circle transversality for every
+strict mixed code from the concrete quadratic identity.
 
 The remaining failures are the next genuine lower-construction gap:
 circle-circle strict classification/transversality, positive-discriminant
-mixed ray-circle root counting/transversality, and primitive-piece
-disjointness under strict diagnostics are still referenced but not yet proved
-in the concrete development.
+mixed ray-circle root counting, and primitive-piece disjointness under strict
+diagnostics are still referenced but not yet proved in the concrete
+development.
 
 ## Current Interpretation
 

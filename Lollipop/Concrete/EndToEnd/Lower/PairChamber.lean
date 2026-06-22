@@ -641,6 +641,101 @@ theorem mixed_ncard_eq
         (mixed_quadratic_identity L M)
         (anchorPower_eq_mixed_at_anchor L M) h.1 h.2.1 h.2.2
 
+/-- Dot product of the actual radial vector with a unit-speed stem parameter. -/
+private theorem radial_dot_mixed_parameter
+    (L M : Lollipop) (q : ℝ) :
+    dotPoint L.radial
+        (L.center + q • L.unitRadial - M.center) =
+      L.radius * (q - projectedCenterParameter L M) := by
+  have huSq : L.unitRadial 0 ^ 2 + L.unitRadial 1 ^ 2 = 1 :=
+    point_coord_sq_eq_one_of_norm_eq_one L.norm_unitRadial
+  rw [L.radial_eq_radius_smul_unitRadial]
+  simp only [dotPoint, projectedCenterParameter, displacement,
+    Pi.add_apply, Pi.sub_apply, Pi.smul_apply, WithLp.ofLp_add,
+    WithLp.ofLp_sub, WithLp.ofLp_smul]
+  ring_nf
+  linear_combination L.radius * q * huSq
+
+/-- Every strict mixed root is transverse.  In the positive-discriminant
+cases, a root cannot occur at the quadratic vertex.  In the zero cases, the
+strict diagnostics make the primitive empty. -/
+theorem ray_circle_transverse_of_strict_discriminant_and_anchor_code
+    {code : MixedCode} {L M : Lollipop}
+    (hquad :
+      ∀ q : ℝ,
+        normSqPoint (L.center + q • L.unitRadial - M.center) -
+            M.radius ^ 2 =
+          (q - projectedCenterParameter L M) ^ 2 -
+            lineDiscriminant L M)
+    (h : code.Realized L M)
+    (x : Point) (hx : x ∈ rc L M) :
+    StemCircleTransverseAt L M x := by
+  cases code with
+  | zero =>
+      rcases h with hdisc | ⟨hpower, hvertex⟩
+      · have hcard := ray_circle_ncard_eq_zero_of_negative_discriminant
+          hquad hdisc
+        have hpos : 0 < (rc L M).ncard :=
+          (Set.ncard_pos (finite_ray_circle_intersection L M)).2 ⟨x, hx⟩
+        rw [hcard] at hpos
+        norm_num at hpos
+      · have hcard := ray_circle_ncard_eq_zero_of_anchor_positive_vertex_behind
+          hquad (anchorPower_eq_mixed_at_anchor L M) hpower hvertex
+        have hpos : 0 < (rc L M).ncard :=
+          (Set.ncard_pos (finite_ray_circle_intersection L M)).2 ⟨x, hx⟩
+        rw [hcard] at hpos
+        norm_num at hpos
+  | one =>
+      rcases hx with ⟨hxStem, hxCircle⟩
+      have hxStem' : x ∈ L.stemByDistance := by
+        simpa using hxStem
+      rcases hxStem' with ⟨q, _hq, hxq⟩
+      have hzero :
+          normSqPoint (L.center + q • L.unitRadial - M.center) -
+              M.radius ^ 2 = 0 := by
+        rw [← hxq]
+        rw [normSqPoint_eq_norm_sq]
+        have hcircle : ‖x - M.center‖ = M.radius := by
+          simpa [Lollipop.circle] using hxCircle
+        rw [hcircle]
+        ring
+      have hquadq := hquad q
+      have hqp_ne : q - projectedCenterParameter L M ≠ 0 := by
+        intro hqp
+        nlinarith [h.1]
+      have hdot :
+          dotPoint L.radial (x - M.center) =
+            L.radius * (q - projectedCenterParameter L M) := by
+        rw [hxq]
+        exact radial_dot_mixed_parameter L M q
+      rw [StemCircleTransverseAt, hdot]
+      exact mul_ne_zero L.radius_ne_zero hqp_ne
+  | two =>
+      rcases hx with ⟨hxStem, hxCircle⟩
+      have hxStem' : x ∈ L.stemByDistance := by
+        simpa using hxStem
+      rcases hxStem' with ⟨q, _hq, hxq⟩
+      have hzero :
+          normSqPoint (L.center + q • L.unitRadial - M.center) -
+              M.radius ^ 2 = 0 := by
+        rw [← hxq]
+        rw [normSqPoint_eq_norm_sq]
+        have hcircle : ‖x - M.center‖ = M.radius := by
+          simpa [Lollipop.circle] using hxCircle
+        rw [hcircle]
+        ring
+      have hquadq := hquad q
+      have hqp_ne : q - projectedCenterParameter L M ≠ 0 := by
+        intro hqp
+        nlinarith [h.1]
+      have hdot :
+          dotPoint L.radial (x - M.center) =
+            L.radius * (q - projectedCenterParameter L M) := by
+        rw [hxq]
+        exact radial_dot_mixed_parameter L M q
+      rw [StemCircleTransverseAt, hdot]
+      exact mul_ne_zero L.radius_ne_zero hqp_ne
+
 /-- Every strict mixed root is transverse. -/
 theorem mixed_transverse
     (code : MixedCode) {L M : Lollipop}
