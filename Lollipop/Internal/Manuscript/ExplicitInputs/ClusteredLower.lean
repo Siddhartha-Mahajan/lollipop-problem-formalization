@@ -70,19 +70,6 @@ theorem karlssonClusterPairCrossing_symm (a b : Fin 4) :
       exact hab h.symm
     simp [hab, hba, and_comm, or_comm]
 
-/-- The Nat-valued Karlsson cluster table is symmetric. -/
-theorem karlssonClusterPairCrossingNat_symm (a b : Fin 4) :
-    karlssonClusterPairCrossingNat a b =
-      karlssonClusterPairCrossingNat b a := by
-  unfold karlssonClusterPairCrossingNat
-  by_cases hab : a = b
-  · subst b
-    simp
-  · have hba : b ≠ a := by
-      intro h
-      exact hab h.symm
-    simp [hab, hba, and_comm, or_comm]
-
 /-- Individual-pair Karlsson table sum for a chosen cluster map on the `n`
 lollipops. -/
 def clusteredKarlssonPairTableCrossings

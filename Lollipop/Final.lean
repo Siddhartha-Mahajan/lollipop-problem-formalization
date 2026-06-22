@@ -1,3 +1,4 @@
+import Lollipop.Internal.Manuscript.PrimitiveGeometry.PolynomialBlowUp
 import Lollipop.Final.Geometry
 import Lollipop.Final.GeometryObstruction
 import Lollipop.Final.TheoremOne

@@ -22,102 +22,6 @@ universe u
 
 noncomputable section
 
-/-! ## Orientation helpers for lifted component overlap witnesses -/
-
-/-- Lifted circle-circle component membership is symmetric in the two
-lollipops. -/
-theorem mem_euclideanCircleCircleSet_swap
-    {L M : EuclideanLollipop} {p : EuclideanR2}
-    (hp : p ∈ euclideanCircleCircleSet L M) :
-    p ∈ euclideanCircleCircleSet M L := by
-  rcases hp with ⟨hpL, hpM⟩
-  exact ⟨hpM, hpL⟩
-
-/-- A lifted ray-circle membership becomes circle-ray membership after
-swapping the two lollipops. -/
-theorem mem_euclideanCircleRaySet_swap_of_mem_rayCircle
-    {L M : EuclideanLollipop} {p : EuclideanR2}
-    (hp : p ∈ euclideanRayCircleSet L M) :
-    p ∈ euclideanCircleRaySet M L := by
-  rcases hp with ⟨hpL, hpM⟩
-  exact ⟨hpM, hpL⟩
-
-/-- A lifted circle-ray membership becomes ray-circle membership after
-swapping the two lollipops. -/
-theorem mem_euclideanRayCircleSet_swap_of_mem_circleRay
-    {L M : EuclideanLollipop} {p : EuclideanR2}
-    (hp : p ∈ euclideanCircleRaySet L M) :
-    p ∈ euclideanRayCircleSet M L := by
-  rcases hp with ⟨hpL, hpM⟩
-  exact ⟨hpM, hpL⟩
-
-/-- Lifted ray-ray component membership is symmetric in the two lollipops. -/
-theorem mem_euclideanRayRaySet_swap
-    {L M : EuclideanLollipop} {p : EuclideanR2}
-    (hp : p ∈ euclideanRayRaySet L M) :
-    p ∈ euclideanRayRaySet M L := by
-  rcases hp with ⟨hpL, hpM⟩
-  exact ⟨hpM, hpL⟩
-
-/-- Lifted triple-overlap witnesses are symmetric in the two lollipops. -/
-def pairComponentTripleOverlap_symm
-    {L M : EuclideanLollipop} {q : EuclideanR2}
-    (H : PairComponentTripleOverlap L M q) :
-    PairComponentTripleOverlap M L q := by
-  cases H with
-  | withoutCircleCircle hqcr hqrc hqrr =>
-      exact
-        PairComponentTripleOverlap.withoutCircleCircle
-          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hqrc)
-          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hqcr)
-          (mem_euclideanRayRaySet_swap hqrr)
-  | withoutCircleRay hqcc hqrc hqrr =>
-      exact
-        PairComponentTripleOverlap.withoutRayCircle
-          (mem_euclideanCircleCircleSet_swap hqcc)
-          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hqrc)
-          (mem_euclideanRayRaySet_swap hqrr)
-  | withoutRayCircle hqcc hqcr hqrr =>
-      exact
-        PairComponentTripleOverlap.withoutCircleRay
-          (mem_euclideanCircleCircleSet_swap hqcc)
-          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hqcr)
-          (mem_euclideanRayRaySet_swap hqrr)
-  | withoutRayRay hqcc hqcr hqrc =>
-      exact
-        PairComponentTripleOverlap.withoutRayRay
-          (mem_euclideanCircleCircleSet_swap hqcc)
-          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hqrc)
-          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hqcr)
-
-/-- Lifted two-double-overlap witnesses are symmetric in the two lollipops. -/
-def pairComponentTwoDoubleOverlap_symm
-    {L M : EuclideanLollipop} {q r : EuclideanR2}
-    (H : PairComponentTwoDoubleOverlap L M q r) :
-    PairComponentTwoDoubleOverlap M L q r := by
-  cases H with
-  | circleCircle_circleRay__rayCircle_rayRay hqcc hqcr hrrc hrrr =>
-      exact
-        PairComponentTwoDoubleOverlap.circleCircle_rayCircle__circleRay_rayRay
-          (mem_euclideanCircleCircleSet_swap hqcc)
-          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hqcr)
-          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hrrc)
-          (mem_euclideanRayRaySet_swap hrrr)
-  | circleCircle_rayCircle__circleRay_rayRay hqcc hqrc hrcr hrrr =>
-      exact
-        PairComponentTwoDoubleOverlap.circleCircle_circleRay__rayCircle_rayRay
-          (mem_euclideanCircleCircleSet_swap hqcc)
-          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hqrc)
-          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hrcr)
-          (mem_euclideanRayRaySet_swap hrrr)
-  | circleCircle_rayRay__circleRay_rayCircle hqcc hqrr hrcr hrrc =>
-      exact
-        PairComponentTwoDoubleOverlap.circleCircle_rayRay__circleRay_rayCircle
-          (mem_euclideanCircleCircleSet_swap hqcc)
-          (mem_euclideanRayRaySet_swap hqrr)
-          (mem_euclideanCircleRaySet_swap_of_mem_rayCircle hrrc)
-          (mem_euclideanRayCircleSet_swap_of_mem_circleRay hrcr)
-
 /-- A concrete overlap witness sufficient for direct `<= 5` whole-carrier
 savings: either one point lies in any three carrier components, or two
 witnesses together improve all four component estimates. -/
@@ -129,29 +33,6 @@ inductive PairComponentFiveOverlap
       (H : PairComponentTwoDoubleOverlap L M q r)
 
 namespace PairComponentFiveOverlap
-
-/-- Lifted five-overlap witnesses are symmetric in the two lollipops. -/
-def symm
-    {L M : EuclideanLollipop}
-    (H : PairComponentFiveOverlap L M) :
-    PairComponentFiveOverlap M L := by
-  cases H with
-  | triple H =>
-      exact PairComponentFiveOverlap.triple (pairComponentTripleOverlap_symm H)
-  | twoDouble H =>
-      exact PairComponentFiveOverlap.twoDouble
-        (pairComponentTwoDoubleOverlap_symm H)
-
-/-- Canonicalize lifted five-overlap data supplied in either lollipop order. -/
-def ofEither
-    {L M : EuclideanLollipop}
-    (H :
-      PairComponentFiveOverlap L M ⊕
-        PairComponentFiveOverlap M L) :
-    PairComponentFiveOverlap L M := by
-  cases H with
-  | inl H => exact H
-  | inr H => exact H.symm
 
 /-- A five-overlap witness gives direct whole-carrier `<= 5` savings. -/
 def toPairCarrierSavings
@@ -210,29 +91,6 @@ structure PairComponentAllFourOverlap
   rayRay : point ∈ euclideanRayRaySet L M
 
 namespace PairComponentAllFourOverlap
-
-/-- Lifted all-four-overlap witnesses are symmetric in the two lollipops. -/
-def symm
-    {L M : EuclideanLollipop}
-    (H : PairComponentAllFourOverlap L M) :
-    PairComponentAllFourOverlap M L where
-  point := H.point
-  circleCircle := mem_euclideanCircleCircleSet_swap H.circleCircle
-  circleRay := mem_euclideanCircleRaySet_swap_of_mem_rayCircle H.rayCircle
-  rayCircle := mem_euclideanRayCircleSet_swap_of_mem_circleRay H.circleRay
-  rayRay := mem_euclideanRayRaySet_swap H.rayRay
-
-/-- Canonicalize lifted all-four-overlap data supplied in either lollipop
-order. -/
-def ofEither
-    {L M : EuclideanLollipop}
-    (H :
-      PairComponentAllFourOverlap L M ⊕
-        PairComponentAllFourOverlap M L) :
-    PairComponentAllFourOverlap L M := by
-  cases H with
-  | inl H => exact H
-  | inr H => exact H.symm
 
 /-- A primitive coordinate point lying on both circles and both rays gives the
 all-four lifted component-overlap witness. -/
@@ -1374,22 +1232,6 @@ noncomputable def toOverlapSavingsStepwiseCertificate
   region_increment := h.region_increment
   radial_outward := h.radial_outward
 
-/-- Primitive coordinate overlap certificates convert to the direct-savings
-automatic upper certificate used by the final proof stack. -/
-noncomputable def toDirectSavingsStepwiseCertificate
-    {P : TheoremOne.ProblemFamily.{u}}
-    (h : PrimitiveOverlapSavingsStepwiseCertificate P) :
-    CompleteFormalization.AutomaticUpper.DirectSavingsStepwiseCertificate P :=
-  h.toOverlapSavingsStepwiseCertificate.toDirectSavingsStepwiseCertificate
-
-/-- Primitive coordinate overlap certificates assemble all the way to the
-theorem-facing primitive-carrier upper-geometry datum. -/
-noncomputable def toDirectSavingsUpperGeometryData
-    {P : TheoremOne.ProblemFamily.{u}}
-    (h : PrimitiveOverlapSavingsStepwiseCertificate P) :
-    PrimitiveCarrierDirectSavingsUpperGeometryData P :=
-  h.toDirectSavingsStepwiseCertificate.toDirectSavingsUpperGeometryData
-
 end PrimitiveOverlapSavingsStepwiseCertificate
 
 /-- Primitive upper certificate whose close-and-intriguing branch may be any
@@ -1473,137 +1315,7 @@ noncomputable def toOverlapSavingsStepwiseCertificate
     OverlapSavingsStepwiseCertificate P :=
   h.toPrimitiveOverlapSavingsStepwiseCertificate.toOverlapSavingsStepwiseCertificate
 
-/-- Flexible primitive overlap certificates convert to the direct-savings
-automatic upper certificate used by the final proof stack. -/
-noncomputable def toDirectSavingsStepwiseCertificate
-    {P : TheoremOne.ProblemFamily.{u}}
-    (h : PrimitiveFlexibleOverlapSavingsStepwiseCertificate P) :
-    CompleteFormalization.AutomaticUpper.DirectSavingsStepwiseCertificate P :=
-  h.toOverlapSavingsStepwiseCertificate.toDirectSavingsStepwiseCertificate
-
-/-- Flexible primitive overlap certificates assemble all the way to the
-theorem-facing primitive-carrier upper-geometry datum. -/
-noncomputable def toDirectSavingsUpperGeometryData
-    {P : TheoremOne.ProblemFamily.{u}}
-    (h : PrimitiveFlexibleOverlapSavingsStepwiseCertificate P) :
-    PrimitiveCarrierDirectSavingsUpperGeometryData P :=
-  h.toDirectSavingsStepwiseCertificate.toDirectSavingsUpperGeometryData
-
 end PrimitiveFlexibleOverlapSavingsStepwiseCertificate
-
-/-- Primitive flexible upper certificate whose overlap witnesses may be
-supplied in either lollipop order.
-
-This is a certificate-writing convenience for coordinate geometry: many local
-intersection calculations naturally produce a witness for `(j,i)` even though
-the theorem pipeline indexes ordered pairs as `i < j`.  Lean orients those
-witnesses using the primitive `ofEither` adapters above. -/
-structure PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate
-    (P : TheoremOne.ProblemFamily.{u}) : Type u where
-  arrangement :
-    ∀ n : Nat, P.Arrangement n →
-      EuclideanLollipopArrangement n
-  spheres_distinct :
-    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i j : Fin n, i < j →
-      euclideanSphere ((arrangement n A).lollipop i).center
-          ((arrangement n A).lollipop i).radius ≠
-        euclideanSphere ((arrangement n A).lollipop j).center
-          ((arrangement n A).lollipop j).radius
-  rayLines_distinct :
-    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i j : Fin n, i < j →
-      euclideanRayLine ((arrangement n A).lollipop i) ≠
-        euclideanRayLine ((arrangement n A).lollipop j)
-  close_overlap :
-    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i j : Fin n, i < j →
-      TheoremOneEndToEnd.CloseDirection.cyclicClose
-        (fun k => (arrangement n A).normalizedDirection k) i j →
-        PrimitivePairFiveOverlap ((arrangement n A).lollipop i)
-            ((arrangement n A).lollipop j) ⊕
-          PrimitivePairFiveOverlap ((arrangement n A).lollipop j)
-            ((arrangement n A).lollipop i)
-  intriguing_overlap :
-    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i j : Fin n, i < j →
-      TheoremOneEndToEnd.PaulsenLinearAlgebra.circleIntriguing
-        (fun k => (arrangement n A).center k)
-        (fun k => (arrangement n A).radius k) i j →
-        PrimitivePairFiveOverlap ((arrangement n A).lollipop i)
-            ((arrangement n A).lollipop j) ⊕
-          PrimitivePairFiveOverlap ((arrangement n A).lollipop j)
-            ((arrangement n A).lollipop i)
-  close_intriguing_overlap :
-    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i j : Fin n, i < j →
-      TheoremOneEndToEnd.CloseDirection.cyclicClose
-        (fun k => (arrangement n A).normalizedDirection k) i j →
-      TheoremOneEndToEnd.PaulsenLinearAlgebra.circleIntriguing
-        (fun k => (arrangement n A).center k)
-        (fun k => (arrangement n A).radius k) i j →
-        PrimitivePairFourOverlap ((arrangement n A).lollipop i)
-            ((arrangement n A).lollipop j) ⊕
-          PrimitivePairFourOverlap ((arrangement n A).lollipop j)
-            ((arrangement n A).lollipop i)
-  region_increment :
-    ∀ n : Nat, ∀ A : P.Arrangement n,
-      StepwiseOrderedIncrementalPairRegionData n (P.region n A)
-        (CompleteFormalization.FiniteCarrier.automaticCarrierCrossingTable
-          (arrangement n A)
-          (spheres_distinct n A)
-          (rayLines_distinct n A))
-  radial_outward :
-    ∀ n : Nat, ∀ A : P.Arrangement n, ∀ i : Fin n,
-      ((arrangement n A).lollipop i).IsRadialOutward
-
-namespace PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate
-
-/-- Orient either-order primitive overlap witnesses and recover the existing
-primitive flexible upper certificate. -/
-noncomputable def toPrimitiveFlexibleOverlapSavingsStepwiseCertificate
-    {P : TheoremOne.ProblemFamily.{u}}
-    (h : PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate P) :
-    PrimitiveFlexibleOverlapSavingsStepwiseCertificate P where
-  arrangement := h.arrangement
-  spheres_distinct := h.spheres_distinct
-  rayLines_distinct := h.rayLines_distinct
-  close_overlap := by
-    intro n A i j hij hclose
-    exact PrimitivePairFiveOverlap.ofEither
-      (h.close_overlap n A i j hij hclose)
-  intriguing_overlap := by
-    intro n A i j hij hintriguing
-    exact PrimitivePairFiveOverlap.ofEither
-      (h.intriguing_overlap n A i j hij hintriguing)
-  close_intriguing_overlap := by
-    intro n A i j hij hclose hintriguing
-    exact PrimitivePairFourOverlap.ofEither
-      (h.close_intriguing_overlap n A i j hij hclose hintriguing)
-  region_increment := h.region_increment
-  radial_outward := h.radial_outward
-
-/-- Direct conversion from either-order primitive overlap witnesses to the
-lifted overlap-witness upper certificate. -/
-noncomputable def toOverlapSavingsStepwiseCertificate
-    {P : TheoremOne.ProblemFamily.{u}}
-    (h : PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate P) :
-    OverlapSavingsStepwiseCertificate P :=
-  h.toPrimitiveFlexibleOverlapSavingsStepwiseCertificate
-    |>.toOverlapSavingsStepwiseCertificate
-
-/-- Either-order primitive overlap certificates convert to the direct-savings
-automatic upper certificate used by the final proof stack. -/
-noncomputable def toDirectSavingsStepwiseCertificate
-    {P : TheoremOne.ProblemFamily.{u}}
-    (h : PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate P) :
-    CompleteFormalization.AutomaticUpper.DirectSavingsStepwiseCertificate P :=
-  h.toOverlapSavingsStepwiseCertificate.toDirectSavingsStepwiseCertificate
-
-/-- Either-order primitive overlap certificates assemble all the way to the
-theorem-facing primitive-carrier upper-geometry datum. -/
-noncomputable def toDirectSavingsUpperGeometryData
-    {P : TheoremOne.ProblemFamily.{u}}
-    (h : PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate P) :
-    PrimitiveCarrierDirectSavingsUpperGeometryData P :=
-  h.toDirectSavingsStepwiseCertificate.toDirectSavingsUpperGeometryData
-
-end PrimitiveEitherFlexibleOverlapSavingsStepwiseCertificate
 
 end
 

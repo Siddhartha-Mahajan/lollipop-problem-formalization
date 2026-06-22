@@ -3,7 +3,6 @@ import Lollipop.Internal.Manuscript.Construction.IndexedCarrier
 import Lollipop.Internal.Manuscript.Construction.IndexedLowerWitness
 import Lollipop.Internal.Manuscript.Construction.LowerAnchorWitness
 import Lollipop.Internal.Manuscript.EndToEndFormalization.AutomaticLower
-import Lollipop.Internal.Manuscript.ExplicitInputs.ClusteredLower
 
 /-!
 Automatic-carrier cardinality lower bounds from explicit points.
@@ -33,18 +32,6 @@ def canonicalKarlssonLowerSize
       q hq).cluster i)
     ((ExplicitInputs.cardinalityClusteredKarlssonTableWitnessOfSortedQuad
       q hq).cluster j)
-
-/-- The canonical Nat-valued Karlsson lower size is symmetric in the two
-copy indices. -/
-theorem canonicalKarlssonLowerSize_symm
-    {n : Nat} (q : QuadVec n) (hq : q ∈ sortedQuadVecs n)
-    (i j : Fin n) :
-    canonicalKarlssonLowerSize q hq i j =
-      canonicalKarlssonLowerSize q hq j i := by
-  unfold canonicalKarlssonLowerSize
-  exact
-    Lollipop.TheoremOneManuscript.ExplicitInputs.karlssonClusterPairCrossingNat_symm
-      _ _
 
 /-- The canonical rational lower table used by the theorem-facing exact-carrier
 boundary.  Increasing entries are the canonical Karlsson `4/5/7` sizes and
