@@ -300,7 +300,7 @@ force one of the strict inequalities to become an equality. -/
 theorem primitive_pieces_pairwise_disjoint
     {code : StrictPairCode} {L M : Lollipop}
     (h : RealizesStrictPairCode code L M) :
-    Set.PairwiseDisjoint (fun k : Fin 4 =>
+    (Set.univ : Set (Fin 4)).PairwiseDisjoint (fun k : Fin 4 =>
       match k with
       | 0 => cc L M
       | 1 => rc L M

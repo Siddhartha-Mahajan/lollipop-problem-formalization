@@ -1,7 +1,10 @@
 import Lollipop.Concrete.EndToEnd.Compactification
 import Mathlib.Analysis.Convex.Segment
+import Mathlib.Data.Finite.Card
 import Mathlib.Data.Finset.Card
+import Mathlib.Logic.Equiv.Set
 import Mathlib.Tactic
+import Mathlib.Topology.Connected.TotallyDisconnected
 
 /-!
 # Shared geometric and finite-component support
@@ -19,6 +22,7 @@ namespace Concrete
 namespace EndToEnd
 
 open Set BigOperators
+open scoped Topology
 
 /-- Determinant and dot product in displayed coordinates. -/
 def detPoint (u v : Point) : ℝ := u 0 * v 1 - u 1 * v 0
@@ -46,11 +50,41 @@ def pairCrossingSet (L M : Lollipop) : Set Point := L.carrier ∩ M.carrier
 def pairCrossingCount (L M : Lollipop) : ℕ :=
   (pairCrossingSet L M).ncard
 
+/-- A point that is topologically isolated inside a set. -/
+def IsolatedPoint {X : Type*} [TopologicalSpace X] (S : Set X) (x : X) : Prop :=
+  x ∈ S ∧ ∃ U ∈ 𝓝 x, U ∩ S ⊆ {x}
+
+theorem totallyDisconnectedSpace_of_discrete
+    {X : Type*} [TopologicalSpace X] [DiscreteTopology X] :
+    TotallyDisconnectedSpace X := by
+  rw [totallyDisconnectedSpace_iff_connectedComponent_singleton]
+  intro x
+  apply subset_antisymm
+  · intro y hy
+    exact (isClopen_discrete ({x} : Set X)).connectedComponent_subset (by simp) hy
+  · intro y hy
+    simpa using hy
+
+noncomputable def connectedComponentsEquivSelfOfTotallyDisconnected
+    (X : Type*) [TopologicalSpace X] [TotallyDisconnectedSpace X] :
+    ConnectedComponents X ≃ X where
+  toFun q := Quotient.out q
+  invFun x := ConnectedComponents.mk x
+  left_inv q := Quotient.out_eq q
+  right_inv x := by
+    have hq : ConnectedComponents.mk (Quotient.out (ConnectedComponents.mk x)) =
+        ConnectedComponents.mk x :=
+      Quotient.out_eq (ConnectedComponents.mk x)
+    rw [ConnectedComponents.coe_eq_coe] at hq
+    rw [connectedComponent_eq_singleton, connectedComponent_eq_singleton] at hq
+    simpa using hq
+
 @[simp] theorem pairCrossingSet_decompose (L M : Lollipop) :
     pairCrossingSet L M = cc L M ∪ rc L M ∪ cr L M ∪ rr L M := by
   ext x
-  simp [pairCrossingSet, cc, cr, rc, rr, Lollipop.carrier,
-    and_or_left, and_or_right, or_assoc, or_left_comm, or_comm]
+  simp only [pairCrossingSet, cc, cr, rc, rr, Lollipop.carrier,
+    mem_inter_iff, mem_union]
+  tauto
 
 /-- Transversality predicates in coordinates. -/
 def CircleCircleTransverseAt (L M : Lollipop) (x : Point) : Prop :=
@@ -71,40 +105,92 @@ structure PrimitivePairwiseTransverse (L M : Lollipop) : Prop where
 /-- The stem is convex. -/
 theorem stem_convex (L : Lollipop) : Convex ℝ L.stem := by
   rw [L.stem_eq_image_Ici]
-  exact (convex_Ici.linear_image
-    (LinearMap.id.smulRight L.radial)).vadd L.center
+  have hlin : Convex ℝ ((fun t : ℝ => t • L.radial) '' Ici (1 : ℝ)) :=
+    (convex_Ici (1 : ℝ)).linear_image (LinearMap.id.smulRight L.radial)
+  simpa [Lollipop.stemMap, image_image, Function.comp_def] using
+    hlin.translate L.center
 
 /-- Every compactified carrier is compact. -/
 theorem isCompact_hatCarrier (L : Lollipop) : IsCompact (hatCarrier L) := by
-  simpa [hatCarrier, finiteLift, finitePoint, infinity] using
-    OnePoint.isCompact_coe_image_union_infty_of_isClosed L.isClosed_carrier
+  have hclosed : IsClosed (hatCarrier L) := by
+    rw [OnePoint.isClosed_iff_of_mem (infinity_mem_hatCarrier L)]
+    convert L.isClosed_carrier using 1
+    ext x
+    simp [hatCarrier, finiteLift, finitePoint, infinity]
+  exact hclosed.isCompact
 
 /-- Every finite compactified arrangement union is compact. -/
 theorem isCompact_hatOccupied {n : ℕ} (A : Arrangement n) :
     IsCompact (hatOccupied A) := by
   classical
-  exact (isCompact_iUnion_finite fun i : Fin n => isCompact_hatCarrier (A i)).union
+  exact (isCompact_iUnion fun i : Fin n => isCompact_hatCarrier (A i)).union
     isCompact_singleton
+
+noncomputable def finiteLiftUnionInfinityEquivOption (S : Set Point) :
+    ((finiteLift S ∪ ({infinity} : Set Sphere2)) : Set Sphere2) ≃ Option S := by
+  classical
+  let e : S ≃ finiteLift S :=
+    { toFun := fun x => ⟨finitePoint x, ⟨x, x.property, rfl⟩⟩
+      invFun := fun y => by
+        exact ⟨Classical.choose y.property,
+          (Classical.choose_spec y.property).1⟩
+      left_inv := by
+        intro x
+        apply Subtype.ext
+        let hx : finitePoint ↑x ∈ finiteLift S := ⟨↑x, x.property, rfl⟩
+        exact finitePoint_injective (Classical.choose_spec hx).2
+      right_inv := by
+        intro y
+        rcases y with ⟨y, hy⟩
+        dsimp
+        rcases Classical.choose_spec hy with ⟨hx, hxy⟩
+        ext
+        exact hxy }
+  have hdisj : Disjoint (finiteLift S) ({infinity} : Set Sphere2) := by
+    rw [Set.disjoint_iff]
+    intro x hx
+    have hxinf : x = infinity := by simpa using hx.2
+    exact False.elim (infinity_not_mem_finiteLift S (hxinf ▸ hx.1))
+  let singletonToOption : S ⊕ ({infinity} : Set Sphere2) ≃ Option S :=
+    { toFun := fun x =>
+        match x with
+        | Sum.inl s => some s
+        | Sum.inr _ => none
+      invFun := fun x =>
+        match x with
+        | none => Sum.inr ⟨infinity, rfl⟩
+        | some s => Sum.inl s
+      left_inv := by
+        intro x
+        cases x with
+        | inl s => rfl
+        | inr y =>
+            apply congrArg Sum.inr
+            ext
+            simpa using y.property.symm
+      right_inv := by
+        intro x
+        cases x <;> rfl }
+  exact (Equiv.Set.union hdisj).trans
+    ((Equiv.sumCongr e.symm (Equiv.refl ({infinity} : Set Sphere2))).trans
+      singletonToOption)
 
 /-- A finite set plus infinity has one component per finite point and one at
 infinity. -/
 theorem componentCount_finiteLift_union_infinity_sub_one
     {S : Set Point} (hS : S.Finite) :
     componentCount (finiteLift S ∪ {infinity}) - 1 = S.ncard := by
-  let e : S ≃ finiteLift S :=
-    { toFun := fun x => ⟨finitePoint x, ⟨x, x.property, rfl⟩⟩
-      invFun := fun y => by
-        rcases y with ⟨_, x, hx, rfl⟩
-        exact ⟨x, hx⟩
-      left_inv := by intro x; rfl
-      right_inv := by rintro ⟨_, x, hx, rfl⟩; rfl }
-  have hdisc : DiscreteTopology S := Finite.to_discreteTopology
-  have hcomponents :
-      ConnectedComponents (finiteLift S ∪ {infinity}) ≃ Option S :=
-    connectedComponents_finite_chart_union_infinity_equiv hS e
+  let U : Set Sphere2 := finiteLift S ∪ {infinity}
+  let eU : U ≃ Option S := finiteLiftUnionInfinityEquivOption S
+  haveI : Finite S := hS.to_subtype
+  haveI : Finite U := Finite.of_equiv (Option S) eU.symm
+  haveI : DiscreteTopology U := inferInstance
+  haveI : TotallyDisconnectedSpace U := totallyDisconnectedSpace_of_discrete
+  have hcomponents : ConnectedComponents U ≃ Option S :=
+    (connectedComponentsEquivSelfOfTotallyDisconnected U).trans eU
   unfold componentCount
-  rw [Nat.card_congr hcomponents, Nat.card_option, Nat.card_coe_set_eq_ncard hS]
-  omega
+  rw [Nat.card_congr hcomponents]
+  simp [Nat.card_coe_set_eq]
 
 
 namespace EuclideanPort
@@ -115,7 +201,7 @@ theorem circle_circle_components_le_two (L M : Lollipop) :
     componentCount (finiteLift (cc L M) ∪ {infinity}) - 1 ≤ 2 := by
   by_cases hsame : L.circle = M.circle
   · have hconn : IsConnected (finiteLift (cc L M)) := by
-      simpa [cc, hsame] using
+      simpa [cc, hsame, finiteLift] using
         L.isConnected_circle.image finitePoint OnePoint.continuous_coe.continuousOn
     exact component_excess_union_infinity_le_one hconn
   · have hfinite : (cc L M).Finite := by
@@ -154,7 +240,7 @@ theorem pairExcess_eq_ncard_of_transverse
     (hfinite : (pairCrossingSet L M).Finite)
     (htrans : PrimitivePairwiseTransverse L M)
     (hnoTriple :
-      Set.PairwiseDisjoint (fun k : Fin 4 =>
+      (Set.univ : Set (Fin 4)).PairwiseDisjoint (fun k : Fin 4 =>
         match k with
         | 0 => cc L M
         | 1 => rc L M
@@ -165,8 +251,11 @@ theorem pairExcess_eq_ncard_of_transverse
       finiteLift (pairCrossingSet L M) ∪ {infinity} := by
     ext x
     cases x using OnePoint.rec with
-    | infty => simp [hatPairIntersection]
-    | coe p => simp [hatPairIntersection, pairCrossingSet]
+    | infty =>
+        simp [hatPairIntersection, hatCarrier, finiteLift, finitePoint, infinity]
+    | coe p =>
+        simp [hatPairIntersection, hatCarrier, pairCrossingSet, finiteLift,
+          finitePoint, infinity]
   rw [pairExcessNat, hhat,
     componentCount_finiteLift_union_infinity_sub_one hfinite]
   rfl
@@ -201,9 +290,11 @@ theorem isConnected_iUnion_of_common
     (hS : ∀ i, IsConnected (S i))
     (p : X) (hp : ∀ i, p ∈ S i) (i0 : ι) :
     IsConnected (⋃ i, S i) := by
+  have hInter : (⋂ i : ι, S i).Nonempty := by
+    refine ⟨p, ?_⟩
+    simpa using hp
   refine ⟨⟨p, Set.mem_iUnion_of_mem i0 (hp i0)⟩, ?_⟩
-  exact isPreconnected_iUnion (fun i => (hS i).isPreconnected)
-    (fun i => ⟨p, hp i0, hp i⟩)
+  exact isPreconnected_iUnion (s := S) hInter (fun i => (hS i).isPreconnected)
 
 end EndToEnd
 end Concrete
