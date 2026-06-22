@@ -39,8 +39,9 @@ structures:
   Euler equation;
 - `PairGeometryPorts`: robust close/intriguing pair-component savings;
 - `GenericityAvoidance`: finite bad-locus avoidance for perturbations;
-- `BlowUpPorts`: uniform inter-cluster chambers, similarity invariance, and
-  generic region equation;
+- `BlowUpPorts`: similarity invariance and the generic region equation; the
+  uniform inter-cluster chamber radius is now proved as
+  `Lower.BlowUp.exists_uniform_intercluster_radius`;
 - `BlowUpRealizationPorts`: realization of all intended blow-up pair chambers;
 - removing the `EndToEndPorts` argument from the final concrete theorem.
 
