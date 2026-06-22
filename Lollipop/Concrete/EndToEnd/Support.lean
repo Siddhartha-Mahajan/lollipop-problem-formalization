@@ -143,6 +143,13 @@ theorem isolatedPoint_of_mem_finite
     exact hy_not ⟨hyS, by simp [hne]⟩
   simp [hyx]
 
+theorem finite_connectedComponents_of_finite_set
+    {X : Type*} [TopologicalSpace X] {S : Set X} (hS : S.Finite) :
+    Finite (ConnectedComponents S) := by
+  haveI : Finite S := hS.to_subtype
+  exact Finite.of_surjective ConnectedComponents.mk
+    ConnectedComponents.surjective_coe
+
 theorem finite_of_forall_mem_eq_left_or_right
     {α : Type*} {s : Set α}
     (h :
@@ -229,6 +236,55 @@ theorem componentCount_union_singleton_sub_one_le_one
   have hopt : Nat.card (Option Unit) = 2 := by
     simp
   omega
+
+theorem finite_connectedComponents_union_singleton_of_connected
+    {X : Type*} [TopologicalSpace X] {S : Set X} {a : X}
+    (hS : IsConnected S) :
+    Finite (ConnectedComponents ((S ∪ {a}) : Set X)) := by
+  let U : Set X := S ∪ {a}
+  let base : U := ⟨hS.nonempty.some, Or.inl hS.nonempty.some_mem⟩
+  let apex : U := ⟨a, Or.inr rfl⟩
+  let f : Option Unit → ConnectedComponents U := fun o =>
+    match o with
+    | none => ConnectedComponents.mk apex
+    | some _ => ConnectedComponents.mk base
+  have hsurj : Function.Surjective f := by
+    intro q
+    obtain ⟨u, rfl⟩ := ConnectedComponents.surjective_coe q
+    rcases u.property with huS | hua
+    · refine ⟨some (), ?_⟩
+      dsimp [f]
+      rw [ConnectedComponents.coe_eq_coe]
+      apply connectedComponent_eq_iff_mem.2
+      let SU : Set U := {z | (z : X) ∈ S}
+      have hSU_conn : IsConnected SU := by
+        let incl : S → U := fun z => ⟨z, Or.inl z.property⟩
+        haveI : ConnectedSpace S := isConnected_iff_connectedSpace.mp hS
+        have hrange : Set.range incl = SU := by
+          ext z
+          constructor
+          · rintro ⟨w, rfl⟩
+            exact w.property
+          · intro hz
+            exact ⟨⟨z, hz⟩, rfl⟩
+        rw [← hrange]
+        exact isConnected_range (by continuity : Continuous incl)
+      have hbase : base ∈ SU := hS.nonempty.some_mem
+      have hu : u ∈ SU := huS
+      exact hSU_conn.subset_connectedComponent hu hbase
+    · refine ⟨none, ?_⟩
+      dsimp [f]
+      congr
+      ext
+      have hu_eq : (u : X) = a := by simpa using hua
+      exact hu_eq.symm
+  exact Finite.of_surjective f hsurj
+
+theorem finite_connectedComponents_finiteLift_union_infinity
+    {S : Set Point} (hS : S.Finite) :
+    Finite (ConnectedComponents ((finiteLift S ∪ {infinity}) : Set Sphere2)) := by
+  exact finite_connectedComponents_of_finite_set
+    ((hS.image finitePoint).union (finite_singleton infinity))
 
 theorem component_excess_union_infinity_le_one
     {S : Set Sphere2} (hS : IsConnected S) :
@@ -647,6 +703,87 @@ theorem isConnected_iUnion_of_common
     simpa using hp
   refine ⟨⟨p, Set.mem_iUnion_of_mem i0 (hp i0)⟩, ?_⟩
   exact isPreconnected_iUnion (s := S) hInter (fun i => (hS i).isPreconnected)
+
+/-- Components of a finite union of sets with a common point are bounded by
+the sum of the non-base components of the pieces. -/
+theorem componentCount_iUnion_sub_one_le_sum_sub_one
+    {ι X : Type*} [Fintype ι] [Nonempty ι] [TopologicalSpace X]
+    {S : ι → Set X} (p : X) (hp : ∀ i, p ∈ S i)
+    [∀ i, Finite (ConnectedComponents (S i))] :
+    componentCount (⋃ i, S i) - 1 ≤
+      ∑ i : ι, (componentCount (S i) - 1) := by
+  classical
+  let U : Set X := ⋃ i, S i
+  let i0 : ι := Classical.choice inferInstance
+  let incl (i : ι) : S i → U :=
+    fun x => ⟨x.1, Set.mem_iUnion_of_mem i x.2⟩
+  have hincl (i : ι) : Continuous (incl i) := by
+    dsimp [incl]
+    continuity
+  let componentMap (i : ι) :
+      ConnectedComponents (S i) → ConnectedComponents U :=
+    (hincl i).connectedComponentsMap
+  let base (i : ι) : ConnectedComponents (S i) :=
+    ConnectedComponents.mk (⟨p, hp i⟩ : S i)
+  let baseU : ConnectedComponents U :=
+    ConnectedComponents.mk
+      (⟨p, Set.mem_iUnion_of_mem i0 (hp i0)⟩ : U)
+  let Labels : Type _ :=
+    Option (Σ i : ι, {q : ConnectedComponents (S i) // q ≠ base i})
+  let labelComponent : Labels → ConnectedComponents U
+    | none => baseU
+    | some x => componentMap x.1 x.2.1
+  have hmap_mk (i : ι) (x : S i) :
+      componentMap i (ConnectedComponents.mk x) =
+        ConnectedComponents.mk (incl i x) := by
+    simp [componentMap]
+  have hbase_map (i : ι) :
+      componentMap i (base i) = baseU := by
+    change componentMap i (ConnectedComponents.mk (⟨p, hp i⟩ : S i)) = baseU
+    rw [hmap_mk i (⟨p, hp i⟩ : S i)]
+  have hsurj : Function.Surjective labelComponent := by
+    intro q
+    obtain ⟨u, rfl⟩ := ConnectedComponents.surjective_coe q
+    rcases Set.mem_iUnion.mp u.property with ⟨i, hui⟩
+    let ui : S i := ⟨u.1, hui⟩
+    let qi : ConnectedComponents (S i) := ConnectedComponents.mk ui
+    by_cases hbase : qi = base i
+    · refine ⟨none, ?_⟩
+      dsimp [labelComponent]
+      have hq : componentMap i qi = ConnectedComponents.mk u := by
+        simpa [ui, incl] using hmap_mk i ui
+      rw [← hq, hbase, hbase_map i]
+    · refine ⟨some ⟨i, ⟨qi, hbase⟩⟩, ?_⟩
+      dsimp [labelComponent]
+      simpa [ui, incl] using hmap_mk i ui
+  haveI : Finite Labels := by
+    dsimp [Labels]
+    infer_instance
+  have hcard :
+      componentCount U ≤ Nat.card Labels := by
+    haveI : Finite (ConnectedComponents U) :=
+      Finite.of_surjective labelComponent hsurj
+    exact Nat.card_le_card_of_surjective labelComponent hsurj
+  have hnonbase (i : ι) :
+      Nat.card {q : ConnectedComponents (S i) // q ≠ base i} ≤
+        componentCount (S i) - 1 := by
+    have hlt :
+        Nat.card {q : ConnectedComponents (S i) // q ≠ base i} <
+          Nat.card (ConnectedComponents (S i)) :=
+      Finite.card_subtype_lt (p := fun q : ConnectedComponents (S i) =>
+        q ≠ base i) (x := base i) (by simp)
+    unfold componentCount
+    omega
+  have hlabels :
+      Nat.card Labels ≤
+        (∑ i : ι, (componentCount (S i) - 1)) + 1 := by
+    dsimp [Labels]
+    rw [Finite.card_option, Nat.card_sigma]
+    gcongr with i
+    exact hnonbase i
+  unfold componentCount at hcard
+  dsimp [U] at hcard
+  exact Nat.sub_le_iff_le_add.2 (le_trans hcard hlabels)
 
 end EndToEnd
 end Concrete

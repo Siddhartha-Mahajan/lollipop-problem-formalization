@@ -80,8 +80,10 @@ the remaining concrete theorem targets.  The current port boundary is:
 - `GenericityAvoidance`: density of the complement of the finite bad locus.
   Points outside that locus are proved generic as
   `Lower.GenericityPort.good_is_generic`.
-- `PlanarTopologyPorts` and `PairGeometryPorts`: lower-level topology and
-  pair-component estimates used by the intended upper proof.
+- `PlanarTopologyPorts` and `PairGeometryPorts`: lower-level topology and the
+  close/intriguing pair-component savings used by the intended upper proof.
+  The universal `2+2+2+1` pair bound is now proved as
+  `PairGeometry.pairExcess_le_seven`.
 
 Build the Lean project with:
 

@@ -36,7 +36,9 @@ structures:
 - `UpperPorts`: concrete upper bound for every Euclidean arrangement;
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation;
-- `PairGeometryPorts`: robust close/intriguing pair-component savings;
+- `PairGeometryPorts`: robust close/intriguing pair-component savings; the
+  universal `2+2+2+1` pair bound is proved as
+  `PairGeometry.pairExcess_le_seven`;
 - `GenericityAvoidance`: density of the complement of the finite bad locus;
   points outside that locus are proved generic as
   `Lower.GenericityPort.good_is_generic`;
