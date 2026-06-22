@@ -647,6 +647,77 @@ theorem exists_rayCirclePoint
       nlinarith
     simpa [lollipop] using hcircle
 
+/-- The chosen accepted point where the `s`-stem meets the `t`-circle. -/
+noncomputable def rayCirclePoint
+    (s t : ℝ) (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    R2 :=
+  Classical.choose (exists_rayCirclePoint hs hst ht)
+
+/-- The chosen ray--circle witness lies on the `s`-ray. -/
+theorem rayCirclePoint_mem_leftRay
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    rayCirclePoint s t hs hst ht ∈
+      raySet (lollipop s).anchor (lollipop s).rayDirection :=
+  (Classical.choose_spec (exists_rayCirclePoint hs hst ht)).1
+
+/-- The chosen ray--circle witness lies on the `t`-circle. -/
+theorem rayCirclePoint_mem_rightCircle
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    rayCirclePoint s t hs hst ht ∈
+      circleSet (lollipop t).center (lollipop t).radius :=
+  (Classical.choose_spec (exists_rayCirclePoint hs hst ht)).2
+
+/-- The chosen ray--circle witness is a primitive carrier-intersection point. -/
+theorem rayCirclePoint_mem_pairIntersectionSet
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    rayCirclePoint s t hs hst ht ∈ pairIntersectionSet (lollipop s) (lollipop t) :=
+  mem_pairIntersectionSet_of_mem_raySet_of_mem_circleSet
+    (rayCirclePoint_mem_leftRay hs hst ht)
+    (rayCirclePoint_mem_rightCircle hs hst ht)
+
+/-- The chosen ray--circle witness is not on the `s`-circle.  This separates
+the ray--circle component from the two circle--circle witnesses. -/
+theorem rayCirclePoint_not_mem_leftCircle
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    rayCirclePoint s t hs hst ht ∉
+      circleSet (lollipop s).center (lollipop s).radius := by
+  intro hcircle
+  have hleftRay := rayCirclePoint_mem_leftRay hs hst ht
+  rcases hleftRay with ⟨a, ha, hp⟩
+  let q : ℝ := 1 + a
+  have hq : 1 ≤ q := by
+    dsimp [q]
+    nlinarith
+  have hpstem : rayCirclePoint s t hs hst ht = stemPoint s q := by
+    rw [hp]
+    ext i
+    fin_cases i <;>
+      simp [q, lollipop, stemPoint, anchor, center, vector, point2,
+        Pi.add_apply, Pi.smul_apply] <;>
+      ring
+  have hpCircle' : stemPoint s q ∈ circleSet (center s) (radius s) := by
+    simpa [hpstem, lollipop] using hcircle
+  have hdist :
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+          (stemPoint s q) (center s) = radius s ^ 2 := by
+    simpa [circleSet] using hpCircle'
+  have hdist_formula := distSq2_stemPoint_center s q
+  have hrpos : 0 < radius s ^ 2 := sq_pos_of_pos (radius_pos s)
+  have hq_sq : q ^ 2 = 1 := by nlinarith
+  have hq_one : q = 1 := by
+    nlinarith [sq_nonneg (q - 1)]
+  have hrightCircle := rayCirclePoint_mem_rightCircle hs hst ht
+  have hpRight' : stemPoint s 1 ∈ circleSet (center t) (radius t) := by
+    simpa [hpstem, hq_one, lollipop] using hrightCircle
+  have hdist_right :
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+          (stemPoint s 1) (center t) = radius t ^ 2 := by
+    simpa [circleSet] using hpRight'
+  have hgeom := F_eq_geometry s t 1
+  have hFzero : F s t 1 = 0 := by nlinarith
+  have hFneg := F_one_neg hs hst ht
+  nlinarith
+
 /-- The reverse mixed component is empty: no accepted point on the `t`-stem
 lies on the `s`-circle. -/
 theorem not_exists_circleRayPoint
