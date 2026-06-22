@@ -519,6 +519,114 @@ private theorem normSqPoint_eq_norm_sq (x : Point) :
   rw [point_norm_sq_eq]
   simp [normSqPoint, dotPoint, sq]
 
+private def stemPoint (L : Lollipop) (q : ℝ) : Point :=
+  L.center + q • L.unitRadial
+
+private theorem stemPoint_injective (L : Lollipop) :
+    Function.Injective (stemPoint L) := by
+  intro q₁ q₂ h
+  have hsmul : q₁ • L.unitRadial = q₂ • L.unitRadial := by
+    have h' := congrArg (fun x : Point => x - L.center) h
+    simpa [stemPoint, sub_eq_add_neg, add_comm, add_left_comm, add_assoc] using h'
+  have hvec : (q₁ - q₂) • L.unitRadial = 0 := by
+    rw [sub_smul, hsmul, sub_self]
+  have hnorm : ‖(q₁ - q₂) • L.unitRadial‖ = 0 := by
+    rw [hvec, norm_zero]
+  rw [norm_smul, L.norm_unitRadial, mul_one, Real.norm_eq_abs] at hnorm
+  exact sub_eq_zero.1 (abs_eq_zero.1 hnorm)
+
+private def acceptedQuadraticRoots (r p δ : ℝ) : Set ℝ :=
+  {q | r ≤ q ∧ (q - p) ^ 2 - δ = 0}
+
+private theorem quadratic_root_iff
+    {q p δ : ℝ} (hδ : 0 ≤ δ) :
+    (q - p) ^ 2 - δ = 0 ↔
+      q = p - Real.sqrt δ ∨ q = p + Real.sqrt δ := by
+  have hsqrt_sq : (Real.sqrt δ) ^ 2 = δ := Real.sq_sqrt hδ
+  have hfac :
+      (q - p) ^ 2 - δ =
+        (q - (p + Real.sqrt δ)) * (q - (p - Real.sqrt δ)) := by
+    conv_lhs => rw [← hsqrt_sq]
+    ring
+  constructor
+  · intro h
+    rw [hfac, mul_eq_zero] at h
+    rcases h with h | h
+    · right
+      linarith
+    · left
+      linarith
+  · rintro (rfl | rfl) <;>
+      rw [hfac] <;> ring
+
+private theorem acceptedQuadraticRoots_ncard_one
+    {r p δ : ℝ}
+    (hδ : 0 < δ)
+    (hinside : (r - p) ^ 2 - δ < 0) :
+    (acceptedQuadraticRoots r p δ).ncard = 1 := by
+  have hsqrt_pos : 0 < Real.sqrt δ := Real.sqrt_pos.2 hδ
+  have hsq_lt : (r - p) ^ 2 < (Real.sqrt δ) ^ 2 := by
+    rw [Real.sq_sqrt hδ.le]
+    linarith
+  have hbounds :
+      -Real.sqrt δ < r - p ∧ r - p < Real.sqrt δ :=
+    abs_lt_of_sq_lt_sq' hsq_lt (Real.sqrt_nonneg δ)
+  have hleft_rejected : p - Real.sqrt δ < r := by
+    linarith [hbounds.1]
+  have hright_accepted : r ≤ p + Real.sqrt δ := by
+    linarith [hbounds.2]
+  have hset : acceptedQuadraticRoots r p δ = {p + Real.sqrt δ} := by
+    ext q
+    constructor
+    · rintro ⟨hrq, hroot⟩
+      rcases (quadratic_root_iff hδ.le).1 hroot with hq | hq
+      · exact False.elim (by linarith)
+      · simpa [hq]
+    · intro hq
+      have hq' : q = p + Real.sqrt δ := by simpa using hq
+      refine ⟨by simpa [hq'] using hright_accepted, ?_⟩
+      exact (quadratic_root_iff hδ.le).2 (Or.inr hq')
+  rw [hset]
+  simp
+
+private theorem acceptedQuadraticRoots_ncard_two
+    {r p δ : ℝ}
+    (hδ : 0 < δ)
+    (houtside : 0 < (r - p) ^ 2 - δ)
+    (hvertex : 0 < p - r) :
+    (acceptedQuadraticRoots r p δ).ncard = 2 := by
+  have hsqrt_pos : 0 < Real.sqrt δ := Real.sqrt_pos.2 hδ
+  have hsq_lt : (Real.sqrt δ) ^ 2 < (p - r) ^ 2 := by
+    rw [Real.sq_sqrt hδ.le]
+    nlinarith
+  have hsqrt_lt : Real.sqrt δ < p - r := by
+    have habs := abs_lt_of_sq_lt_sq hsq_lt (le_of_lt hvertex)
+    simpa [abs_of_nonneg (Real.sqrt_nonneg δ)] using habs
+  have hleft_accepted : r ≤ p - Real.sqrt δ := by
+    linarith
+  have hright_accepted : r ≤ p + Real.sqrt δ := by
+    linarith [hsqrt_pos]
+  have hdistinct : p - Real.sqrt δ ≠ p + Real.sqrt δ := by
+    linarith [hsqrt_pos]
+  have hset :
+      acceptedQuadraticRoots r p δ =
+        {p - Real.sqrt δ, p + Real.sqrt δ} := by
+    ext q
+    constructor
+    · rintro ⟨_hrq, hroot⟩
+      rcases (quadratic_root_iff hδ.le).1 hroot with hq | hq
+      · simp [hq]
+      · simp [hq]
+    · intro hq
+      rcases (by simpa using hq :
+          q = p - Real.sqrt δ ∨ q = p + Real.sqrt δ) with hq' | hq'
+      · refine ⟨by simpa [hq'] using hleft_accepted, ?_⟩
+        exact (quadratic_root_iff hδ.le).2 (Or.inl hq')
+      · refine ⟨by simpa [hq'] using hright_accepted, ?_⟩
+        exact (quadratic_root_iff hδ.le).2 (Or.inr hq')
+  rw [hset]
+  simpa [Set.ncard_eq_two, hdistinct]
+
 /-- If the supporting stem line has negative circle discriminant, the accepted
 ray--circle primitive is empty. -/
 theorem ray_circle_ncard_eq_zero_of_negative_discriminant
@@ -616,6 +724,119 @@ theorem ray_circle_ncard_eq_zero_of_anchor_positive_vertex_behind
       simp at hx
   rw [hempty]
   simp
+
+private theorem rc_eq_stemPoint_image_acceptedQuadraticRoots
+    {L M : Lollipop}
+    (hquad :
+      ∀ q : ℝ,
+        normSqPoint (L.center + q • L.unitRadial - M.center) -
+            M.radius ^ 2 =
+          (q - projectedCenterParameter L M) ^ 2 -
+            lineDiscriminant L M) :
+    rc L M =
+      stemPoint L ''
+        acceptedQuadraticRoots L.radius
+          (projectedCenterParameter L M) (lineDiscriminant L M) := by
+  ext x
+  constructor
+  · intro hx
+    rcases hx with ⟨hxStem, hxCircle⟩
+    have hxStem' : x ∈ L.stemByDistance := by
+      simpa using hxStem
+    rcases hxStem' with ⟨q, hq, hxq⟩
+    have hzero :
+        normSqPoint (L.center + q • L.unitRadial - M.center) -
+            M.radius ^ 2 = 0 := by
+      rw [← hxq]
+      rw [normSqPoint_eq_norm_sq]
+      have hcircle : ‖x - M.center‖ = M.radius := by
+        simpa [Lollipop.circle] using hxCircle
+      rw [hcircle]
+      ring
+    refine ⟨q, ⟨hq, ?_⟩, ?_⟩
+    · nlinarith [hquad q, hzero]
+    · simpa [stemPoint] using hxq.symm
+  · rintro ⟨q, hq, rfl⟩
+    rcases hq with ⟨hq, hroot⟩
+    refine ⟨?_, ?_⟩
+    · have hxStem : stemPoint L q ∈ L.stemByDistance :=
+        ⟨q, hq, rfl⟩
+      simpa [stemPoint] using hxStem
+    · have hzero :
+          normSqPoint (stemPoint L q - M.center) - M.radius ^ 2 = 0 := by
+        have hquadq := hquad q
+        simpa [stemPoint, hroot] using hquadq
+      have hsq :
+          ‖stemPoint L q - M.center‖ ^ 2 = M.radius ^ 2 := by
+        rw [← normSqPoint_eq_norm_sq]
+        linarith
+      have hnorm :
+          ‖stemPoint L q - M.center‖ = M.radius :=
+        (sq_eq_sq₀ (norm_nonneg _) M.radius_pos.le).1 hsq
+      simpa [Lollipop.circle, stemPoint] using hnorm
+
+/-- If the anchor lies inside the circle and the supporting-line discriminant
+is positive, exactly the forward root is accepted by the ray. -/
+theorem ray_circle_ncard_eq_one_of_anchor_inside
+    {L M : Lollipop}
+    (hquad :
+      ∀ q : ℝ,
+        normSqPoint (L.center + q • L.unitRadial - M.center) -
+            M.radius ^ 2 =
+          (q - projectedCenterParameter L M) ^ 2 -
+            lineDiscriminant L M)
+    (hanchor :
+      anchorPower L M =
+        (L.radius - projectedCenterParameter L M) ^ 2 -
+          lineDiscriminant L M)
+    (hdisc : 0 < lineDiscriminant L M)
+    (hpower : anchorPower L M < 0) :
+    (rc L M).ncard = 1 := by
+  have hinside :
+      (L.radius - projectedCenterParameter L M) ^ 2 -
+          lineDiscriminant L M < 0 := by
+    simpa [hanchor] using hpower
+  rw [rc_eq_stemPoint_image_acceptedQuadraticRoots hquad]
+  have hinj : Set.InjOn (stemPoint L)
+      (acceptedQuadraticRoots L.radius
+        (projectedCenterParameter L M) (lineDiscriminant L M)) :=
+    (stemPoint_injective L).injOn
+  rw [hinj.ncard_image]
+  exact acceptedQuadraticRoots_ncard_one hdisc hinside
+
+/-- If the anchor is outside, the discriminant is positive, and the vertex is
+strictly ahead of the anchor, both supporting-line roots are accepted. -/
+theorem ray_circle_ncard_eq_two_of_anchor_outside_vertex_ahead
+    {L M : Lollipop}
+    (hquad :
+      ∀ q : ℝ,
+        normSqPoint (L.center + q • L.unitRadial - M.center) -
+            M.radius ^ 2 =
+          (q - projectedCenterParameter L M) ^ 2 -
+            lineDiscriminant L M)
+    (hanchor :
+      anchorPower L M =
+        (L.radius - projectedCenterParameter L M) ^ 2 -
+          lineDiscriminant L M)
+    (hdisc : 0 < lineDiscriminant L M)
+    (hpower : 0 < anchorPower L M)
+    (hvertex : 0 < vertexAhead L M) :
+    (rc L M).ncard = 2 := by
+  have houtside :
+      0 <
+        (L.radius - projectedCenterParameter L M) ^ 2 -
+          lineDiscriminant L M := by
+    simpa [hanchor] using hpower
+  have hvertex' :
+      0 < projectedCenterParameter L M - L.radius := by
+    simpa [vertexAhead] using hvertex
+  rw [rc_eq_stemPoint_image_acceptedQuadraticRoots hquad]
+  have hinj : Set.InjOn (stemPoint L)
+      (acceptedQuadraticRoots L.radius
+        (projectedCenterParameter L M) (lineDiscriminant L M)) :=
+    (stemPoint_injective L).injOn
+  rw [hinj.ncard_image]
+  exact acceptedQuadraticRoots_ncard_two hdisc houtside hvertex'
 
 /-- Strict mixed diagnostics classify exactly the accepted roots of the ray
 quadratic. -/
