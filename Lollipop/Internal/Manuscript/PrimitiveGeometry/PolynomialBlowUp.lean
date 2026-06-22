@@ -340,6 +340,30 @@ theorem circleCirclePoint_pos_ne_neg
   simp [circleCirclePoint, point2] at hcoord
   nlinarith
 
+/-- A signed circle--circle witness is a primitive carrier-intersection
+point. -/
+theorem circleCirclePoint_mem_pairIntersectionSet
+    {s t ε : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4)
+    (hε : ε ^ 2 = 1) :
+    circleCirclePoint s t ε ∈ pairIntersectionSet (lollipop s) (lollipop t) :=
+  mem_pairIntersectionSet_of_mem_circleSets
+    (circleCirclePoint_mem_leftCircle hs hst ht hε)
+    (circleCirclePoint_mem_rightCircle hs hst ht hε)
+
+/-- The positive circle--circle witness is a primitive carrier-intersection
+point. -/
+theorem circleCirclePoint_pos_mem_pairIntersectionSet
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    circleCirclePoint s t 1 ∈ pairIntersectionSet (lollipop s) (lollipop t) := by
+  exact circleCirclePoint_mem_pairIntersectionSet hs hst ht (by norm_num)
+
+/-- The negative circle--circle witness is a primitive carrier-intersection
+point. -/
+theorem circleCirclePoint_neg_mem_pairIntersectionSet
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    circleCirclePoint s t (-1) ∈ pairIntersectionSet (lollipop s) (lollipop t) := by
+  exact circleCirclePoint_mem_pairIntersectionSet hs hst ht (by norm_num)
+
 /-- Uniform lower bound for the factor in `F(s,t,1)`. -/
 theorem B_lower
     {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
@@ -622,6 +646,29 @@ theorem rayRayPoint_mem_pairIntersectionSet
     (rayRayPoint_mem_leftRay hs hst ht)
     (rayRayPoint_mem_rightRay hs hst ht)
 
+/-- Circle--circle witnesses are distinct from the ray--ray witness. -/
+theorem circleCirclePoint_ne_rayRayPoint
+    {s t ε : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4)
+    (hε : ε ^ 2 = 1) :
+    circleCirclePoint s t ε ≠ rayRayPoint s t := by
+  intro h
+  have hcircle := circleCirclePoint_mem_leftCircle hs hst ht hε
+  exact rayRayPoint_not_mem_leftCircle hs hst ht (by simpa [h] using hcircle)
+
+/-- The positive circle--circle witness is distinct from the ray--ray
+witness. -/
+theorem circleCirclePoint_pos_ne_rayRayPoint
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    circleCirclePoint s t 1 ≠ rayRayPoint s t := by
+  exact circleCirclePoint_ne_rayRayPoint hs hst ht (by norm_num)
+
+/-- The negative circle--circle witness is distinct from the ray--ray
+witness. -/
+theorem circleCirclePoint_neg_ne_rayRayPoint
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    circleCirclePoint s t (-1) ≠ rayRayPoint s t := by
+  exact circleCirclePoint_ne_rayRayPoint hs hst ht (by norm_num)
+
 /-- There is an accepted point where the `s`-stem meets the `t`-circle. -/
 theorem exists_rayCirclePoint
     {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
@@ -717,6 +764,38 @@ theorem rayCirclePoint_not_mem_leftCircle
   have hFzero : F s t 1 = 0 := by nlinarith
   have hFneg := F_one_neg hs hst ht
   nlinarith
+
+/-- Circle--circle witnesses are distinct from the accepted ray--circle
+witness. -/
+theorem circleCirclePoint_ne_rayCirclePoint
+    {s t ε : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4)
+    (hε : ε ^ 2 = 1) :
+    circleCirclePoint s t ε ≠ rayCirclePoint s t hs hst ht := by
+  intro h
+  have hcircle := circleCirclePoint_mem_leftCircle hs hst ht hε
+  exact rayCirclePoint_not_mem_leftCircle hs hst ht (by simpa [h] using hcircle)
+
+/-- The positive circle--circle witness is distinct from the accepted
+ray--circle witness. -/
+theorem circleCirclePoint_pos_ne_rayCirclePoint
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    circleCirclePoint s t 1 ≠ rayCirclePoint s t hs hst ht := by
+  exact circleCirclePoint_ne_rayCirclePoint hs hst ht (by norm_num)
+
+/-- The negative circle--circle witness is distinct from the accepted
+ray--circle witness. -/
+theorem circleCirclePoint_neg_ne_rayCirclePoint
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    circleCirclePoint s t (-1) ≠ rayCirclePoint s t hs hst ht := by
+  exact circleCirclePoint_ne_rayCirclePoint hs hst ht (by norm_num)
+
+/-- The accepted ray--circle witness is distinct from the ray--ray witness. -/
+theorem rayCirclePoint_ne_rayRayPoint
+    {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
+    rayCirclePoint s t hs hst ht ≠ rayRayPoint s t := by
+  intro h
+  have hcircle := rayCirclePoint_mem_rightCircle hs hst ht
+  exact rayRayPoint_not_mem_rightCircle hs hst ht (by simpa [h] using hcircle)
 
 /-- The reverse mixed component is empty: no accepted point on the `t`-stem
 lies on the `s`-circle. -/
