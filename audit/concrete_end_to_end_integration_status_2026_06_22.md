@@ -48,6 +48,16 @@ Ignored archive noise:
   determinant/displacement swap algebra, ray-ray code symmetry, an open-chamber
   theorem for strict pair codes, and product-neighborhood extraction from that
   open-chamber theorem.
+* Repaired the exact rational base lower layer after the `Point`/`R2` bridge
+  change: rational coordinate constructors now go through `R2.toPoint`, exact
+  unit-radius proofs use the concrete norm bridge, and the six base pair
+  chamber proofs are factored through explicit diagnostic records.
+* Repaired the corrected polynomial lower family: the family is named
+  `PolynomialFamily.member`, its continuity is proved in the induced
+  center/radial topology, the `F`/`G` anchor-power bridge uses a concrete
+  squared-distance conversion, the derivative/determinant/line-parameter
+  identities are kernel-checked, and the strict local `2+1+0+1=4` chamber proof
+  now builds.
 
 ## Commands Run
 
@@ -113,11 +123,45 @@ strict chamber predicate is now backed by an explicit set
 `strictPairChamberSet`, so openness proofs use finite intersections directly
 instead of expensive conversions through a large `setOf` predicate.
 
+```text
+lake build Lollipop.Concrete.EndToEnd.Lower.RationalBase
+```
+
+Result: succeeded.
+
+```text
+lake build Lollipop.Concrete.EndToEnd.Lower.PolynomialFamily
+```
+
+Result: succeeded.
+
+```text
+lake build Lollipop.Concrete.EndToEnd
+```
+
+Latest result: failed in `Lollipop/Concrete/EndToEnd/Lower/Genericity.lean`
+and `Lollipop/Concrete/EndToEnd/PlanarTopology.lean`.
+
+`Lower.Genericity` is not yet a real semialgebraic avoidance proof. It still
+contains references to unavailable or unimplemented APIs such as
+`IsSemialgebraic`, `primitiveTransverseAt`, finite-union avoidance lemmas, and
+the final `IsGeneric` predicate plumbing. The first shallow issue is that the
+local parameter conversion namespace/dot notation needs to be reworked, but the
+substantive missing layer is still the finite algebraic genericization theorem.
+
+`PlanarTopology` remains the main hard topology layer. It still refers to
+unavailable or unimplemented algebraic-topology/embedded-graph infrastructure:
+semialgebraic triangulation, compactified lollipop deformation retractions,
+Mayer-Vietoris rank inequalities, Alexander duality on the two-sphere,
+finite embedded graph Betti-counting, complement finite-component proofs, and
+generic primitive-piece disjointness.
+
 ## Current Interpretation
 
 The imported concrete bundle is useful as an architectural scaffold and now has
 buildable coordinate, compactification, shared support, lower similarity
-transport, and strict pair-chamber layers. It is not a kernel-checked
-end-to-end proof. The remaining failures include the intended hard
-planar-topology layer and the later assembly needed to feed concrete geometric
+transport, strict pair-chamber, rational base, and corrected polynomial local
+family layers. It is not a kernel-checked end-to-end proof. The remaining
+failures are the finite semialgebraic genericization layer, the intended hard
+planar-topology layer, and the later assembly needed to feed concrete geometric
 theorems into the final maximum statement.

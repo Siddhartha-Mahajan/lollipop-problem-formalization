@@ -26,209 +26,302 @@ open Set
 
 namespace PB
 
-abbrev Old :=
-  TheoremOneManuscript.PrimitiveGeometry.PolynomialBlowUp
+export TheoremOneManuscript.PrimitiveGeometry.PolynomialBlowUp
+  (anchor center corrected_local_pair_data direction_determinant F
+    F_eq_geometry G G_eq_geometry GhalfDerivativeAtOne lambda mu
+    normSq2_vector radius radius_pos vector vector_ne_zero)
 
 end PB
 
 /-- Concrete version of the corrected polynomial family. -/
-def local (t : ℝ) : Lollipop where
-  center := R2.toPoint (PB.Old.center t)
-  radial := R2.toPoint (PB.Old.vector t)
+def member (t : ℝ) : Lollipop where
+  center := R2.toPoint (PB.center t)
+  radial := R2.toPoint (PB.vector t)
   radial_ne_zero := by
     intro h
-    apply PB.Old.vector_ne_zero t
+    apply PB.vector_ne_zero t
     have := congrArg R2.ofPoint h
-    simpa using this
+    have hzero : R2.ofPoint (0 : Point) = (0 : R2) := by
+      ext i
+      rfl
+    rwa [hzero] at this
 
 @[simp] theorem local_center (t : ℝ) :
-    (local t).center = R2.toPoint (PB.Old.center t) := rfl
+    (member t).center = R2.toPoint (PB.center t) := rfl
 
 @[simp] theorem local_radial (t : ℝ) :
-    (local t).radial = R2.toPoint (PB.Old.vector t) := rfl
+    (member t).radial = R2.toPoint (PB.vector t) := rfl
 
 /-- The radius is the polynomial `1+t²`. -/
 @[simp] theorem local_radius (t : ℝ) :
-    (local t).radius = PB.Old.radius t := by
-  have hsq := PB.Old.normSq2_vector t
-  have hnonneg : 0 ≤ (local t).radius := norm_nonneg _
-  have hpos := PB.Old.radius_pos t
-  have hsquare : (local t).radius ^ 2 = PB.Old.radius t ^ 2 := by
+    (member t).radius = PB.radius t := by
+  have hsq := PB.normSq2_vector t
+  have hnonneg : 0 ≤ (member t).radius := norm_nonneg _
+  have hpos := PB.radius_pos t
+  have hsquare : (member t).radius ^ 2 = PB.radius t ^ 2 := by
     rw [Lollipop.radius, local_radial, R2.norm_sq_toPoint]
     exact hsq
   nlinarith
 
 /-- Unit direction is the polynomial vector divided by `1+t²`. -/
 @[simp] theorem local_unitRadial (t : ℝ) :
-    (local t).unitRadial =
-      (PB.Old.radius t)⁻¹ • R2.toPoint (PB.Old.vector t) := by
+    (member t).unitRadial =
+      (PB.radius t)⁻¹ • R2.toPoint (PB.vector t) := by
   simp [Lollipop.unitRadial, local_radius, local_radial]
 
 @[simp] theorem local_anchor (t : ℝ) :
-    (local t).anchor = R2.toPoint (PB.Old.anchor t) := by
-  simp [Lollipop.anchor, local, PB.Old.anchor, R2.toPoint_add]
+    (member t).anchor = R2.toPoint (PB.anchor t) := by
+  simp [Lollipop.anchor, member, PB.anchor, R2.toPoint_add]
 
 /-- The family starts at the standard unit lollipop. -/
-@[simp] theorem local_zero : local 0 = standardLollipop := by
+@[simp] theorem local_zero : member 0 = standardLollipop := by
   ext <;>
-    simp [local, standardLollipop, PB.Old.center, PB.Old.vector,
+    simp [member, standardLollipop, PB.center, PB.vector,
       TheoremOneManuscript.PrimitiveGeometry.point2]
 
 /-- Polynomial continuity of the family in center/radial coordinates. -/
-theorem continuous_local : Continuous local := by
-  apply continuous_lollipop_mk
-  · unfold local PB.Old.center
+theorem continuous_local : Continuous member := by
+  rw [continuous_induced_rng]
+  change Continuous (fun t : ℝ =>
+    (R2.toPoint (PB.center t), R2.toPoint (PB.vector t)))
+  have hc : Continuous (fun t : ℝ => R2.toPoint (PB.center t)) := by
+    unfold R2.toPoint TheoremOneManuscript.PrimitiveGeometry.toEuclideanR2
+      TheoremOneManuscript.PrimitiveGeometry.PolynomialBlowUp.center
+      TheoremOneManuscript.PrimitiveGeometry.point2
+    exact (PiLp.continuous_toLp (p := 2) (β := fun _ : Fin 2 => ℝ)).comp
+      (continuous_pi (by
+        intro i
+        fin_cases i <;> simp <;> fun_prop))
+  have hv : Continuous (fun t : ℝ => R2.toPoint (PB.vector t)) := by
+    unfold R2.toPoint TheoremOneManuscript.PrimitiveGeometry.toEuclideanR2
+      TheoremOneManuscript.PrimitiveGeometry.PolynomialBlowUp.vector
+      TheoremOneManuscript.PrimitiveGeometry.point2
+    exact (PiLp.continuous_toLp (p := 2) (β := fun _ : Fin 2 => ℝ)).comp
+      (continuous_pi (by
+        intro i
+        fin_cases i <;> simp <;> fun_prop))
+  exact hc.prodMk hv
+
+/-- Similarity transport is continuous in lollipop coordinates. -/
+theorem continuous_mapLollipop (S : PlaneSimilarity) :
+    Continuous (fun L : Lollipop => S.mapLollipop L) := by
+  rw [continuous_induced_rng]
+  change Continuous (fun L : Lollipop =>
+    ((S.mapLollipop L).center, (S.mapLollipop L).radial))
+  have hc : Continuous (fun L : Lollipop => (S.mapLollipop L).center) := by
+    change Continuous (fun L : Lollipop => S.toFun L.center)
+    unfold PlaneSimilarity.toFun
     fun_prop
-  · unfold local PB.Old.vector
+  have hr : Continuous (fun L : Lollipop => (S.mapLollipop L).radial) := by
+    change Continuous (fun L : Lollipop => S.scale • S.orthogonal L.radial)
     fun_prop
+  exact hc.prodMk hr
 
 namespace DiagnosticBridge
 
+/-- The displayed squared norm agrees with the primitive squared-distance
+formula after lifting `R2` coordinates to `Point`. -/
+theorem normSqPoint_toPoint_sub (x y : R2) :
+    normSqPoint (R2.toPoint x - R2.toPoint y) =
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2 x y := by
+  unfold normSqPoint dotPoint
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2
+  simp
+
 /-- Exact center-distance polynomial. -/
 theorem centerDistanceSq_local (s t : ℝ) :
-    centerDistanceSq (local s) (local t) = 18 * (t - s) ^ 2 := by
-  unfold centerDistanceSq displacement normSqPoint dotPoint local
-    PB.Old.center TheoremOneManuscript.PrimitiveGeometry.point2
-  simp [Pi.sub_apply]
+    centerDistanceSq (member s) (member t) = 18 * (t - s) ^ 2 := by
+  unfold centerDistanceSq displacement normSqPoint dotPoint member
+    PB.center TheoremOneManuscript.PrimitiveGeometry.point2
+  simp
   ring
 
 /-- Exact circle outer margin. -/
 theorem outerMargin_local (s t : ℝ) :
-    circleOuterMargin (local s) (local t) =
+    circleOuterMargin (member s) (member t) =
       (2 + s ^ 2 + t ^ 2) ^ 2 - 18 * (t - s) ^ 2 := by
   rw [circleOuterMargin, local_radius, local_radius,
     centerDistanceSq_local]
-  unfold PB.Old.radius
+  unfold PB.radius
   ring
 
 /-- Exact circle inner margin. -/
 theorem innerMargin_local (s t : ℝ) :
-    circleInnerMargin (local s) (local t) =
+    circleInnerMargin (member s) (member t) =
       18 * (t - s) ^ 2 - (t - s) ^ 2 * (s + t) ^ 2 := by
   rw [circleInnerMargin, local_radius, local_radius,
     centerDistanceSq_local]
-  unfold PB.Old.radius
+  unfold PB.radius
   ring
 
 /-- Forward anchor power is `F(s,t,1)`. -/
 theorem forwardAnchorPower_local (s t : ℝ) :
-    anchorPower (local s) (local t) = PB.Old.F s t 1 := by
+    anchorPower (member s) (member t) = PB.F s t 1 := by
   rw [anchorPower, local_anchor, local_center, local_radius,
-    ← PB.Old.F_eq_geometry]
-  unfold normSqPoint dotPoint
-  rw [← TheoremOneManuscript.PrimitiveGeometry.distSq2_eq_euclidean_dist_sq]
-  rfl
+    normSqPoint_toPoint_sub]
+  rw [show PB.anchor s =
+      TheoremOneManuscript.PrimitiveGeometry.PolynomialBlowUp.stemPoint s 1 by
+    simp [PB.anchor,
+      TheoremOneManuscript.PrimitiveGeometry.PolynomialBlowUp.stemPoint]]
+  exact (PB.F_eq_geometry s t 1).symm
 
 /-- Reverse anchor power is `G(s,t,1)`. -/
 theorem reverseAnchorPower_local (s t : ℝ) :
-    anchorPower (local t) (local s) = PB.Old.G s t 1 := by
+    anchorPower (member t) (member s) = PB.G s t 1 := by
   rw [anchorPower, local_anchor, local_center, local_radius,
-    ← PB.Old.G_eq_geometry]
-  unfold normSqPoint dotPoint
-  rw [← TheoremOneManuscript.PrimitiveGeometry.distSq2_eq_euclidean_dist_sq]
-  rfl
+    normSqPoint_toPoint_sub]
+  rw [show PB.anchor t =
+      TheoremOneManuscript.PrimitiveGeometry.PolynomialBlowUp.stemPoint t 1 by
+    simp [PB.anchor,
+      TheoremOneManuscript.PrimitiveGeometry.PolynomialBlowUp.stemPoint]]
+  exact (PB.G_eq_geometry s t 1).symm
 
 /-- Existing derivative diagnostic equals minus radius times `vertexAhead` for
 the reverse mixed component. -/
 theorem reverseDerivative_eq_neg_radius_mul_vertexAhead (s t : ℝ) :
-    PB.Old.GhalfDerivativeAtOne s t =
-      -(PB.Old.radius t) * vertexAhead (local t) (local s) := by
-  unfold PB.Old.GhalfDerivativeAtOne PB.Old.radius vertexAhead
-    projectedCenterParameter displacement dotPoint Lollipop.unitRadial
-    local PB.Old.center PB.Old.vector
+    PB.GhalfDerivativeAtOne s t =
+      -(PB.radius t) * vertexAhead (member t) (member s) := by
+  unfold vertexAhead projectedCenterParameter displacement dotPoint
+  rw [local_center, local_center, local_unitRadial, local_radius]
+  unfold PB.GhalfDerivativeAtOne PB.radius PB.center PB.vector
     TheoremOneManuscript.PrimitiveGeometry.point2
-  simp [Pi.sub_apply, Pi.smul_apply]
-  field_simp [ne_of_gt (PB.Old.radius_pos t)]
-  ring
+  simp
+  field_simp [ne_of_gt (PB.radius_pos t)]
+  ring_nf
 
 /-- Forward negative anchor power forces positive discriminant. -/
 theorem forward_discriminant_pos_of_anchor_neg
-    {s t : ℝ} (h : anchorPower (local s) (local t) < 0) :
-    0 < lineDiscriminant (local s) (local t) := by
+    {s t : ℝ} (h : anchorPower (member s) (member t) < 0) :
+    0 < lineDiscriminant (member s) (member t) := by
   have hid := PairChamberPort.anchorPower_eq_mixed_at_anchor
-    (local s) (local t)
+    (member s) (member t)
   nlinarith [sq_nonneg
-    ((local s).radius - projectedCenterParameter (local s) (local t))]
+    ((member s).radius - projectedCenterParameter (member s) (member t))]
 
 /-- Determinant of actual unit directions. -/
 theorem directionDet_local (s t : ℝ) :
-    directionDet (local s) (local t) =
+    directionDet (member s) (member t) =
       (2 * (s - t) * (1 + s * t)) /
-        (PB.Old.radius s * PB.Old.radius t) := by
+        (PB.radius s * PB.radius t) := by
   unfold directionDet detPoint
   rw [local_unitRadial, local_unitRadial]
-  simp [Pi.smul_apply, PB.Old.vector,
+  simp [PB.vector,
     TheoremOneManuscript.PrimitiveGeometry.point2]
-  rw [PB.Old.direction_determinant]
+  unfold PB.radius
+  field_simp [ne_of_gt (PB.radius_pos s), ne_of_gt (PB.radius_pos t)]
   ring
 
 /-- The line parameters are the old center-based parameters times radius. -/
-theorem leftLineParameter_local (s t : ℝ) :
-    leftLineParameter (local s) (local t) =
-      PB.Old.radius s * PB.Old.lambda s t := by
+theorem leftLineParameter_local {s t : ℝ}
+    (hdet : 2 * (s - t) * (1 + s * t) ≠ 0) :
+    leftLineParameter (member s) (member t) =
+      PB.radius s * PB.lambda s t := by
+  have hden : -(t * (1 - s ^ 2)) + s * (1 - t ^ 2) ≠ 0 := by
+    intro h
+    apply hdet
+    have hfac :
+        -(t * (1 - s ^ 2)) + s * (1 - t ^ 2) =
+          (s - t) * (1 + s * t) := by ring
+    have hprod : (s - t) * (1 + s * t) = 0 := by
+      rw [← hfac]
+      exact h
+    calc
+      2 * (s - t) * (1 + s * t) =
+          2 * ((s - t) * (1 + s * t)) := by ring
+      _ = 0 := by rw [hprod]; ring
+  have hone : 1 + s * t ≠ 0 := by
+    intro h
+    apply hdet
+    rw [h]
+    ring
+  have hone' : 1 + t * s ≠ 0 := by
+    convert hone using 1 <;> ring
   unfold leftLineParameter displacement directionDet detPoint
   rw [local_center, local_center, local_unitRadial, local_unitRadial]
-  simp [PB.Old.center, PB.Old.vector,
-    TheoremOneManuscript.PrimitiveGeometry.point2,
-    Pi.sub_apply, Pi.smul_apply]
-  field_simp [ne_of_gt (PB.Old.radius_pos s),
-    ne_of_gt (PB.Old.radius_pos t)]
-  unfold PB.Old.lambda PB.Old.radius
-  ring
+  simp [PB.center, PB.vector,
+    TheoremOneManuscript.PrimitiveGeometry.point2]
+  field_simp [ne_of_gt (PB.radius_pos s),
+    ne_of_gt (PB.radius_pos t), hden, hone]
+  simp [PB.lambda]
+  field_simp [hone']
+  ring_nf
 
 /-- Symmetric line parameter formula. -/
-theorem rightLineParameter_local (s t : ℝ) :
-    rightLineParameter (local s) (local t) =
-      PB.Old.radius t * PB.Old.mu s t := by
+theorem rightLineParameter_local {s t : ℝ}
+    (hdet : 2 * (s - t) * (1 + s * t) ≠ 0) :
+    rightLineParameter (member s) (member t) =
+      PB.radius t * PB.mu s t := by
+  have hden : -(t * (1 - s ^ 2)) + s * (1 - t ^ 2) ≠ 0 := by
+    intro h
+    apply hdet
+    have hfac :
+        -(t * (1 - s ^ 2)) + s * (1 - t ^ 2) =
+          (s - t) * (1 + s * t) := by ring
+    have hprod : (s - t) * (1 + s * t) = 0 := by
+      rw [← hfac]
+      exact h
+    calc
+      2 * (s - t) * (1 + s * t) =
+          2 * ((s - t) * (1 + s * t)) := by ring
+      _ = 0 := by rw [hprod]; ring
+  have hone : 1 + s * t ≠ 0 := by
+    intro h
+    apply hdet
+    rw [h]
+    ring
+  have hone' : 1 + t * s ≠ 0 := by
+    convert hone using 1 <;> ring
   unfold rightLineParameter displacement directionDet detPoint
   rw [local_center, local_center, local_unitRadial, local_unitRadial]
-  simp [PB.Old.center, PB.Old.vector,
-    TheoremOneManuscript.PrimitiveGeometry.point2,
-    Pi.sub_apply, Pi.smul_apply]
-  field_simp [ne_of_gt (PB.Old.radius_pos s),
-    ne_of_gt (PB.Old.radius_pos t)]
-  unfold PB.Old.mu PB.Old.radius
-  ring
+  simp [PB.center, PB.vector,
+    TheoremOneManuscript.PrimitiveGeometry.point2]
+  field_simp [ne_of_gt (PB.radius_pos s),
+    ne_of_gt (PB.radius_pos t), hden, hone]
+  simp [PB.mu]
+  field_simp [hone']
+  ring_nf
 
 end DiagnosticBridge
 
 /-- Distinct ordered local members realize the strict four-crossing code. -/
 theorem local_realizes_four
     {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
-    RealizesStrictPairCode StrictPairCode.four (local s) (local t) := by
-  rcases PB.Old.corrected_local_pair_data hs hst ht with
+    RealizesStrictPairCode StrictPairCode.four (member s) (member t) := by
+  rcases PB.corrected_local_pair_data hs hst ht with
     ⟨hcircle, hFneg, _hFderiv, hGpos, hGderiv,
       hdet, hlambda, hmu⟩
-  have hout : 0 < circleOuterMargin (local s) (local t) := by
+  have hout : 0 < circleOuterMargin (member s) (member t) := by
     rw [DiagnosticBridge.outerMargin_local]
     exact sub_pos.mpr hcircle.2
-  have hin : 0 < circleInnerMargin (local s) (local t) := by
+  have hin : 0 < circleInnerMargin (member s) (member t) := by
     rw [DiagnosticBridge.innerMargin_local]
     exact sub_pos.mpr hcircle.1
-  have hforwardPower : anchorPower (local s) (local t) < 0 := by
+  have hforwardPower : anchorPower (member s) (member t) < 0 := by
     rw [DiagnosticBridge.forwardAnchorPower_local]
     exact hFneg
-  have hforwardDisc : 0 < lineDiscriminant (local s) (local t) :=
+  have hforwardDisc : 0 < lineDiscriminant (member s) (member t) :=
     DiagnosticBridge.forward_discriminant_pos_of_anchor_neg hforwardPower
-  have hreversePower : 0 < anchorPower (local t) (local s) := by
+  have hreversePower : 0 < anchorPower (member t) (member s) := by
     rw [DiagnosticBridge.reverseAnchorPower_local]
     exact hGpos
-  have hreverseVertex : vertexAhead (local t) (local s) < 0 := by
-    have hrpos := PB.Old.radius_pos t
+  have hreverseVertex : vertexAhead (member t) (member s) < 0 := by
+    have hrpos := PB.radius_pos t
     rw [DiagnosticBridge.reverseDerivative_eq_neg_radius_mul_vertexAhead] at hGderiv
     nlinarith
-  have hdet' : directionDet (local s) (local t) ≠ 0 := by
+  have hdet' : directionDet (member s) (member t) ≠ 0 := by
     rw [DiagnosticBridge.directionDet_local]
     exact div_ne_zero hdet
-      (mul_ne_zero (PB.Old.radius_pos s).ne' (PB.Old.radius_pos t).ne')
-  have hleft : (local s).radius <
-      leftLineParameter (local s) (local t) := by
-    rw [DiagnosticBridge.leftLineParameter_local, local_radius]
-    nlinarith [PB.Old.radius_pos s]
-  have hright : (local t).radius <
-      rightLineParameter (local s) (local t) := by
-    rw [DiagnosticBridge.rightLineParameter_local, local_radius]
-    nlinarith [PB.Old.radius_pos t]
+      (mul_ne_zero (PB.radius_pos s).ne' (PB.radius_pos t).ne')
+  have hleft : (member s).radius <
+      leftLineParameter (member s) (member t) := by
+    rw [DiagnosticBridge.leftLineParameter_local hdet, local_radius]
+    nlinarith [PB.radius_pos s]
+  have hright : (member t).radius <
+      rightLineParameter (member s) (member t) := by
+    rw [DiagnosticBridge.rightLineParameter_local hdet, local_radius]
+    nlinarith [PB.radius_pos t]
   exact ⟨hout, hin,
     ⟨hforwardDisc, hforwardPower⟩,
     Or.inr ⟨hreversePower, hreverseVertex⟩,
@@ -238,19 +331,19 @@ theorem local_realizes_four
 /-- The corrected local family has exactly four finite crossings. -/
 theorem local_pairCrossingCount_eq_four
     {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
-    pairCrossingCount (local s) (local t) = 4 := by
+    pairCrossingCount (member s) (member t) = 4 := by
   simpa using pairCrossingCount_eq_of_realizes
     (local_realizes_four hs hst ht)
 
 /-- The corrected local family is pairwise primitive-transverse. -/
 theorem local_pair_transverse
     {s t : ℝ} (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
-    PrimitivePairwiseTransverse (local s) (local t) :=
+    PrimitivePairwiseTransverse (member s) (member t) :=
   primitivePairwiseTransverse_of_realizes (local_realizes_four hs hst ht)
 
 /-- Same-cluster family based at an arbitrary base lollipop. -/
 def around (Q : Lollipop) (t : ℝ) : Lollipop :=
-  (similarityTo Q).mapLollipop (local t)
+  (similarityTo Q).mapLollipop (member t)
 
 @[simp] theorem around_zero (Q : Lollipop) : around Q 0 = Q := by
   simp [around, similarityTo_standard]
@@ -266,14 +359,6 @@ theorem around_pairCrossingCount_eq_four
     pairCrossingCount (around Q s) (around Q t) = 4 := by
   rw [around, around, PlaneSimilarity.pairCrossingCount_map]
   exact local_pairCrossingCount_eq_four hs hst ht
-
-/-- Similarity transport preserves primitive transversality. -/
-theorem around_pair_transverse
-    (Q : Lollipop) {s t : ℝ}
-    (hs : 0 ≤ s) (hst : s < t) (ht : t ≤ (1 : ℝ) / 4) :
-    PrimitivePairwiseTransverse (around Q s) (around Q t) := by
-  exact primitivePairwiseTransverse_map
-    (similarityTo Q) (local_pair_transverse hs hst ht)
 
 end PolynomialFamily
 end Lower
