@@ -1,0 +1,178 @@
+[
+  {
+    "name": ".gitignore",
+    "path": ".gitignore",
+    "sha": "fb6ebe3337cff828727cf126aa5a195a3a77a64d",
+    "size": 107,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/.gitignore?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/blob/main/.gitignore",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/blobs/fb6ebe3337cff828727cf126aa5a195a3a77a64d",
+    "download_url": "https://raw.githubusercontent.com/plby/lean-proofs/main/.gitignore",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/.gitignore?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/blobs/fb6ebe3337cff828727cf126aa5a195a3a77a64d",
+      "html": "https://github.com/plby/lean-proofs/blob/main/.gitignore"
+    }
+  },
+  {
+    "name": "ErdosProblems",
+    "path": "ErdosProblems",
+    "sha": "9da526584f3fc268fc410b1e97c3bf4dfb79f464",
+    "size": 0,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/ErdosProblems?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/tree/main/ErdosProblems",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/trees/9da526584f3fc268fc410b1e97c3bf4dfb79f464",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/ErdosProblems?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/trees/9da526584f3fc268fc410b1e97c3bf4dfb79f464",
+      "html": "https://github.com/plby/lean-proofs/tree/main/ErdosProblems"
+    }
+  },
+  {
+    "name": "HundredTheorems",
+    "path": "HundredTheorems",
+    "sha": "72f546d3a31feb93d82121a2572d109cef9296e5",
+    "size": 0,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/HundredTheorems?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/tree/main/HundredTheorems",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/trees/72f546d3a31feb93d82121a2572d109cef9296e5",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/HundredTheorems?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/trees/72f546d3a31feb93d82121a2572d109cef9296e5",
+      "html": "https://github.com/plby/lean-proofs/tree/main/HundredTheorems"
+    }
+  },
+  {
+    "name": "MathOverflow",
+    "path": "MathOverflow",
+    "sha": "1b2aa1cae5c1818bfa8eb9c5aacfd4b882c360be",
+    "size": 0,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/MathOverflow?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/tree/main/MathOverflow",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/trees/1b2aa1cae5c1818bfa8eb9c5aacfd4b882c360be",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/MathOverflow?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/trees/1b2aa1cae5c1818bfa8eb9c5aacfd4b882c360be",
+      "html": "https://github.com/plby/lean-proofs/tree/main/MathOverflow"
+    }
+  },
+  {
+    "name": "README.md",
+    "path": "README.md",
+    "sha": "07ac7f3a3d95b777d8353845e3f64d3c25501dd9",
+    "size": 415,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/README.md?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/blob/main/README.md",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/blobs/07ac7f3a3d95b777d8353845e3f64d3c25501dd9",
+    "download_url": "https://raw.githubusercontent.com/plby/lean-proofs/main/README.md",
+    "type": "file",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/README.md?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/blobs/07ac7f3a3d95b777d8353845e3f64d3c25501dd9",
+      "html": "https://github.com/plby/lean-proofs/blob/main/README.md"
+    }
+  },
+  {
+    "name": "bad",
+    "path": "bad",
+    "sha": "3ad130bf1b87a1103b4e697244b7abbae4ededb5",
+    "size": 0,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/bad?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/tree/main/bad",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/trees/3ad130bf1b87a1103b4e697244b7abbae4ededb5",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/bad?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/trees/3ad130bf1b87a1103b4e697244b7abbae4ededb5",
+      "html": "https://github.com/plby/lean-proofs/tree/main/bad"
+    }
+  },
+  {
+    "name": "data",
+    "path": "data",
+    "sha": "3f349910d2ce2ce31d5008e4c60cbac9efa05580",
+    "size": 0,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/data?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/tree/main/data",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/trees/3f349910d2ce2ce31d5008e4c60cbac9efa05580",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/data?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/trees/3f349910d2ce2ce31d5008e4c60cbac9efa05580",
+      "html": "https://github.com/plby/lean-proofs/tree/main/data"
+    }
+  },
+  {
+    "name": "other",
+    "path": "other",
+    "sha": "a6caeef56ab5a22adac67fc826acfe4365ffb6d7",
+    "size": 0,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/other?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/tree/main/other",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/trees/a6caeef56ab5a22adac67fc826acfe4365ffb6d7",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/other?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/trees/a6caeef56ab5a22adac67fc826acfe4365ffb6d7",
+      "html": "https://github.com/plby/lean-proofs/tree/main/other"
+    }
+  },
+  {
+    "name": "pdf",
+    "path": "pdf",
+    "sha": "9c273831ae9f5195d61ea83dbfd577a751b0db0e",
+    "size": 0,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/pdf?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/tree/main/pdf",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/trees/9c273831ae9f5195d61ea83dbfd577a751b0db0e",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/pdf?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/trees/9c273831ae9f5195d61ea83dbfd577a751b0db0e",
+      "html": "https://github.com/plby/lean-proofs/tree/main/pdf"
+    }
+  },
+  {
+    "name": "src",
+    "path": "src",
+    "sha": "31c45e450f7599c6ea16ac372e6b9daadbfa0b68",
+    "size": 0,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/src?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/tree/main/src",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/trees/31c45e450f7599c6ea16ac372e6b9daadbfa0b68",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/src?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/trees/31c45e450f7599c6ea16ac372e6b9daadbfa0b68",
+      "html": "https://github.com/plby/lean-proofs/tree/main/src"
+    }
+  },
+  {
+    "name": "tex",
+    "path": "tex",
+    "sha": "de95edf1ecf55501351e6e6507e0020cf9a8d0ab",
+    "size": 0,
+    "url": "https://api.github.com/repos/plby/lean-proofs/contents/tex?ref=main",
+    "html_url": "https://github.com/plby/lean-proofs/tree/main/tex",
+    "git_url": "https://api.github.com/repos/plby/lean-proofs/git/trees/de95edf1ecf55501351e6e6507e0020cf9a8d0ab",
+    "download_url": null,
+    "type": "dir",
+    "_links": {
+      "self": "https://api.github.com/repos/plby/lean-proofs/contents/tex?ref=main",
+      "git": "https://api.github.com/repos/plby/lean-proofs/git/trees/de95edf1ecf55501351e6e6507e0020cf9a8d0ab",
+      "html": "https://github.com/plby/lean-proofs/tree/main/tex"
+    }
+  }
+]
