@@ -53,6 +53,29 @@ Build the Lean project with:
 lake build Lollipop
 ```
 
+## Lean Verification Checklist
+
+The Lean community checklist is saved at
+`references/lean_verification/did_you_prove_it.md`.  Current answers for this
+repository:
+
+- Repository: yes.  This is a Lake project with `lean-toolchain`,
+  `lakefile.lean`, and `lake-manifest.json`.
+- Build: yes for the imported handoff tree.  `lake build Lollipop` completed
+  successfully on June 22, 2026.
+- Main proof checked by the build: yes.  `Lollipop.lean` imports
+  `Lollipop.Final`, which imports `Lollipop/Final/TheoremOne.lean`.
+- Standard axioms only: not yet under the strict checklist test.
+  `#print axioms Lollipop.Final.theorem_one` reports the usual
+  `propext`, `Classical.choice`, and `Quot.sound`, plus several
+  `native_decide` computation certificates for closed finite checks.  These
+  should be replaced or independently justified before claiming the strictest
+  Lean-community verification standard.
+- Does it prove the claimed theorem: conditionally.  Lean proves the final
+  formula from `GeometryCertificates P`; it does not yet construct those
+  certificates for the actual Euclidean lollipop model without remaining
+  geometric assumptions.
+
 ## Geometry And Lower Construction
 
 The research-grade Lean tree includes the polynomial local blow-up family:
