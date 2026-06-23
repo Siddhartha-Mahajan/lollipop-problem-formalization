@@ -1,4 +1,5 @@
 import Lollipop.Concrete.EndToEnd.Support
+import Lollipop.Concrete.EndToEnd.ComponentFibers
 import Lollipop.Concrete.Empty
 import Lollipop.Internal.Core
 import Mathlib.Tactic

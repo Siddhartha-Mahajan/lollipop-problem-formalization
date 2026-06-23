@@ -51,6 +51,10 @@ recommends:
 * The reduced chamber-genericity input is now assembled by
   `Lower.GenericityPort.ChamberGenericityAvoidancePieces.toChamberGenericityAvoidance`
   from the triple-contact and parallel-stem pieces.
+* On June 23, 2026, the quotient-level component-fibre bookkeeping for the
+  planar insertion proof was added as
+  `Lollipop.Concrete.EndToEnd.ComponentFibers`: one-component split data now
+  give the `+1` component-count inequality and exact split data give equality.
 * On June 23, 2026, the `n = 0` instances of the planar-topology package were
   proved directly: component finiteness, the arbitrary upper inequality, and
   the generic Euler equation.

@@ -42,7 +42,9 @@ structures:
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation.  The `n = 0` instances of component finiteness, the
   arbitrary upper inequality, and the generic Euler equation are proved in
-  `Lollipop/Concrete/EndToEnd/PlanarTopology.lean`;
+  `Lollipop/Concrete/EndToEnd/PlanarTopology.lean`.  The quotient-level
+  component-fibre bookkeeping for one-component insertions is proved in
+  `Lollipop/Concrete/EndToEnd/ComponentFibers.lean`;
 - Pair geometry is no longer a port: the universal `2+2+2+1` pair bound,
   close-pair saving, intriguing-pair saving, combined close/intriguing saving,
   and Paulsen inflated five-circle forcing are proved in
@@ -82,7 +84,7 @@ The concrete endpoint was also checked with:
 lake build Lollipop.Concrete.EndToEnd
 ```
 
-That build completed successfully on June 23, 2026 with 3335 jobs.
+That build completed successfully on June 23, 2026 with 3336 jobs.
 
 The concrete endpoint axiom print is:
 
