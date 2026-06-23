@@ -103,6 +103,12 @@ def unitRadial (L : Lollipop) : Point := L.radius⁻¹ • L.radial
   rw [abs_of_pos L.radius_pos]
   exact inv_mul_cancel₀ L.radius_ne_zero
 
+theorem unitRadial_ne_zero (L : Lollipop) : L.unitRadial ≠ 0 := by
+  intro h
+  have hnorm := L.norm_unitRadial
+  rw [h, norm_zero] at hnorm
+  norm_num at hnorm
+
 theorem radial_eq_radius_smul_unitRadial (L : Lollipop) :
     L.radial = L.radius • L.unitRadial := by
   simp [unitRadial, smul_smul, L.radius_ne_zero]

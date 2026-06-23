@@ -33,6 +33,14 @@ def pairPiece (L M : Lollipop) (k : Fin 4) : Set Sphere2 :=
   | 2 => hatPiece (cr L M)
   | _ => hatPiece (rr L M)
 
+/-- Three-piece decomposition used for close pairs, where the two mixed
+primitive intersections are counted together. -/
+def closePairPiece (L M : Lollipop) (k : Fin 3) : Set Sphere2 :=
+  match k.1 with
+  | 0 => hatPiece (cc L M)
+  | 1 => hatPiece (cr L M ∪ rc L M)
+  | _ => hatPiece (rr L M)
+
 @[simp] theorem infinity_mem_hatPiece (S : Set Point) :
     infinity ∈ hatPiece S := by
   simp [hatPiece]
@@ -78,6 +86,45 @@ theorem hatPairIntersection_eq_iUnion_pairPiece (L M : Lollipop) :
     rcases Set.mem_iUnion.mp hx with ⟨k, hk⟩
     fin_cases k <;> simp [pairPiece] at hk ⊢ <;> tauto
 
+/-- Close-pair decomposition with the two mixed pieces merged. -/
+theorem hatPairIntersection_decompose_close (L M : Lollipop) :
+    hatPairIntersection L M =
+      hatPiece (cc L M) ∪ hatPiece (cr L M ∪ rc L M) ∪
+        hatPiece (rr L M) := by
+  ext x
+  cases x using OnePoint.rec with
+  | infty =>
+      change infinity ∈ hatPairIntersection L M ↔
+        infinity ∈
+          hatPiece (cc L M) ∪ hatPiece (cr L M ∪ rc L M) ∪
+            hatPiece (rr L M)
+      constructor
+      · intro _h
+        simp [hatPiece]
+      · intro _h
+        exact infinity_mem_hatPairIntersection L M
+  | coe p =>
+      change finitePoint p ∈ hatPairIntersection L M ↔
+        finitePoint p ∈
+          hatPiece (cc L M) ∪ hatPiece (cr L M ∪ rc L M) ∪
+            hatPiece (rr L M)
+      simp [hatPairIntersection, hatPiece, cc, rc, cr, rr, Lollipop.carrier]
+      tauto
+
+theorem hatPairIntersection_eq_iUnion_closePairPiece (L M : Lollipop) :
+    hatPairIntersection L M = ⋃ k : Fin 3, closePairPiece L M k := by
+  rw [hatPairIntersection_decompose_close]
+  ext x
+  constructor
+  · intro hx
+    rcases hx with (hcc | hmix) | hrr
+    · exact Set.mem_iUnion.mpr ⟨0, by simpa [closePairPiece] using hcc⟩
+    · exact Set.mem_iUnion.mpr ⟨1, by simpa [closePairPiece] using hmix⟩
+    · exact Set.mem_iUnion.mpr ⟨2, by simpa [closePairPiece] using hrr⟩
+  · intro hx
+    rcases Set.mem_iUnion.mp hx with ⟨k, hk⟩
+    fin_cases k <;> simp [closePairPiece] at hk ⊢ <;> tauto
+
 /-- Close means the smaller angle between actual stem directions is at most a
 right angle. -/
 def Close (L M : Lollipop) : Prop :=
@@ -117,6 +164,287 @@ def Intriguing (L M : Lollipop) : Prop :=
   · exact Or.inr (by nlinarith)
   · exact Or.inl hdisj
   · exact Or.inr (by nlinarith)
+
+def normSqPoint (x : Point) : ℝ :=
+  TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2 (R2.ofPoint x)
+
+@[simp] theorem dotPoint_add_left (x y z : Point) :
+    dotPoint (x + y) z = dotPoint x z + dotPoint y z := by
+  unfold dotPoint
+  simp
+  ring
+
+@[simp] theorem dotPoint_add_right (x y z : Point) :
+    dotPoint x (y + z) = dotPoint x y + dotPoint x z := by
+  rw [dotPoint_comm, dotPoint_add_left, dotPoint_comm y x, dotPoint_comm z x]
+
+@[simp] theorem dotPoint_sub_left (x y z : Point) :
+    dotPoint (x - y) z = dotPoint x z - dotPoint y z := by
+  unfold dotPoint
+  simp
+  ring
+
+@[simp] theorem dotPoint_sub_right (x y z : Point) :
+    dotPoint x (y - z) = dotPoint x y - dotPoint x z := by
+  rw [dotPoint_comm, dotPoint_sub_left, dotPoint_comm y x, dotPoint_comm z x]
+
+@[simp] theorem dotPoint_smul_left (a : ℝ) (x y : Point) :
+    dotPoint (a • x) y = a * dotPoint x y := by
+  unfold dotPoint
+  simp
+  ring
+
+@[simp] theorem dotPoint_smul_right (a : ℝ) (x y : Point) :
+    dotPoint x (a • y) = a * dotPoint x y := by
+  rw [dotPoint_comm, dotPoint_smul_left, dotPoint_comm y x]
+
+theorem normSqPoint_eq_norm_sq (x : Point) :
+    normSqPoint x = ‖x‖ ^ 2 := by
+  calc
+    normSqPoint x =
+        TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2 (R2.ofPoint x) := rfl
+    _ = ‖R2.toPoint (R2.ofPoint x)‖ ^ 2 := by
+          rw [← R2.norm_sq_toPoint]
+    _ = ‖x‖ ^ 2 := by simp
+
+@[simp] theorem normSqPoint_unitRadial (L : Lollipop) :
+    normSqPoint L.unitRadial = 1 := by
+  rw [normSqPoint_eq_norm_sq, L.norm_unitRadial]
+  norm_num
+
+theorem dotPoint_sq_le_normSqPoint_mul_normSqPoint (x y : Point) :
+    dotPoint x y ^ 2 ≤ normSqPoint x * normSqPoint y := by
+  unfold dotPoint normSqPoint
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2 R2.ofPoint
+  nlinarith [sq_nonneg (x 0 * y 1 - x 1 * y 0)]
+
+theorem dotPoint_le_of_normSqPoint_eq_of_unit
+    {x u : Point} {r : ℝ}
+    (hr : 0 ≤ r)
+    (hx : normSqPoint x = r ^ 2)
+    (hu : normSqPoint u = 1) :
+    dotPoint x u ≤ r := by
+  have hcs := dotPoint_sq_le_normSqPoint_mul_normSqPoint x u
+  rw [hx, hu, mul_one] at hcs
+  by_cases hdot : dotPoint x u ≤ 0
+  · exact hdot.trans hr
+  · have hdot0 : 0 < dotPoint x u := lt_of_not_ge hdot
+    nlinarith [sq_nonneg (dotPoint x u - r)]
+
+def radialStemPoint (L : Lollipop) (q : ℝ) : Point :=
+  L.center + q • L.unitRadial
+
+theorem mem_stem_iff_exists_radius_le (L : Lollipop) (x : Point) :
+    x ∈ L.stem ↔
+      ∃ q : ℝ, L.radius ≤ q ∧ x = radialStemPoint L q := by
+  rw [L.stem_eq_stemByDistance]
+  rfl
+
+@[simp] theorem radialStemPoint_sub_center (L : Lollipop) (q : ℝ) :
+    radialStemPoint L q - L.center = q • L.unitRadial := by
+  simp [radialStemPoint]
+
+theorem normSq_radialStemPoint_sub_center
+    (L M : Lollipop) (q : ℝ) :
+    normSqPoint (radialStemPoint L q - M.center) =
+      q ^ 2 -
+        2 * q * dotPoint (M.center - L.center) L.unitRadial +
+        normSqPoint (M.center - L.center) := by
+  unfold radialStemPoint normSqPoint dotPoint
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2 R2.ofPoint
+  simp
+  have hu := normSqPoint_unitRadial L
+  unfold normSqPoint TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2 R2.ofPoint at hu
+  simp at hu
+  nlinarith
+
+theorem radialStemPoint_injective (L : Lollipop) :
+    Function.Injective (radialStemPoint L) := by
+  intro q p hqp
+  have hsmul : q • L.unitRadial = p • L.unitRadial := by
+    simpa [radialStemPoint] using hqp
+  have hsub : (q - p) • L.unitRadial = 0 := by
+    rw [sub_smul, sub_eq_zero]
+    exact hsmul
+  by_contra hne
+  have hscalar : q - p ≠ 0 := sub_ne_zero.mpr hne
+  rcases smul_eq_zero.mp hsub with hzero | hzero
+  · exact hscalar hzero
+  · exact L.unitRadial_ne_zero hzero
+
+theorem center_projection_gt_radius_of_two_stem_circle_points
+    {L M : Lollipop} {x y : Point}
+    (hxstem : x ∈ L.stem) (hxcircle : x ∈ M.circle)
+    (hystem : y ∈ L.stem) (hycircle : y ∈ M.circle)
+    (hxy : x ≠ y) :
+    L.radius < dotPoint (M.center - L.center) L.unitRadial := by
+  rcases (mem_stem_iff_exists_radius_le L x).1 hxstem with
+    ⟨q, hq, rfl⟩
+  rcases (mem_stem_iff_exists_radius_le L y).1 hystem with
+    ⟨p, hp, rfl⟩
+  have hqp : q ≠ p := by
+    intro h
+    apply hxy
+    simpa [h]
+  have hxnorm :
+      normSqPoint (radialStemPoint L q - M.center) = M.radius ^ 2 := by
+    rw [normSqPoint_eq_norm_sq]
+    have hx := hxcircle
+    change ‖radialStemPoint L q - M.center‖ = M.radius at hx
+    rw [hx]
+  have hynorm :
+      normSqPoint (radialStemPoint L p - M.center) = M.radius ^ 2 := by
+    rw [normSqPoint_eq_norm_sq]
+    have hy := hycircle
+    change ‖radialStemPoint L p - M.center‖ = M.radius at hy
+    rw [hy]
+  rw [normSq_radialStemPoint_sub_center L M q] at hxnorm
+  rw [normSq_radialStemPoint_sub_center L M p] at hynorm
+  let a := dotPoint (M.center - L.center) L.unitRadial
+  have hfactor : (q - p) * (q + p - 2 * a) = 0 := by
+    dsimp [a]
+    nlinarith
+  have hsum : q + p = 2 * a := by
+    rcases mul_eq_zero.mp hfactor with hzero | hzero
+    · exact (hqp (sub_eq_zero.mp hzero)).elim
+    · nlinarith
+  by_contra hnot
+  have ha : a ≤ L.radius := le_of_not_gt hnot
+  have hqr : q = L.radius := by nlinarith
+  have hpr : p = L.radius := by nlinarith
+  exact hqp (hqr.trans hpr.symm)
+
+theorem cr_symm_rc (L M : Lollipop) : cr L M = rc M L := by
+  simp [cr, rc, inter_comm]
+
+theorem cc_symm (L M : Lollipop) : cc L M = cc M L := by
+  simp [cc, inter_comm]
+
+theorem cr_eq_empty_of_close_of_two_rc_points
+    {L M : Lollipop}
+    (hclose : Close L M)
+    {x y : Point}
+    (hx : x ∈ rc L M) (hy : y ∈ rc L M) (hxy : x ≠ y) :
+    cr L M = ∅ := by
+  have hproj :
+      L.radius < dotPoint (M.center - L.center) L.unitRadial :=
+    center_projection_gt_radius_of_two_stem_circle_points
+      hx.1 hx.2 hy.1 hy.2 hxy
+  ext z
+  constructor
+  · intro hz
+    have hzLcircle : z ∈ L.circle := hz.1
+    have hzMstem : z ∈ M.stem := hz.2
+    rcases (mem_stem_iff_exists_radius_le M z).1 hzMstem with
+      ⟨t, ht, rfl⟩
+    have htpos : 0 < t := lt_of_lt_of_le M.radius_pos ht
+    have hdotuv : 0 ≤ dotPoint M.unitRadial L.unitRadial := by
+      have hclose' : Close M L := (close_symm L M).1 hclose
+      simpa [Close, dotPoint, TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2,
+        R2.ofPoint] using hclose'
+    have hexpand :
+        dotPoint (radialStemPoint M t - L.center) L.unitRadial =
+          dotPoint (M.center - L.center) L.unitRadial +
+            t * dotPoint M.unitRadial L.unitRadial := by
+      simp [radialStemPoint]
+      ring
+    have hgt :
+        L.radius < dotPoint (radialStemPoint M t - L.center) L.unitRadial := by
+      rw [hexpand]
+      nlinarith
+    have hnorm :
+        normSqPoint (radialStemPoint M t - L.center) = L.radius ^ 2 := by
+      rw [normSqPoint_eq_norm_sq]
+      have hz' := hzLcircle
+      change ‖radialStemPoint M t - L.center‖ = L.radius at hz'
+      rw [hz']
+    have hle :
+        dotPoint (radialStemPoint M t - L.center) L.unitRadial ≤ L.radius :=
+      dotPoint_le_of_normSqPoint_eq_of_unit L.radius_pos.le hnorm
+        (normSqPoint_unitRadial L)
+    exact False.elim ((not_lt_of_ge hle) hgt)
+  · intro hz
+    simp at hz
+
+theorem rc_eq_empty_of_close_of_two_cr_points
+    {L M : Lollipop}
+    (hclose : Close L M)
+    {x y : Point}
+    (hx : x ∈ cr L M) (hy : y ∈ cr L M) (hxy : x ≠ y) :
+    rc L M = ∅ := by
+  have hclose' : Close M L := (close_symm L M).1 hclose
+  have hx' : x ∈ rc M L := by simpa [cr_symm_rc] using hx
+  have hy' : y ∈ rc M L := by simpa [cr_symm_rc] using hy
+  have h := cr_eq_empty_of_close_of_two_rc_points hclose' hx' hy' hxy
+  simpa [cr_symm_rc] using h
+
+theorem exists_two_distinct_of_finite_ncard_eq_two
+    {S : Set Point} (hfin : S.Finite) (hcard : S.ncard = 2) :
+    ∃ x ∈ S, ∃ y ∈ S, x ≠ y := by
+  classical
+  have hcard' : hfin.toFinset.card = 2 := by
+    simpa [Set.ncard_eq_toFinset_card S hfin] using hcard
+  obtain ⟨x, y, hxy, hset⟩ := Finset.card_eq_two.mp hcard'
+  refine ⟨x, ?_, y, ?_, hxy⟩
+  · exact hfin.mem_toFinset.mp (by simpa [hset])
+  · exact hfin.mem_toFinset.mp (by simpa [hset])
+
+theorem mixed_union_ncard_le_two
+    {L M : Lollipop} (hclose : Close L M) :
+    (cr L M ∪ rc L M).ncard ≤ 2 := by
+  have hcrfin := finite_circle_ray_intersection L M
+  have hrcfin := finite_ray_circle_intersection L M
+  have hcrle := circle_ray_intersection_ncard_le_two L M
+  have hrcle : (rc L M).ncard ≤ 2 := by
+    simpa [rc, cr, inter_comm] using circle_ray_intersection_ncard_le_two M L
+  have hunion :
+      (cr L M ∪ rc L M).ncard ≤ (cr L M).ncard + (rc L M).ncard :=
+    Set.ncard_union_le (cr L M) (rc L M)
+  by_cases hrc1 : (rc L M).ncard ≤ 1
+  · by_cases hcr1 : (cr L M).ncard ≤ 1
+    · omega
+    · have hcr2 : (cr L M).ncard = 2 := by omega
+      rcases exists_two_distinct_of_finite_ncard_eq_two hcrfin hcr2 with
+        ⟨x, hx, y, hy, hxy⟩
+      have hempty := rc_eq_empty_of_close_of_two_cr_points hclose hx hy hxy
+      have hrc0 : (rc L M).ncard = 0 := by simp [hempty]
+      omega
+  · have hrc2 : (rc L M).ncard = 2 := by omega
+    rcases exists_two_distinct_of_finite_ncard_eq_two hrcfin hrc2 with
+      ⟨x, hx, y, hy, hxy⟩
+    have hempty := cr_eq_empty_of_close_of_two_rc_points hclose hx hy hxy
+    have hcr0 : (cr L M).ncard = 0 := by
+      rw [hempty]
+      simp
+    omega
+
+theorem componentCount_hatPiece_mixed_sub_one_le_two
+    {L M : Lollipop} (hclose : Close L M) :
+    componentCount (hatPiece (cr L M ∪ rc L M)) - 1 ≤ 2 := by
+  have hfin : (cr L M ∪ rc L M).Finite :=
+    (finite_circle_ray_intersection L M).union
+      (finite_ray_circle_intersection L M)
+  rw [hatPiece, componentCount_finiteLift_union_infinity_sub_one hfin]
+  exact mixed_union_ncard_le_two hclose
+
+theorem componentCount_hatPiece_sub_one_eq_ncard_of_finite
+    {S : Set Point} (hfin : S.Finite) :
+    componentCount (hatPiece S) - 1 = S.ncard := by
+  simpa [hatPiece] using
+    componentCount_finiteLift_union_infinity_sub_one hfin
+
+theorem centerDistSq_eq_normSqPoint (L M : Lollipop) :
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+        (R2.ofPoint L.center) (R2.ofPoint M.center) =
+      normSqPoint (M.center - L.center) := by
+  unfold normSqPoint TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2 R2.ofPoint
+  simp [Pi.sub_apply]
+  ring
 
 /-- If two concrete lollipop circles meet, the distance between their centers
 is at most the sum of their radii. -/
@@ -681,14 +1009,51 @@ theorem pairExcessNat_le_seven (L M : Lollipop) :
       (componentCount (hatPiece (rr L M)) - 1) ≤ 7
   omega
 
+/-- Close-pair saving proved from the concrete mixed-intersection geometry. -/
+theorem pairExcessNat_le_five_of_close
+    {L M : Lollipop} (hclose : Close L M) :
+    pairExcessNat L M ≤ 5 := by
+  let S : Fin 3 → Set Sphere2 := closePairPiece L M
+  haveI (k : Fin 3) : Finite (ConnectedComponents (S k)) := by
+    fin_cases k
+    · change Finite (ConnectedComponents (hatPiece (cc L M)))
+      exact finite_components_hatPiece_cc L M
+    · change Finite (ConnectedComponents (hatPiece (cr L M ∪ rc L M)))
+      exact finite_connectedComponents_finiteLift_union_infinity
+        ((finite_circle_ray_intersection L M).union
+          (finite_ray_circle_intersection L M))
+    · change Finite (ConnectedComponents (hatPiece (rr L M)))
+      exact finite_components_hatPiece_rr L M
+  have hcommon : ∀ k : Fin 3, infinity ∈ S k := by
+    intro k
+    fin_cases k <;> simp [S, closePairPiece]
+  have hunion :
+      componentCount (⋃ k : Fin 3, S k) - 1 ≤
+        ∑ k : Fin 3, (componentCount (S k) - 1) :=
+    componentCount_iUnion_sub_one_le_sum_sub_one infinity hcommon
+  have hccHat : componentCount (hatPiece (cc L M)) - 1 ≤ 2 := by
+    simpa [hatPiece] using EuclideanPort.circle_circle_components_le_two L M
+  have hmixHat :
+      componentCount (hatPiece (cr L M ∪ rc L M)) - 1 ≤ 2 :=
+    componentCount_hatPiece_mixed_sub_one_le_two hclose
+  have hrrHat : componentCount (hatPiece (rr L M)) - 1 ≤ 1 := by
+    simpa [hatPiece] using EuclideanPort.ray_ray_components_le_one L M
+  unfold pairExcessNat
+  rw [hatPairIntersection_eq_iUnion_closePairPiece]
+  refine hunion.trans ?_
+  rw [Fin.sum_univ_three]
+  change
+    (componentCount (hatPiece (cc L M)) - 1) +
+      (componentCount (hatPiece (cr L M ∪ rc L M)) - 1) +
+      (componentCount (hatPiece (rr L M)) - 1) ≤ 5
+  omega
+
 /-- Remaining concrete pair-geometry theorem package.
 
 These fields are the remaining robust pair-excess savings used by the colored
 Turan backend.  They are stated for the concrete lollipop carrier/intersection
 semantics, including degeneracies. -/
 structure PairGeometryPorts : Prop where
-  pairExcess_le_five_of_close :
-    ∀ {L M : Lollipop}, Close L M → pairExcess L M ≤ 5
   pairExcess_le_five_of_intriguing_near :
     ∀ {L M : Lollipop},
       TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
@@ -788,9 +1153,10 @@ theorem pairExcess_le_four_of_cr_empty_rr_empty
     hcr_empty hrr_empty
 
 /-- Close-pair saving. -/
-theorem pairExcess_le_five_of_close (ports : PairGeometryPorts)
-    {L M : Lollipop} (hclose : Close L M) : pairExcess L M ≤ 5 :=
-  ports.pairExcess_le_five_of_close hclose
+theorem pairExcess_le_five_of_close
+    {L M : Lollipop} (hclose : Close L M) : pairExcess L M ≤ 5 := by
+  unfold pairExcess
+  exact_mod_cast pairExcessNat_le_five_of_close hclose
 
 /-- Intriguing-pair saving. -/
 theorem pairExcess_le_five_of_intriguing (ports : PairGeometryPorts)

@@ -74,8 +74,7 @@ noncomputable def pairwiseGeometricLollipopUpper
     exact PairGeometry.pairExcess_le_seven (A i) (A j)
   cross_le_close := by
     intro i j hij hclose
-    exact PairGeometry.pairExcess_le_five_of_close
-      ports.pairGeometry hclose
+    exact PairGeometry.pairExcess_le_five_of_close hclose
   cross_le_intriguing := by
     intro i j hij hintr
     exact PairGeometry.pairExcess_le_five_of_intriguing
