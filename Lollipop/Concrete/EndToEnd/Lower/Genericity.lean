@@ -213,6 +213,79 @@ def parallelBadUnion {n : ℕ} : Set (ArrangementParameter n) :=
 def allBad {n : ℕ} : Set (ArrangementParameter n) :=
   pairBadUnion ∪ (anchorBadUnion ∪ (tripleBadUnion ∪ parallelBadUnion))
 
+theorem isOpen_compl_parallelBadSet {n : ℕ}
+    (i j : Fin n) (hij : i ≠ j) :
+    IsOpen ((parallelBadSet i j hij : Set (ArrangementParameter n))ᶜ) := by
+  have hdet : Continuous (fun p : ArrangementParameter n =>
+      detPoint ((p i).toLollipop).radial ((p j).toLollipop).radial) :=
+    continuous_detPoint_comp
+      (continuous_lollipop_radial_comp
+        (continuous_toLollipop.comp (continuous_apply i)))
+      (continuous_lollipop_radial_comp
+        (continuous_toLollipop.comp (continuous_apply j)))
+  rw [show ((parallelBadSet i j hij : Set (ArrangementParameter n))ᶜ) =
+      {p : ArrangementParameter n |
+        detPoint ((p i).toLollipop).radial
+          ((p j).toLollipop).radial ≠ 0} by
+    ext p
+    change (¬ detPoint ((p i).toLollipop).radial
+        ((p j).toLollipop).radial = 0) ↔
+      detPoint ((p i).toLollipop).radial
+        ((p j).toLollipop).radial ≠ 0
+    rfl]
+  exact isOpen_ne_fun hdet continuous_const
+
+theorem isOpen_compl_parallelBadUnion {n : ℕ} :
+    IsOpen ((parallelBadUnion : Set (ArrangementParameter n))ᶜ) := by
+  unfold parallelBadUnion
+  simp only [Set.compl_iUnion]
+  apply isOpen_iInter_of_finite
+  intro i
+  apply isOpen_iInter_of_finite
+  intro j
+  apply isOpen_iInter_of_finite
+  intro hij
+  exact isOpen_compl_parallelBadSet i j hij
+
+theorem dense_compl_allBad_of_piece_complements {n : ℕ}
+    (hpairOpen : IsOpen ((pairBadUnion : Set (ArrangementParameter n))ᶜ))
+    (hpairDense : Dense ((pairBadUnion : Set (ArrangementParameter n))ᶜ))
+    (hanchorOpen : IsOpen ((anchorBadUnion : Set (ArrangementParameter n))ᶜ))
+    (hanchorDense : Dense ((anchorBadUnion : Set (ArrangementParameter n))ᶜ))
+    (htripleOpen : IsOpen ((tripleBadUnion : Set (ArrangementParameter n))ᶜ))
+    (htripleDense : Dense ((tripleBadUnion : Set (ArrangementParameter n))ᶜ))
+    (hparallelDense : Dense ((parallelBadUnion : Set (ArrangementParameter n))ᶜ)) :
+    Dense ((allBad : Set (ArrangementParameter n))ᶜ) := by
+  have htp : Dense
+      (((tripleBadUnion : Set (ArrangementParameter n))ᶜ) ∩
+        ((parallelBadUnion : Set (ArrangementParameter n))ᶜ)) :=
+    htripleDense.inter_of_isOpen_left hparallelDense htripleOpen
+  have hatp : Dense
+      (((anchorBadUnion : Set (ArrangementParameter n))ᶜ) ∩
+        (((tripleBadUnion : Set (ArrangementParameter n))ᶜ) ∩
+          ((parallelBadUnion : Set (ArrangementParameter n))ᶜ))) :=
+    hanchorDense.inter_of_isOpen_left htp hanchorOpen
+  have hall : Dense
+      (((pairBadUnion : Set (ArrangementParameter n))ᶜ) ∩
+        (((anchorBadUnion : Set (ArrangementParameter n))ᶜ) ∩
+          (((tripleBadUnion : Set (ArrangementParameter n))ᶜ) ∩
+            ((parallelBadUnion : Set (ArrangementParameter n))ᶜ)))) :=
+    hpairDense.inter_of_isOpen_left hatp hpairOpen
+  simpa [allBad, Set.compl_union, Set.inter_assoc] using hall
+
+/-- Piecewise version of the genericity avoidance theorem.  The parallel
+openness field is proved by `isOpen_compl_parallelBadUnion`; the remaining
+fields isolate the semialgebraic density/closedness work still needed for the
+pair, anchor, and triple loci. -/
+structure GenericityAvoidancePieces (n : ℕ) : Prop where
+  pair_open : IsOpen ((pairBadUnion : Set (ArrangementParameter n))ᶜ)
+  pair_dense : Dense ((pairBadUnion : Set (ArrangementParameter n))ᶜ)
+  anchor_open : IsOpen ((anchorBadUnion : Set (ArrangementParameter n))ᶜ)
+  anchor_dense : Dense ((anchorBadUnion : Set (ArrangementParameter n))ᶜ)
+  triple_open : IsOpen ((tripleBadUnion : Set (ArrangementParameter n))ᶜ)
+  triple_dense : Dense ((tripleBadUnion : Set (ArrangementParameter n))ᶜ)
+  parallel_dense : Dense ((parallelBadUnion : Set (ArrangementParameter n))ᶜ)
+
 /-- Membership constructor for the pair-tangency part of `allBad`. -/
 theorem mem_allBad_of_pairBad {n : ℕ}
     (i j : Fin n) (hij : i ≠ j) (ki kj : PrimitiveKind)
@@ -389,6 +462,15 @@ certificate for the final endpoint.  It records the concrete theorem still to
 prove: the complement of the explicitly defined bad locus is dense. -/
 structure GenericityAvoidance (n : ℕ) : Prop where
   dense_good : Dense ((allBad : Set (ArrangementParameter n))ᶜ)
+
+theorem GenericityAvoidancePieces.toGenericityAvoidance {n : ℕ}
+    (h : GenericityAvoidancePieces n) : GenericityAvoidance n where
+  dense_good :=
+    dense_compl_allBad_of_piece_complements
+      h.pair_open h.pair_dense
+      h.anchor_open h.anchor_dense
+      h.triple_open h.triple_dense
+      h.parallel_dense
 
 end GenericityPort
 

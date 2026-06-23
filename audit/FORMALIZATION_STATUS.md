@@ -47,7 +47,11 @@ structures:
   `Lollipop/Concrete/EndToEnd/PairGeometry.lean`;
 - `GenericityAvoidance`: density of the complement of the finite bad locus;
   points outside that locus are proved generic as
-  `Lower.GenericityPort.good_is_generic`;
+  `Lower.GenericityPort.good_is_generic`.  This is now reduced by
+  `Lower.GenericityPort.GenericityAvoidancePieces.toGenericityAvoidance` to
+  open/dense complement obligations for the named pair, anchor, triple, and
+  parallel bad-locus unions; the open-complement part for the parallel-stem
+  union is proved as `Lower.GenericityPort.isOpen_compl_parallelBadUnion`;
 - blow-up chamber realization is no longer a port: canonical similarity
   transport is proved as `Lower.realizes_similarityTo_iff`, the uniform
   inter-cluster chamber radius is proved as

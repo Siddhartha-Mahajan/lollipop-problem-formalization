@@ -83,7 +83,10 @@ the remaining concrete theorem targets.  The current port boundary is:
   `Lower.BlowUp.preArrangement_realizes_concrete`.
 - `GenericityAvoidance`: density of the complement of the finite bad locus.
   Points outside that locus are proved generic as
-  `Lower.GenericityPort.good_is_generic`.
+  `Lower.GenericityPort.good_is_generic`.  The bad locus is now decomposed by
+  `Lower.GenericityPort.GenericityAvoidancePieces.toGenericityAvoidance`; the
+  complement of the parallel-stem locus is proved open by
+  `Lower.GenericityPort.isOpen_compl_parallelBadUnion`.
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation.
 - Pair geometry is no longer a port.  The universal `2+2+2+1` pair bound,

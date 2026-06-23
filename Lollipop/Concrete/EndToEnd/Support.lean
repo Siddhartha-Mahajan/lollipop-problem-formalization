@@ -31,6 +31,20 @@ def detPoint (u v : Point) : ℝ := u 0 * v 1 - u 1 * v 0
 
 def dotPoint (u v : Point) : ℝ := u 0 * v 0 + u 1 * v 1
 
+theorem continuous_detPoint_comp
+    {X : Type*} [TopologicalSpace X] {u v : X → Point}
+    (hu : Continuous u) (hv : Continuous v) :
+    Continuous (fun x => detPoint (u x) (v x)) := by
+  unfold detPoint
+  fun_prop
+
+theorem continuous_dotPoint_comp
+    {X : Type*} [TopologicalSpace X] {u v : X → Point}
+    (hu : Continuous u) (hv : Continuous v) :
+    Continuous (fun x => dotPoint (u x) (v x)) := by
+  unfold dotPoint
+  fun_prop
+
 @[simp] theorem detPoint_skew (u v : Point) :
     detPoint v u = -detPoint u v := by
   unfold detPoint

@@ -36,6 +36,10 @@ recommends:
   `pairExcess_le_three_of_cc_empty_rc_empty` and
   `pairExcess_le_four_of_rc_empty_rr_empty`; these are ordinary component-count
   consequences and not additional assumptions.
+* On June 23, 2026, the genericity bad-locus assumption was decomposed by
+  `Lower.GenericityPort.GenericityAvoidancePieces.toGenericityAvoidance`; the
+  complement of the parallel-stem bad-locus union is proved open as
+  `Lower.GenericityPort.isOpen_compl_parallelBadUnion`.
 
 ## Verdict
 
