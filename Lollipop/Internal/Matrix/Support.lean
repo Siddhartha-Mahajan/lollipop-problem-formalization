@@ -79,6 +79,59 @@ instance (S : Finset MatrixEdge) (v w : MatrixVertex) :
   unfold SupportAdj
   infer_instance
 
+/-- Column neighbors of a row in the support graph. -/
+def rowNeighbors (S : Finset MatrixEdge) (i : Fin 3) : Finset (Fin 4) :=
+  Finset.univ.filter fun j : Fin 4 => (i, j) ∈ S
+
+/-- Row neighbors of a column in the support graph. -/
+def colNeighbors (S : Finset MatrixEdge) (j : Fin 4) : Finset (Fin 3) :=
+  Finset.univ.filter fun i : Fin 3 => (i, j) ∈ S
+
+@[simp] theorem mem_rowNeighbors_iff
+    (S : Finset MatrixEdge) (i : Fin 3) (j : Fin 4) :
+    j ∈ rowNeighbors S i ↔ (i, j) ∈ S := by
+  simp [rowNeighbors]
+
+@[simp] theorem mem_colNeighbors_iff
+    (S : Finset MatrixEdge) (i : Fin 3) (j : Fin 4) :
+    i ∈ colNeighbors S j ↔ (i, j) ∈ S := by
+  simp [colNeighbors]
+
+@[simp] theorem supportAdj_symm
+    (S : Finset MatrixEdge) (v w : MatrixVertex) :
+    SupportAdj S v w ↔ SupportAdj S w v := by
+  unfold SupportAdj
+  constructor
+  · rintro ⟨hvw, e, he, hv, hw⟩
+    exact ⟨hvw.symm, e, he, hw, hv⟩
+  · rintro ⟨hwv, e, he, hw, hv⟩
+    exact ⟨hwv.symm, e, he, hv, hw⟩
+
+@[simp] theorem supportAdj_row_col_iff
+    (S : Finset MatrixEdge) (i : Fin 3) (j : Fin 4) :
+    SupportAdj S (MatrixVertex.row i) (MatrixVertex.col j) ↔
+      (i, j) ∈ S := by
+  constructor
+  · rintro ⟨_hne, e, he, hi, hj⟩
+    rcases e with ⟨r, c⟩
+    simp [MatrixEdge.Incident, MatrixEdge.rowVertex,
+      MatrixEdge.colVertex] at hi hj
+    subst r
+    subst c
+    exact he
+  · intro he
+    refine ⟨by simp, ⟨(i, j), he, ?_, ?_⟩⟩
+    · simp [MatrixEdge.Incident, MatrixEdge.rowVertex,
+        MatrixEdge.colVertex]
+    · simp [MatrixEdge.Incident, MatrixEdge.rowVertex,
+        MatrixEdge.colVertex]
+
+@[simp] theorem supportAdj_col_row_iff
+    (S : Finset MatrixEdge) (j : Fin 4) (i : Fin 3) :
+    SupportAdj S (MatrixVertex.col j) (MatrixVertex.row i) ↔
+      (i, j) ∈ S := by
+  rw [supportAdj_symm, supportAdj_row_col_iff]
+
 /-- A simple path of length three in a support graph. -/
 def HasSupportPath3 (S : Finset MatrixEdge) : Prop :=
   ∃ v0 v1 v2 v3 : MatrixVertex,
@@ -90,6 +143,48 @@ instance (S : Finset MatrixEdge) : Decidable (HasSupportPath3 S) := by
   unfold HasSupportPath3
   infer_instance
 
+/-- An edge with degree at least two at both endpoints immediately gives a
+simple support path of length three. -/
+theorem hasSupportPath3_of_edge_one_lt_degrees
+    {S : Finset MatrixEdge} {i : Fin 3} {j : Fin 4}
+    (hij : (i, j) ∈ S)
+    (hrow : 1 < (rowNeighbors S i).card)
+    (hcol : 1 < (colNeighbors S j).card) :
+    HasSupportPath3 S := by
+  have hj_mem : j ∈ rowNeighbors S i := by
+    simpa using hij
+  rcases Finset.one_lt_card.mp hrow with ⟨a, ha, b, hb, hab⟩
+  obtain ⟨j', hj', hj'ne⟩ :
+      ∃ j' ∈ rowNeighbors S i, j' ≠ j := by
+    by_cases haj : a = j
+    · exact ⟨b, hb, by
+        intro hbj
+        exact hab (haj.trans hbj.symm)⟩
+    · exact ⟨a, ha, haj⟩
+  have hi_mem : i ∈ colNeighbors S j := by
+    simpa using hij
+  rcases Finset.one_lt_card.mp hcol with ⟨a, ha, b, hb, hab⟩
+  obtain ⟨i', hi', hi'ne⟩ :
+      ∃ i' ∈ colNeighbors S j, i' ≠ i := by
+    by_cases hai : a = i
+    · exact ⟨b, hb, by
+        intro hbi
+        exact hab (hai.trans hbi.symm)⟩
+    · exact ⟨a, ha, hai⟩
+  refine ⟨MatrixVertex.col j', MatrixVertex.row i,
+    MatrixVertex.col j, MatrixVertex.row i', ?_, ?_, ?_, ?_, ?_, ?_,
+    ?_, ?_, ?_⟩
+  · simp
+  · simpa using hj'ne
+  · simp
+  · simp
+  · intro h
+    exact hi'ne (by simpa using h.symm)
+  · simp
+  · simpa using hj'
+  · simpa using hij
+  · simpa using hi'
+
 /-- Computational star-forest predicate for these bipartite supports.  For a
 simple graph, having no simple path of length three is equivalent to every
 component being a star or an isolated vertex. -/
@@ -99,6 +194,19 @@ def IsSupportStarForest (S : Finset MatrixEdge) : Prop :=
 instance (S : Finset MatrixEdge) : Decidable (IsSupportStarForest S) := by
   unfold IsSupportStarForest
   infer_instance
+
+/-- In a star-forest support, every present edge has a degree-one endpoint. -/
+theorem rowNeighbors_card_le_one_or_colNeighbors_card_le_one_of_starForest
+    {S : Finset MatrixEdge} (hstar : IsSupportStarForest S)
+    {i : Fin 3} {j : Fin 4} (hij : (i, j) ∈ S) :
+    (rowNeighbors S i).card ≤ 1 ∨ (colNeighbors S j).card ≤ 1 := by
+  by_contra h
+  have hrow_not : ¬ (rowNeighbors S i).card ≤ 1 := fun hrow =>
+    h (Or.inl hrow)
+  have hcol_not : ¬ (colNeighbors S j).card ≤ 1 := fun hcol =>
+    h (Or.inr hcol)
+  exact hstar (hasSupportPath3_of_edge_one_lt_degrees hij
+    (Nat.lt_of_not_ge hrow_not) (Nat.lt_of_not_ge hcol_not))
 
 /-- The support of the zero matrix is a star forest. -/
 theorem isSupportStarForest_empty :
