@@ -122,14 +122,15 @@ repository:
    Classical.choice,
    Quot.sound,
    Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1,
-   Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1,
-   Lollipop.supportRelabel_card._native.native_decide.ax_1_1]
+   Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1]
   ```
 
   The remaining nonstandard entries are closed finite graph classifications
-  proved with `native_decide`.  They should be replaced by explicit
-  kernel-checked finite proofs or independently justified before claiming the
-  strictest Lean-community verification standard.
+  proved with `native_decide`.  The support-relabel cardinality fact was
+  replaced by an explicit bijection proof on June 23, 2026.  The two remaining
+  finite classifications should be replaced by explicit kernel-checked finite
+  proofs or independently justified before claiming the strictest
+  Lean-community verification standard.
 - Does it prove the claimed theorem: conditionally.  Lean proves the final
   formula from `GeometryCertificates P`; it does not yet construct those
   certificates for the actual Euclidean lollipop model without remaining
@@ -144,12 +145,11 @@ repository:
    Classical.choice,
    Quot.sound,
    Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1,
-   Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1,
-   Lollipop.supportRelabel_card._native.native_decide.ax_1_1]
+   Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1]
   ```
 
   The concrete endpoint now runs the existing colored-Turán backend, so it has
-  the same three finite graph-classification `native_decide` dependencies as
+  the same two finite graph-classification `native_decide` dependencies as
   `Lollipop.Final.theorem_one`.
 
 ## Geometry And Lower Construction

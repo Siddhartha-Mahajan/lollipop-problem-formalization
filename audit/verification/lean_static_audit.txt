@@ -2,7 +2,7 @@ Lean source audit
 =================
 Lean project .lean files (including lakefile.lean): 118
 Lean library source files: 117
-Source lines: 52,766
+Source lines: 52,784
 
 Placeholder/declaration scan after stripping nested comments and strings:
   sorry: 0

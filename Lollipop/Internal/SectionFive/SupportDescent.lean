@@ -52,7 +52,25 @@ theorem supportRelabel_card :
     ∀ (er : Fin 3 ≃ Fin 3) (ec : Fin 4 ≃ Fin 4)
       (S : Finset MatrixEdge),
         (supportRelabel er ec S).card = S.card := by
-  native_decide
+  intro er ec S
+  let f : MatrixEdge → MatrixEdge := fun e => (er e.1, ec e.2)
+  have hf : Function.Injective f := by
+    intro a b h
+    exact Prod.ext (er.injective (congrArg Prod.fst h))
+      (ec.injective (congrArg Prod.snd h))
+  have hrel : supportRelabel er ec S = S.image f := by
+    ext e
+    constructor
+    · intro he
+      refine Finset.mem_image.mpr ?_
+      refine ⟨(er.symm e.1, ec.symm e.2), ?_, ?_⟩
+      · simpa [supportRelabel] using he
+      · simp [f]
+    · intro he
+      rcases Finset.mem_image.mp he with ⟨a, ha, rfl⟩
+      simp [supportRelabel, f, ha]
+  rw [hrel]
+  exact Finset.card_image_of_injective S hf
 
 /-- Relabeling a natural matrix preserves support cardinality. -/
 theorem supportCardNat_relabelNatMatrix

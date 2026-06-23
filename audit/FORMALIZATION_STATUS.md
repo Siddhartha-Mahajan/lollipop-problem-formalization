@@ -79,11 +79,10 @@ The concrete endpoint axiom print is:
  Classical.choice,
  Quot.sound,
  Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1,
- Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1,
- Lollipop.supportRelabel_card._native.native_decide.ax_1_1]
+ Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1]
 ```
 
-The three nonstandard entries come from the existing colored-Turan finite
+The two nonstandard entries come from the existing colored-Turan finite
 graph-classification backend, now used by the concrete upper assembly.
 
 Pinned versions:

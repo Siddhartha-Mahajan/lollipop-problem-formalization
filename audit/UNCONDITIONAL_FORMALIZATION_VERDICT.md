@@ -12,17 +12,18 @@ recommends:
   the intended final target.
 * `lake build Lollipop` was rerun successfully on June 23, 2026 and completed
   all 3338 jobs.
-* Several closed arithmetic/table facts were changed from `native_decide` to
-  ordinary kernel-checked Lean proofs.
+* Several closed arithmetic/table facts and the support-relabel cardinality
+  fact were changed from `native_decide` to ordinary kernel-checked Lean
+  proofs.
 * The refreshed `#print axioms Lollipop.Final.theorem_one` output is recorded
-  verbatim in `README.md`; only three `native_decide` graph-classification
+  verbatim in `README.md`; only two `native_decide` graph-classification
   certificates remain in that public theorem's axiom list.
 * `Lollipop.Concrete.EndToEnd` now builds as a concrete endpoint with explicit
   remaining theorem packages instead of broken placeholder proof scripts.  Its
   endpoint has no `GeometryCertificates` argument.  After the concrete upper
   endpoint was connected to the existing colored-Turan backend,
   `#print axioms Lollipop.Concrete.EndToEnd.lollipopMaximum` reports the same
-  three `native_decide` graph-classification dependencies as
+  two `native_decide` graph-classification dependencies as
   `Lollipop.Final.theorem_one`; these remain to replace before the strictest
   no-trusted-computation claim.
 * On June 23, 2026, Paulsen's inflated five-circle forcing for the concrete
