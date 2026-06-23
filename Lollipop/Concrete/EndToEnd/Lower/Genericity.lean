@@ -572,6 +572,16 @@ theorem GenericityAvoidancePieces.toGenericityAvoidance {n : ℕ}
       h.triple_open h.triple_dense
       h.parallel_dense
 
+theorem GenericityAvoidance.toChamberGenericityAvoidance {n : ℕ}
+    (h : GenericityAvoidance n) : ChamberGenericityAvoidance n where
+  dense_good := by
+    apply Dense.mono ?_ h.dense_good
+    intro p hp hbad
+    apply hp
+    rcases hbad with htriple | hparallel
+    · exact Or.inr (Or.inr (Or.inl htriple))
+    · exact Or.inr (Or.inr (Or.inr hparallel))
+
 theorem not_mem_allBad_of_subsingleton {n : ℕ} [Subsingleton (Fin n)]
     (p : ArrangementParameter n) :
     p ∉ (allBad : Set (ArrangementParameter n)) := by
@@ -621,6 +631,18 @@ theorem genericityAvoidance_zero : GenericityAvoidance 0 :=
 
 theorem genericityAvoidance_one : GenericityAvoidance 1 :=
   genericityAvoidance_of_subsingleton
+
+theorem chamberGenericityAvoidance_of_subsingleton {n : ℕ}
+    [Subsingleton (Fin n)] :
+    ChamberGenericityAvoidance n :=
+  GenericityAvoidance.toChamberGenericityAvoidance
+    genericityAvoidance_of_subsingleton
+
+theorem chamberGenericityAvoidance_zero : ChamberGenericityAvoidance 0 :=
+  chamberGenericityAvoidance_of_subsingleton
+
+theorem chamberGenericityAvoidance_one : ChamberGenericityAvoidance 1 :=
+  chamberGenericityAvoidance_of_subsingleton
 
 end GenericityPort
 
