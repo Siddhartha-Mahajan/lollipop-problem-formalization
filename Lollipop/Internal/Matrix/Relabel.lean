@@ -52,6 +52,56 @@ theorem permSendPairToZeroOne_symm_one
   exact (Equiv.symm_apply_eq (permSendPairToZeroOne zero one a b)).2
     (permSendPairToZeroOne_apply_second zero one a b).symm
 
+/-- A permutation sending `a`, `b`, `c` to `zero`, `one`, `two`
+respectively, under the corresponding distinctness assumptions. -/
+def permSendTripleToZeroOneTwo
+    {α : Type*} [DecidableEq α] (zero one two a b c : α) : Equiv.Perm α :=
+  let p := permSendPairToZeroOne zero one a b
+  p.trans (Equiv.swap (p c) two)
+
+theorem permSendTripleToZeroOneTwo_apply_first
+    {α : Type*} [DecidableEq α] {zero one two a b c : α}
+    (hzeroone : zero ≠ one) (hzerotwo : zero ≠ two)
+    (hab : a ≠ b) (hac : a ≠ c) :
+    permSendTripleToZeroOneTwo zero one two a b c a = zero := by
+  let p := permSendPairToZeroOne zero one a b
+  have hpa : p a = zero := permSendPairToZeroOne_apply_first hzeroone hab
+  have hpc_ne_zero : p c ≠ zero := by
+    intro hpc
+    have hca : c = a := by
+      apply p.injective
+      rw [hpc, hpa]
+    exact hac hca.symm
+  unfold permSendTripleToZeroOneTwo
+  change (Equiv.swap (p c) two) (p a) = zero
+  rw [hpa]
+  exact Equiv.swap_apply_of_ne_of_ne hpc_ne_zero.symm hzerotwo
+
+theorem permSendTripleToZeroOneTwo_apply_second
+    {α : Type*} [DecidableEq α] {zero one two a b c : α}
+    (honetwo : one ≠ two) (hbc : b ≠ c) :
+    permSendTripleToZeroOneTwo zero one two a b c b = one := by
+  let p := permSendPairToZeroOne zero one a b
+  have hpb : p b = one := permSendPairToZeroOne_apply_second zero one a b
+  have hpc_ne_one : p c ≠ one := by
+    intro hpc
+    have hcb : c = b := by
+      apply p.injective
+      rw [hpc, hpb]
+    exact hbc hcb.symm
+  unfold permSendTripleToZeroOneTwo
+  change (Equiv.swap (p c) two) (p b) = one
+  rw [hpb]
+  exact Equiv.swap_apply_of_ne_of_ne hpc_ne_one.symm honetwo
+
+theorem permSendTripleToZeroOneTwo_apply_third
+    {α : Type*} [DecidableEq α] (zero one two a b c : α) :
+    permSendTripleToZeroOneTwo zero one two a b c c = two := by
+  let p := permSendPairToZeroOne zero one a b
+  unfold permSendTripleToZeroOneTwo
+  change (Equiv.swap (p c) two) (p c) = two
+  exact Equiv.swap_apply_left (p c) two
+
 /-- Relabel rows and columns of a rational `3 x 4` matrix. -/
 def relabelMatrix
     (er : Fin 3 ≃ Fin 3) (ec : Fin 4 ≃ Fin 4)

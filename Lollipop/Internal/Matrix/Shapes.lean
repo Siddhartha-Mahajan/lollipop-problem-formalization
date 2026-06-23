@@ -267,6 +267,61 @@ theorem canonicalShape_of_card_eq_two
           rw [hS, supportRelabel_eq_image]
           simp [shape2_singletons, er, ec, her0, her1, hec0, hec1])
 
+theorem canonicalShape_of_card_eq_three_of_rowNeighbors_card_eq_three
+    {S : Finset MatrixEdge} {i : Fin 3}
+    (hcard : S.card = 3) (hrow : (rowNeighbors S i).card = 3) :
+    IsCanonicalStarForestShape S := by
+  rcases Finset.card_eq_three.mp hrow with
+    ⟨j0, j1, j2, hj01, hj02, hj12, hneighbors⟩
+  have hfiber_card : (S.filter fun e : MatrixEdge => e.1 = i).card = 3 := by
+    rw [rowFiber_card_eq_rowNeighbors_card, hrow]
+  have hfiber_eq : (S.filter fun e : MatrixEdge => e.1 = i) = S :=
+    Finset.eq_of_subset_of_card_le (Finset.filter_subset _ _)
+      (by rw [hcard, hfiber_card])
+  have hj0_mem : j0 ∈ rowNeighbors S i := by rw [hneighbors]; simp
+  have hj1_mem : j1 ∈ rowNeighbors S i := by rw [hneighbors]; simp
+  have hj2_mem : j2 ∈ rowNeighbors S i := by rw [hneighbors]; simp
+  have hS :
+      S = {((i, j0) : MatrixEdge), (i, j1), (i, j2)} := by
+    ext e
+    rcases e with ⟨r, c⟩
+    constructor
+    · intro he
+      have hfilter : (r, c) ∈ S.filter (fun e : MatrixEdge => e.1 = i) := by
+        simpa [hfiber_eq] using he
+      have hri : r = i := (Finset.mem_filter.mp hfilter).2
+      have hc : c ∈ rowNeighbors S i := by
+        simpa [hri] using he
+      rw [hneighbors] at hc
+      simp at hc
+      rcases hc with rfl | rfl | rfl <;> simp [hri]
+    · intro he
+      simp at he
+      rcases he with h | h | h
+      · rcases h with ⟨rfl, rfl⟩
+        simpa using hj0_mem
+      · rcases h with ⟨rfl, rfl⟩
+        simpa using hj1_mem
+      · rcases h with ⟨rfl, rfl⟩
+        simpa using hj2_mem
+  let er : Fin 3 ≃ Fin 3 := Equiv.swap i 0
+  let ec : Fin 4 ≃ Fin 4 :=
+    permSendTripleToZeroOneTwo (0 : Fin 4) (1 : Fin 4) (2 : Fin 4) j0 j1 j2
+  have her0 : er i = (0 : Fin 3) := by simp [er]
+  have hec0 : ec j0 = (0 : Fin 4) :=
+    permSendTripleToZeroOneTwo_apply_first (by decide) (by decide) hj01 hj02
+  have hec1 : ec j1 = (1 : Fin 4) :=
+    permSendTripleToZeroOneTwo_apply_second (by decide) hj12
+  have hec2 : ec j2 = (2 : Fin 4) :=
+    permSendTripleToZeroOneTwo_apply_third (0 : Fin 4) (1 : Fin 4) (2 : Fin 4) j0 j1 j2
+  exact canonicalShape_of_supportRelabel_eq
+    (S := S) (T := shape3_row)
+    (by simp [canonicalStarForestSupports, shape3_row])
+    er ec
+    (by
+      rw [hS, supportRelabel_eq_image]
+      simp [shape3_row, er, ec, her0, hec0, hec1, hec2])
+
 /-- Exhaustive finite classification of star-forest supports in `K_{3,4}`. -/
 theorem isSupportStarForest_iff_canonicalShape :
     ∀ S : Finset MatrixEdge,
