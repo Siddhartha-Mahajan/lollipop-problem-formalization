@@ -28,8 +28,8 @@ def EndToEndPorts.ofFanTopology
     (genericity : ∀ n : ℕ,
       Lower.GenericityPort.ChamberGenericityAvoidance n) :
     EndToEndPorts where
-  upper := UpperPorts.ofFanTopology topology
-  lower := LowerPorts.ofFanTopology topology genericity
+  upper := { topology := topology }
+  lower := { topology := topology, genericity := genericity }
 
 /-- Maximum number of complementary regions for `n` concrete Euclidean
 lollipops. -/

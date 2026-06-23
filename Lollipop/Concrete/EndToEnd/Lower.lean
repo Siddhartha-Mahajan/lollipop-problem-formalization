@@ -28,24 +28,15 @@ These are not caller-facing certificates for an abstract problem family.  They
 are the concrete geometry/topology theorems still to prove: genericity
 avoidance and planar topology. -/
 structure LowerPorts : Prop where
-  topology : PlanarTopologyPorts
+  topology : InsertionFan.FanTopologyPorts
   genericity : ∀ n : ℕ, Lower.GenericityPort.ChamberGenericityAvoidance n
-
-/-- Build the lower-bound port from the sharper insertion-fan topology package
-and the separate chamber-genericity avoidance theorem. -/
-def LowerPorts.ofFanTopology
-    (topology : InsertionFan.FanTopologyPorts)
-    (genericity : ∀ n : ℕ,
-      Lower.GenericityPort.ChamberGenericityAvoidance n) :
-    LowerPorts where
-  topology := topology.toPlanarTopologyPorts
-  genericity := genericity
 
 /-- Every admissible quadruple has a concrete lollipop realization with its
 exact lower region count. -/
 theorem lowerRealization_all (ports : LowerPorts) (n : ℕ) :
     LowerRealization (Arrangement n) regionCountRat n :=
-  Lower.BlowUp.lowerRealization ports.topology.generic_region_eq
+  Lower.BlowUp.lowerRealization
+    ports.topology.toPlanarTopologyPorts.generic_region_eq
     ports.genericity n
 
 /-- The displayed candidate is attained for every size. -/

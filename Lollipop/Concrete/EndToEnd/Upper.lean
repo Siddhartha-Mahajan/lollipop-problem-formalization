@@ -49,13 +49,7 @@ The pair-excess bounds, four-direction close forcing, and five-circle
 intriguing forcing are no longer fields: they are proved in
 `PairGeometry.lean` and above. -/
 structure UpperPorts : Prop where
-  topology : PlanarTopologyPorts
-
-/-- Build the upper-bound port from the sharper insertion-fan topology
-package. -/
-def UpperPorts.ofFanTopology
-    (topology : InsertionFan.FanTopologyPorts) : UpperPorts where
-  topology := topology.toPlanarTopologyPorts
+  topology : InsertionFan.FanTopologyPorts
 
 /-- Concrete arrangement packaged in the geometric upper structure consumed by
 the internal colored-Turan backend. -/
@@ -73,7 +67,7 @@ noncomputable def pairwiseGeometricLollipopUpper
   intriguing_symm := fun i j => PairGeometry.intriguing_symm (A i) (A j)
   cross := pairExcessTable A
   crossings_le_pairSum := by
-    exact ports.topology.crossing_excess_le_pairSum A
+    exact ports.topology.toPlanarTopologyPorts.crossing_excess_le_pairSum A
   cross_le_general := by
     intro i j hij
     exact PairGeometry.pairExcess_le_seven (A i) (A j)
