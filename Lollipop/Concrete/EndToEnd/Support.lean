@@ -600,6 +600,32 @@ theorem component_excess_of_convex_finite_chart_le_one
     rw [componentCount_finiteLift_union_infinity_sub_one hfinite]
     simp [hempty]
 
+/-- Compactified pair intersection is the finite-chart pair crossing set
+together with infinity. -/
+theorem hatPairIntersection_eq_finiteLift_pairCrossingSet_union_infinity
+    (L M : Lollipop) :
+    hatPairIntersection L M = finiteLift (pairCrossingSet L M) ∪ {infinity} := by
+  ext z
+  cases z using OnePoint.rec with
+  | infty =>
+      change infinity ∈ hatPairIntersection L M ↔
+        infinity ∈ finiteLift (pairCrossingSet L M) ∪ {infinity}
+      simp
+  | coe x =>
+      change finitePoint x ∈ hatPairIntersection L M ↔
+        finitePoint x ∈ finiteLift (pairCrossingSet L M) ∪ {infinity}
+      simp [hatPairIntersection, hatCarrier, pairCrossingSet]
+
+/-- When an ordinary pair crossing set is finite, the robust component-excess
+definition reduces to the ordinary finite crossing count. -/
+theorem pairExcessNat_eq_pairCrossingCount_of_finite
+    {L M : Lollipop} (hfinite : (pairCrossingSet L M).Finite) :
+    pairExcessNat L M = pairCrossingCount L M := by
+  rw [pairExcessNat,
+    hatPairIntersection_eq_finiteLift_pairCrossingSet_union_infinity,
+    componentCount_finiteLift_union_infinity_sub_one hfinite]
+  rfl
+
 
 namespace EuclideanPort
 

@@ -30,6 +30,216 @@ def pairIntersectionFan {ι : Type*} (s : Finset ι)
     (A : ι → Lollipop) (L : Lollipop) : Set Sphere2 :=
   pointedFinsetUnion infinity s (fun i => hatPairIntersection (A i) L)
 
+/-- Union of a family of sets over a finite index set. -/
+def finsetSetUnion {ι X : Type*} (s : Finset ι) (S : ι → Set X) :
+    Set X :=
+  ⋃ i : {i // i ∈ s}, S i.1
+
+theorem mem_finsetSetUnion_iff
+    {ι X : Type*} (s : Finset ι) (S : ι → Set X) (x : X) :
+    x ∈ finsetSetUnion s S ↔ ∃ i ∈ s, x ∈ S i := by
+  constructor
+  · intro hx
+    rcases Set.mem_iUnion.mp hx with ⟨i, hi⟩
+    exact ⟨i.1, i.2, hi⟩
+  · rintro ⟨i, hi, hx⟩
+    exact Set.mem_iUnion_of_mem (⟨i, hi⟩ : {i // i ∈ s}) hx
+
+/-- Inserting one index adds one ordinary binary union. -/
+theorem finsetSetUnion_insert
+    {ι X : Type*} [DecidableEq ι]
+    (s : Finset ι) (S : ι → Set X) (a : ι) :
+    finsetSetUnion (insert a s) S = finsetSetUnion s S ∪ S a := by
+  ext x
+  rw [mem_finsetSetUnion_iff, mem_union]
+  constructor
+  · rintro ⟨i, hi, hx⟩
+    rw [Finset.mem_insert] at hi
+    rcases hi with rfl | hi
+    · exact Or.inr hx
+    · exact Or.inl ((mem_finsetSetUnion_iff s S x).2 ⟨i, hi, hx⟩)
+  · rintro (hx | hx)
+    · rcases (mem_finsetSetUnion_iff s S x).1 hx with ⟨i, hi, hx⟩
+      exact ⟨i, Finset.mem_insert_of_mem hi, hx⟩
+    · exact ⟨a, Finset.mem_insert_self a s, hx⟩
+
+/-- A finite union of finite sets is finite. -/
+theorem finite_finsetSetUnion
+    {ι X : Type*} [DecidableEq ι]
+    (s : Finset ι) (S : ι → Set X)
+    (hfinite : ∀ i ∈ s, (S i).Finite) :
+    (finsetSetUnion s S).Finite := by
+  classical
+  revert hfinite
+  refine Finset.induction_on s ?_ ?_
+  · intro _hfinite
+    simp [finsetSetUnion]
+  · intro a s ha ih hfinite
+    have hfiniteS : ∀ i ∈ s, (S i).Finite := by
+      intro i hi
+      exact hfinite i (Finset.mem_insert_of_mem hi)
+    have hfiniteA : (S a).Finite :=
+      hfinite a (Finset.mem_insert_self a s)
+    rw [finsetSetUnion_insert]
+    exact (ih hfiniteS).union hfiniteA
+
+/-- Pairwise disjointness restricted to a finite index set. -/
+def PairwiseDisjointOn {ι X : Type*}
+    (s : Finset ι) (S : ι → Set X) : Prop :=
+  ∀ i ∈ s, ∀ j ∈ s, i ≠ j → Disjoint (S i) (S j)
+
+/-- The cardinality of a finite pairwise-disjoint union is the sum of the
+individual cardinalities. -/
+theorem ncard_finsetSetUnion_eq_sum
+    {ι X : Type*} [DecidableEq ι]
+    (s : Finset ι) (S : ι → Set X)
+    (hfinite : ∀ i ∈ s, (S i).Finite)
+    (hdisjoint : PairwiseDisjointOn s S) :
+    (finsetSetUnion s S).ncard = ∑ i ∈ s, (S i).ncard := by
+  classical
+  revert hfinite hdisjoint
+  refine Finset.induction_on s ?_ ?_
+  · intro _hfinite _hdisjoint
+    simp [finsetSetUnion]
+  · intro a s ha ih hfinite hdisjoint
+    have hfiniteS : ∀ i ∈ s, (S i).Finite := by
+      intro i hi
+      exact hfinite i (Finset.mem_insert_of_mem hi)
+    have hfiniteA : (S a).Finite :=
+      hfinite a (Finset.mem_insert_self a s)
+    have hdisjointS : PairwiseDisjointOn s S := by
+      intro i hi j hj hij
+      exact hdisjoint i (Finset.mem_insert_of_mem hi)
+        j (Finset.mem_insert_of_mem hj) hij
+    have hhead : Disjoint (finsetSetUnion s S) (S a) := by
+      refine Set.disjoint_left.2 ?_
+      intro x hxUnion hxA
+      rcases (mem_finsetSetUnion_iff s S x).1 hxUnion with
+        ⟨i, hi, hxi⟩
+      have hia : i ≠ a := by
+        intro hia
+        subst i
+        exact ha hi
+      have hd : Disjoint (S i) (S a) :=
+        hdisjoint i (Finset.mem_insert_of_mem hi)
+          a (Finset.mem_insert_self a s) hia
+      exact Set.disjoint_left.1 hd hxi hxA
+    have hfiniteUnion : (finsetSetUnion s S).Finite :=
+      finite_finsetSetUnion s S hfiniteS
+    rw [finsetSetUnion_insert,
+      Set.ncard_union_eq hhead hfiniteUnion hfiniteA,
+      ih hfiniteS hdisjointS,
+      Finset.sum_insert ha]
+    omega
+
+/-- Ordinary finite union of old/new carrier intersections. -/
+def ordinaryPairIntersectionUnion {ι : Type*}
+    (s : Finset ι) (A : ι → Lollipop) (L : Lollipop) : Set Point :=
+  finsetSetUnion s (fun i => pairCrossingSet (A i) L)
+
+theorem mem_ordinaryPairIntersectionUnion_iff
+    {ι : Type*} (s : Finset ι) (A : ι → Lollipop)
+    (L : Lollipop) (x : Point) :
+    x ∈ ordinaryPairIntersectionUnion s A L ↔
+      ∃ i ∈ s, x ∈ pairCrossingSet (A i) L := by
+  exact mem_finsetSetUnion_iff s _ x
+
+/-- The pointed compactified fan is the compactification of the ordinary
+finite union of old/new carrier intersections. -/
+theorem pairIntersectionFan_eq_finiteLift_ordinaryPairIntersectionUnion
+    {ι : Type*} (s : Finset ι) (A : ι → Lollipop) (L : Lollipop) :
+    pairIntersectionFan s A L =
+      finiteLift (ordinaryPairIntersectionUnion s A L) ∪ {infinity} := by
+  ext z
+  cases z using OnePoint.rec with
+  | infty =>
+      change infinity ∈ pairIntersectionFan s A L ↔
+        infinity ∈ finiteLift (ordinaryPairIntersectionUnion s A L) ∪
+          {infinity}
+      simp [pairIntersectionFan]
+  | coe x =>
+      change finitePoint x ∈ pairIntersectionFan s A L ↔
+        finitePoint x ∈
+          finiteLift (ordinaryPairIntersectionUnion s A L) ∪ {infinity}
+      rw [pairIntersectionFan,
+        mem_pointedFinsetUnion_iff infinity (finitePoint x) s
+          (fun i => hatPairIntersection (A i) L)]
+      constructor
+      · rintro (hInfinity | ⟨i, hi, hpair⟩)
+        · exact (finitePoint_ne_infinity x hInfinity).elim
+        · apply Or.inl
+          rw [mem_finiteLift_iff]
+          apply (mem_ordinaryPairIntersectionUnion_iff s A L x).2
+          refine ⟨i, hi, ?_⟩
+          simpa [hatPairIntersection, hatCarrier, pairCrossingSet] using hpair
+      · intro hx
+        rcases hx with hx | hInfinity
+        · rw [mem_finiteLift_iff] at hx
+          rcases (mem_ordinaryPairIntersectionUnion_iff s A L x).1 hx with
+            ⟨i, hi, hpair⟩
+          exact Or.inr ⟨i, hi, by
+            simpa [hatPairIntersection, hatCarrier, pairCrossingSet]
+              using hpair⟩
+        · simp at hInfinity
+
+/-- The ordinary pair intersections in a fan are pairwise disjoint. -/
+def PairIntersectionsPairwiseDisjoint {ι : Type*}
+    (s : Finset ι) (A : ι → Lollipop) (L : Lollipop) : Prop :=
+  PairwiseDisjointOn s (fun i => pairCrossingSet (A i) L)
+
+/-- Under finite pair intersections and no triple points, the fan component
+count is exactly one plus the sum of robust pair excesses. -/
+theorem componentCount_pairIntersectionFan_eq_one_add_sum
+    {ι : Type*} [DecidableEq ι]
+    (s : Finset ι) (A : ι → Lollipop) (L : Lollipop)
+    (hfinite : ∀ i ∈ s, (pairCrossingSet (A i) L).Finite)
+    (hdisjoint : PairIntersectionsPairwiseDisjoint s A L) :
+    componentCount (pairIntersectionFan s A L) =
+      1 + ∑ i ∈ s, pairExcessNat (A i) L := by
+  classical
+  have hUnionFinite :
+      (ordinaryPairIntersectionUnion s A L).Finite :=
+    finite_finsetSetUnion s
+      (fun i => pairCrossingSet (A i) L) hfinite
+  have hUnionCard :
+      (ordinaryPairIntersectionUnion s A L).ncard =
+        ∑ i ∈ s, pairCrossingCount (A i) L :=
+    ncard_finsetSetUnion_eq_sum s
+      (fun i => pairCrossingSet (A i) L) hfinite hdisjoint
+  have hcount :
+      componentCount
+          (finiteLift (ordinaryPairIntersectionUnion s A L) ∪ {infinity}) =
+        (ordinaryPairIntersectionUnion s A L).ncard + 1 := by
+    let U : Set Sphere2 :=
+      finiteLift (ordinaryPairIntersectionUnion s A L) ∪ {infinity}
+    change componentCount U =
+      (ordinaryPairIntersectionUnion s A L).ncard + 1
+    have hsub :
+        componentCount U - 1 =
+          (ordinaryPairIntersectionUnion s A L).ncard := by
+      simpa [U] using
+        componentCount_finiteLift_union_infinity_sub_one hUnionFinite
+    haveI : Finite (ConnectedComponents U) := by
+      dsimp [U]
+      exact finite_connectedComponents_finiteLift_union_infinity hUnionFinite
+    haveI : Nonempty (ConnectedComponents U) :=
+      ConnectedComponents.nonempty_iff_nonempty.mpr
+        ⟨⟨infinity, by simp [U]⟩⟩
+    have hpos : 0 < componentCount U := by
+      exact Nat.card_pos
+    omega
+  rw [pairIntersectionFan_eq_finiteLift_ordinaryPairIntersectionUnion,
+    hcount, hUnionCard]
+  have hsum :
+      (∑ i ∈ s, pairCrossingCount (A i) L) =
+        ∑ i ∈ s, pairExcessNat (A i) L := by
+    apply Finset.sum_congr rfl
+    intro i hi
+    exact (pairExcessNat_eq_pairCrossingCount_of_finite
+      (hfinite i hi)).symm
+  rw [hsum]
+  omega
+
 /-- The compactified old/new intersection fan at ordered insertion index `k`. -/
 def insertionFan {n : ℕ} (A : Arrangement n)
     (k : ℕ) (hk : k < n) : Set Sphere2 :=
@@ -177,6 +387,70 @@ theorem componentCount_insertionFan_le_one_add_sum
     componentCount_pairIntersectionFan_le_one_add_sum
       (previousIndices (⟨k, hk⟩ : Fin n)) A (A ⟨k, hk⟩)
 
+/-- Natural exact count for an ordered insertion fan under finite pair
+intersections and no triple points along that insertion. -/
+theorem componentCount_insertionFan_eq_one_add_sum
+    {n : ℕ} {A : Arrangement n} (k : ℕ) (hk : k < n)
+    (hfinite : ∀ i ∈ previousIndices (⟨k, hk⟩ : Fin n),
+      (pairCrossingSet (A i) (A ⟨k, hk⟩)).Finite)
+    (hdisjoint : PairIntersectionsPairwiseDisjoint
+      (previousIndices (⟨k, hk⟩ : Fin n)) A (A ⟨k, hk⟩)) :
+    componentCount (insertionFan A k hk) =
+      1 + ∑ i ∈ previousIndices (⟨k, hk⟩ : Fin n),
+        pairExcessNat (A i) (A ⟨k, hk⟩) := by
+  simpa [insertionFan] using
+    componentCount_pairIntersectionFan_eq_one_add_sum
+      (previousIndices (⟨k, hk⟩ : Fin n)) A (A ⟨k, hk⟩)
+      hfinite hdisjoint
+
+/-- Genericity gives finite previous/new pair intersections. -/
+theorem previous_pair_finite_of_isGeneric
+    {n : ℕ} {A : Arrangement n} (hA : IsGeneric A)
+    (k : ℕ) (hk : k < n) :
+    ∀ i ∈ previousIndices (⟨k, hk⟩ : Fin n),
+      (pairCrossingSet (A i) (A ⟨k, hk⟩)).Finite := by
+  intro i hi
+  have hlt : i < (⟨k, hk⟩ : Fin n) := by
+    simpa [previousIndices] using hi
+  exact hA.pair_finite i ⟨k, hk⟩ (ne_of_lt hlt)
+
+/-- Generic no-triple position gives disjoint previous/new pair
+intersections. -/
+theorem previous_pair_disjoint_of_isGeneric
+    {n : ℕ} {A : Arrangement n} (hA : IsGeneric A)
+    (k : ℕ) (hk : k < n) :
+    PairIntersectionsPairwiseDisjoint
+      (previousIndices (⟨k, hk⟩ : Fin n)) A (A ⟨k, hk⟩) := by
+  intro i hi j hj hij
+  have hik : i < (⟨k, hk⟩ : Fin n) := by
+    simpa [previousIndices] using hi
+  have hjk : j < (⟨k, hk⟩ : Fin n) := by
+    simpa [previousIndices] using hj
+  refine Set.disjoint_left.2 ?_
+  intro x hxi hxj
+  have hno :=
+    hA.no_triple i j ⟨k, hk⟩ hij (ne_of_lt hik) (ne_of_lt hjk)
+  have hxij : x ∈ pairCrossingSet (A i) (A j) := ⟨hxi.1, hxj.1⟩
+  have hxk : x ∈ (A ⟨k, hk⟩).carrier := hxi.2
+  have hxempty : x ∈ (∅ : Set Point) := by
+    have hxinter :
+        x ∈ pairCrossingSet (A i) (A j) ∩
+          (A ⟨k, hk⟩).carrier := ⟨hxij, hxk⟩
+    rw [← hno]
+    exact hxinter
+  simp at hxempty
+
+/-- Generic arrangements have exact ordered insertion fan counts. -/
+theorem componentCount_insertionFan_eq_one_add_sum_of_isGeneric
+    {n : ℕ} {A : Arrangement n} (hA : IsGeneric A)
+    (k : ℕ) (hk : k < n) :
+    componentCount (insertionFan A k hk) =
+      1 + ∑ i ∈ previousIndices (⟨k, hk⟩ : Fin n),
+        pairExcessNat (A i) (A ⟨k, hk⟩) :=
+  componentCount_insertionFan_eq_one_add_sum k hk
+    (previous_pair_finite_of_isGeneric hA k hk)
+    (previous_pair_disjoint_of_isGeneric hA k hk)
+
 /-- `previousPairAdded` is the sum over the filtered set of earlier indices. -/
 theorem previousPairAdded_eq_sum_previousIndices
     {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) :
@@ -197,6 +471,37 @@ theorem natCast_sum_pairExcessNat_eq_previousPairAdded
       TheoremOneManuscript.previousPairAdded (pairExcessTable A) k := by
   rw [previousPairAdded_eq_sum_previousIndices A k hk]
   simp [pairExcess]
+
+/-- Rational exact count for an ordered insertion fan. -/
+theorem componentCount_insertionFan_cast_eq_previousPairAdded_add_one
+    {n : ℕ} {A : Arrangement n} (k : ℕ) (hk : k < n)
+    (hfinite : ∀ i ∈ previousIndices (⟨k, hk⟩ : Fin n),
+      (pairCrossingSet (A i) (A ⟨k, hk⟩)).Finite)
+    (hdisjoint : PairIntersectionsPairwiseDisjoint
+      (previousIndices (⟨k, hk⟩ : Fin n)) A (A ⟨k, hk⟩)) :
+    (componentCount (insertionFan A k hk) : ℚ) =
+      TheoremOneManuscript.previousPairAdded (pairExcessTable A) k + 1 := by
+  have hnat :=
+    componentCount_insertionFan_eq_one_add_sum k hk hfinite hdisjoint
+  calc
+    (componentCount (insertionFan A k hk) : ℚ) =
+        ((1 + ∑ i ∈ previousIndices (⟨k, hk⟩ : Fin n),
+          pairExcessNat (A i) (A ⟨k, hk⟩) : ℕ) : ℚ) := by
+      exact_mod_cast hnat
+    _ = TheoremOneManuscript.previousPairAdded (pairExcessTable A) k + 1 := by
+      rw [Nat.cast_add, Nat.cast_one,
+        natCast_sum_pairExcessNat_eq_previousPairAdded A k hk]
+      ring
+
+/-- Rational exact count for an ordered insertion fan in generic position. -/
+theorem componentCount_insertionFan_cast_eq_previousPairAdded_add_one_of_isGeneric
+    {n : ℕ} {A : Arrangement n} (hA : IsGeneric A)
+    (k : ℕ) (hk : k < n) :
+    (componentCount (insertionFan A k hk) : ℚ) =
+      TheoremOneManuscript.previousPairAdded (pairExcessTable A) k + 1 :=
+  componentCount_insertionFan_cast_eq_previousPairAdded_add_one k hk
+    (previous_pair_finite_of_isGeneric hA k hk)
+    (previous_pair_disjoint_of_isGeneric hA k hk)
 
 /-- Rational form of the insertion-fan component budget. -/
 theorem componentCount_insertionFan_cast_le_previousPairAdded_add_one
