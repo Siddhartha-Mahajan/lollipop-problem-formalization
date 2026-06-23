@@ -187,6 +187,39 @@ theorem card_eq_sum_colNeighbors_card (S : Finset MatrixEdge) :
       (f := fun e : MatrixEdge => e.2) hmaps
   simpa [colFiber_card_eq_colNeighbors_card] using h
 
+theorem exists_one_lt_rowNeighbors_card_of_three_lt_card
+    {S : Finset MatrixEdge} (hcard : 3 < S.card) :
+    ∃ i : Fin 3, 1 < (rowNeighbors S i).card := by
+  by_contra h
+  have hle : ∀ i : Fin 3, (rowNeighbors S i).card ≤ 1 := by
+    intro i
+    exact Nat.le_of_not_gt (by
+      intro hi
+      exact h ⟨i, hi⟩)
+  have hsum := card_eq_sum_rowNeighbors_card S
+  rw [Fin.sum_univ_three] at hsum
+  have h0 := hle 0
+  have h1 := hle 1
+  have h2 := hle 2
+  omega
+
+theorem exists_one_lt_colNeighbors_card_of_four_lt_card
+    {S : Finset MatrixEdge} (hcard : 4 < S.card) :
+    ∃ j : Fin 4, 1 < (colNeighbors S j).card := by
+  by_contra h
+  have hle : ∀ j : Fin 4, (colNeighbors S j).card ≤ 1 := by
+    intro j
+    exact Nat.le_of_not_gt (by
+      intro hj
+      exact h ⟨j, hj⟩)
+  have hsum := card_eq_sum_colNeighbors_card S
+  rw [Fin.sum_univ_four] at hsum
+  have h0 := hle 0
+  have h1 := hle 1
+  have h2 := hle 2
+  have h3 := hle 3
+  omega
+
 @[simp] theorem supportAdj_symm
     (S : Finset MatrixEdge) (v w : MatrixVertex) :
     SupportAdj S v w ↔ SupportAdj S w v := by
@@ -241,8 +274,6 @@ theorem hasSupportPath3_of_edge_one_lt_degrees
     (hrow : 1 < (rowNeighbors S i).card)
     (hcol : 1 < (colNeighbors S j).card) :
     HasSupportPath3 S := by
-  have hj_mem : j ∈ rowNeighbors S i := by
-    simpa using hij
   rcases Finset.one_lt_card.mp hrow with ⟨a, ha, b, hb, hab⟩
   obtain ⟨j', hj', hj'ne⟩ :
       ∃ j' ∈ rowNeighbors S i, j' ≠ j := by
@@ -251,8 +282,6 @@ theorem hasSupportPath3_of_edge_one_lt_degrees
         intro hbj
         exact hab (haj.trans hbj.symm)⟩
     · exact ⟨a, ha, haj⟩
-  have hi_mem : i ∈ colNeighbors S j := by
-    simpa using hij
   rcases Finset.one_lt_card.mp hcol with ⟨a, ha, b, hb, hab⟩
   obtain ⟨i', hi', hi'ne⟩ :
       ∃ i' ∈ colNeighbors S j, i' ≠ i := by
@@ -297,6 +326,15 @@ theorem rowNeighbors_card_le_one_or_colNeighbors_card_le_one_of_starForest
     h (Or.inr hcol)
   exact hstar (hasSupportPath3_of_edge_one_lt_degrees hij
     (Nat.lt_of_not_ge hrow_not) (Nat.lt_of_not_ge hcol_not))
+
+theorem not_mem_of_one_lt_row_col_neighbors_of_starForest
+    {S : Finset MatrixEdge} (hstar : IsSupportStarForest S)
+    {i : Fin 3} {j : Fin 4}
+    (hrow : 1 < (rowNeighbors S i).card)
+    (hcol : 1 < (colNeighbors S j).card) :
+    (i, j) ∉ S := by
+  intro hij
+  exact hstar (hasSupportPath3_of_edge_one_lt_degrees hij hrow hcol)
 
 /-- The support of the zero matrix is a star forest. -/
 theorem isSupportStarForest_empty :
