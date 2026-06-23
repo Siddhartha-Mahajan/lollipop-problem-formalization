@@ -29,7 +29,7 @@ are the concrete geometry/topology theorems still to prove: genericity
 avoidance and planar topology. -/
 structure LowerPorts : Prop where
   topology : PlanarTopologyPorts
-  genericity : ∀ n : ℕ, Lower.GenericityPort.GenericityAvoidance n
+  genericity : ∀ n : ℕ, Lower.GenericityPort.ChamberGenericityAvoidance n
 
 /-- Every admissible quadruple has a concrete lollipop realization with its
 exact lower region count. -/

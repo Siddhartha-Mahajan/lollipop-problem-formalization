@@ -390,14 +390,14 @@ theorem pairCode_crossings_eq_clusterTable {n : ℕ}
 
 /-- Generic concrete realization of one admissible quadruple. -/
 theorem exists_generic_blowUp {n : ℕ}
-    (havoid : GenericityPort.GenericityAvoidance n)
+    (havoid : GenericityPort.ChamberGenericityAvoidance n)
     (q : QuadVec n) (hq : q ∈ quadVecs n) :
     ∃ A : Arrangement n,
       IsGeneric A ∧
       ∀ i j : Fin n, i < j →
         pairCrossingCount (A i) (A j) =
           (pairCode q hq i j).crossings := by
-  exact exists_generic_with_pairCrossingCounts_of_avoidance havoid
+  exact exists_generic_with_pairCrossingCounts_of_chamber_avoidance havoid
     (preArrangement_realizes_concrete q hq)
 
 /-- The generic blow-up crossing sum is exactly the existing clustered table. -/
@@ -419,7 +419,7 @@ theorem totalCrossingsRat_eq_clusteredTable {n : ℕ}
 
 /-- Exact lower crossing total for one admissible quadruple. -/
 theorem exists_generic_crossings_eq_lowerCrossingsOfQuad {n : ℕ}
-    (havoid : GenericityPort.GenericityAvoidance n)
+    (havoid : GenericityPort.ChamberGenericityAvoidance n)
     (q : QuadVec n) (hq : q ∈ quadVecs n) :
     ∃ A : Arrangement n,
       IsGeneric A ∧
@@ -439,7 +439,7 @@ theorem exists_generic_crossings_eq_lowerCrossingsOfQuad {n : ℕ}
 theorem exists_region_eq_lowerRegionsOfQuad {n : ℕ}
     (hregion : ∀ {m : ℕ} {A : Arrangement m}, IsGeneric A →
       regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (m : ℚ) + 1)
-    (havoid : GenericityPort.GenericityAvoidance n)
+    (havoid : GenericityPort.ChamberGenericityAvoidance n)
     (q : QuadVec n) (hq : q ∈ quadVecs n) :
     ∃ A : Arrangement n,
       regionCountRat A = lowerRegionsOfQuad q := by
@@ -453,7 +453,7 @@ theorem exists_region_eq_lowerRegionsOfQuad {n : ℕ}
 theorem lowerRealization
     (hregion : ∀ {m : ℕ} {A : Arrangement m}, IsGeneric A →
       regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (m : ℚ) + 1)
-    (havoid : ∀ n : ℕ, GenericityPort.GenericityAvoidance n) (n : ℕ) :
+    (havoid : ∀ n : ℕ, GenericityPort.ChamberGenericityAvoidance n) (n : ℕ) :
     LowerRealization (Arrangement n) regionCountRat n := by
   intro q hq
   exact exists_region_eq_lowerRegionsOfQuad hregion (havoid n) q hq
@@ -462,7 +462,7 @@ theorem lowerRealization
 theorem lowerCrossingRealization
     (hregion : ∀ {m : ℕ} {A : Arrangement m}, IsGeneric A →
       regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (m : ℚ) + 1)
-    (havoid : ∀ n : ℕ, GenericityPort.GenericityAvoidance n) (n : ℕ) :
+    (havoid : ∀ n : ℕ, GenericityPort.ChamberGenericityAvoidance n) (n : ℕ) :
     LowerCrossingRealization (Arrangement n) regionCountRat
       (fun A => ((totalCrossingsNat A : ℕ) : ℚ)) n := by
   intro q hq

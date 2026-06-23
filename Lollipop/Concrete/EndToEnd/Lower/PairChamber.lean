@@ -295,6 +295,11 @@ def seven : StrictPairCode :=
 @[simp] theorem crossings_five : five.crossings = 5 := by decide
 @[simp] theorem crossings_seven : seven.crossings = 7 := by decide
 
+theorem crossings_pos (code : StrictPairCode) : 0 < code.crossings := by
+  rcases code with ⟨left, right, rayRay⟩
+  cases left <;> cases right <;> cases rayRay <;>
+    norm_num [crossings, MixedCode.crossings]
+
 end StrictPairCode
 
 /-- Strict ray--ray realization.  The lower construction only uses the `true`
@@ -2061,6 +2066,60 @@ theorem pairCrossingCount_eq_of_realizes
     (h : RealizesStrictPairCode code L M) :
     pairCrossingCount L M = code.crossings :=
   PairChamberPort.pairCrossingCount_eq_code h
+
+theorem pairCrossingSet_finite_of_realizes
+    {code : StrictPairCode} {L M : Lollipop}
+    (h : RealizesStrictPairCode code L M) :
+    (pairCrossingSet L M).Finite := by
+  have hcount := pairCrossingCount_eq_of_realizes h
+  unfold pairCrossingCount at hcount
+  exact Set.finite_of_ncard_ne_zero (by
+    rw [hcount]
+    exact Nat.ne_of_gt (StrictPairCode.crossings_pos code))
+
+theorem left_anchor_not_mem_pairCrossingSet_of_realizes
+    {code : StrictPairCode} {L M : Lollipop}
+    (h : RealizesStrictPairCode code L M) :
+    L.anchor ∉ pairCrossingSet L M := by
+  intro hx
+  have hdisj := PairChamberPort.primitive_pieces_pairwise_disjoint h
+  rw [Set.pairwiseDisjoint_iff] at hdisj
+  rcases hx with ⟨_hL, hM⟩
+  rcases hM with hMcircle | hMstem
+  · have hcc : L.anchor ∈ cc L M := ⟨L.anchor_mem_circle, hMcircle⟩
+    have hrc : L.anchor ∈ rc L M := ⟨L.anchor_mem_stem, hMcircle⟩
+    have hidx : (0 : Fin 4) = 1 :=
+      hdisj (i := 0) (by simp) (j := 1) (by simp)
+        ⟨L.anchor, hcc, hrc⟩
+    exact (by decide : (0 : Fin 4) ≠ 1) hidx
+  · have hcr : L.anchor ∈ cr L M := ⟨L.anchor_mem_circle, hMstem⟩
+    have hrr : L.anchor ∈ rr L M := ⟨L.anchor_mem_stem, hMstem⟩
+    have hidx : (2 : Fin 4) = 3 :=
+      hdisj (i := 2) (by simp) (j := 3) (by simp)
+        ⟨L.anchor, hcr, hrr⟩
+    exact (by decide : (2 : Fin 4) ≠ 3) hidx
+
+theorem right_anchor_not_mem_pairCrossingSet_of_realizes
+    {code : StrictPairCode} {L M : Lollipop}
+    (h : RealizesStrictPairCode code L M) :
+    M.anchor ∉ pairCrossingSet L M := by
+  intro hx
+  have hdisj := PairChamberPort.primitive_pieces_pairwise_disjoint h
+  rw [Set.pairwiseDisjoint_iff] at hdisj
+  rcases hx with ⟨hL, _hM⟩
+  rcases hL with hLcircle | hLstem
+  · have hcc : M.anchor ∈ cc L M := ⟨hLcircle, M.anchor_mem_circle⟩
+    have hcr : M.anchor ∈ cr L M := ⟨hLcircle, M.anchor_mem_stem⟩
+    have hidx : (0 : Fin 4) = 2 :=
+      hdisj (i := 0) (by simp) (j := 2) (by simp)
+        ⟨M.anchor, hcc, hcr⟩
+    exact (by decide : (0 : Fin 4) ≠ 2) hidx
+  · have hrc : M.anchor ∈ rc L M := ⟨hLstem, M.anchor_mem_circle⟩
+    have hrr : M.anchor ∈ rr L M := ⟨hLstem, M.anchor_mem_stem⟩
+    have hidx : (1 : Fin 4) = 3 :=
+      hdisj (i := 1) (by simp) (j := 3) (by simp)
+        ⟨M.anchor, hrc, hrr⟩
+    exact (by decide : (1 : Fin 4) ≠ 3) hidx
 
 /-- Transversality exposed outside the port namespace. -/
 theorem primitivePairwiseTransverse_of_realizes

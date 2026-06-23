@@ -14,7 +14,7 @@ theorem Lollipop.Concrete.EndToEnd.lollipopMaximum
 
 This endpoint has no `GeometryCertificates` argument.  Its remaining
 assumptions are explicit concrete theorem packages: `UpperPorts`, `LowerPorts`,
-`GenericityAvoidance`, and `PlanarTopologyPorts`.
+`ChamberGenericityAvoidance`, and `PlanarTopologyPorts`.
 
 A comment/string-stripped static scan reports no `sorry`, `admit`, top-level `axiom`, `constant`, `opaque`, or `unsafe` declaration in the repository Lean sources. See `verification/lean_static_audit.txt`.
 
@@ -47,14 +47,19 @@ structures:
   close-pair saving, intriguing-pair saving, combined close/intriguing saving,
   and Paulsen inflated five-circle forcing are proved in
   `Lollipop/Concrete/EndToEnd/PairGeometry.lean`;
-- `GenericityAvoidance`: density of the complement of the finite bad locus;
-  points outside that locus are proved generic as
-  `Lower.GenericityPort.good_is_generic`.  This is now reduced by
+- `ChamberGenericityAvoidance`: density of the complement of the reduced
+  strict-chamber bad locus.  Once a strict pair chamber is fixed, Lean proves
+  pair finiteness, primitive transversality, and anchor avoidance from that
+  chamber as `Lower.GenericityPort.good_is_generic_in_pair_chamber`, so the
+  lower construction now only asks genericity to avoid triple contacts and
+  parallel stems.  The older stronger `GenericityAvoidance` route remains
+  available and is reduced by
   `Lower.GenericityPort.GenericityAvoidancePieces.toGenericityAvoidance` to
   open/dense complement obligations for the named pair, anchor, triple, and
   parallel bad-locus unions; the open-complement part for the parallel-stem
   union is proved as `Lower.GenericityPort.isOpen_compl_parallelBadUnion`,
-  and avoidance is proved outright for arrangements of size zero and one;
+  and full-locus avoidance is proved outright for arrangements of size zero
+  and one;
 - blow-up chamber realization is no longer a port: canonical similarity
   transport is proved as `Lower.realizes_similarityTo_iff`, the uniform
   inter-cluster chamber radius is proved as
@@ -74,7 +79,7 @@ The concrete endpoint was also checked with:
 lake build Lollipop.Concrete.EndToEnd
 ```
 
-That build completed successfully on June 23, 2026 with 3334 jobs.
+That build completed successfully on June 23, 2026 with 3335 jobs.
 
 The concrete endpoint axiom print is:
 

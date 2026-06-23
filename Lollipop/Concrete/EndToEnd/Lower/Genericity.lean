@@ -213,6 +213,13 @@ def parallelBadUnion {n : ℕ} : Set (ArrangementParameter n) :=
 def allBad {n : ℕ} : Set (ArrangementParameter n) :=
   pairBadUnion ∪ (anchorBadUnion ∪ (tripleBadUnion ∪ parallelBadUnion))
 
+/-- Smaller bad locus needed after the arrangement is already constrained to
+a strict pair-code chamber.  The strict pair chamber itself supplies pair
+finiteness, transversality, and anchor avoidance; only triple incidences and
+parallel stems still have to be avoided by the generic perturbation. -/
+def chamberBadUnion {n : ℕ} : Set (ArrangementParameter n) :=
+  tripleBadUnion ∪ parallelBadUnion
+
 theorem isOpen_compl_parallelBadSet {n : ℕ}
     (i j : Fin n) (hij : i ≠ j) :
     IsOpen ((parallelBadSet i j hij : Set (ArrangementParameter n))ᶜ) := by
@@ -286,6 +293,11 @@ structure GenericityAvoidancePieces (n : ℕ) : Prop where
   triple_dense : Dense ((tripleBadUnion : Set (ArrangementParameter n))ᶜ)
   parallel_dense : Dense ((parallelBadUnion : Set (ArrangementParameter n))ᶜ)
 
+/-- Reduced finite-avoidance theorem needed when strict pair chambers are
+already fixed. -/
+structure ChamberGenericityAvoidance (n : ℕ) : Prop where
+  dense_good : Dense ((chamberBadUnion : Set (ArrangementParameter n))ᶜ)
+
 /-- Membership constructor for the pair-tangency part of `allBad`. -/
 theorem mem_allBad_of_pairBad {n : ℕ}
     (i j : Fin n) (hij : i ≠ j) (ki kj : PrimitiveKind)
@@ -339,6 +351,94 @@ theorem mem_allBad_of_parallelBad {n : ℕ}
   exact Set.mem_iUnion.mpr ⟨i,
     Set.mem_iUnion.mpr ⟨j,
       Set.mem_iUnion.mpr ⟨hij, hbad⟩⟩⟩
+
+/-- Membership constructor for the triple-incidence part of the reduced
+strict-chamber bad locus. -/
+theorem mem_chamberBad_of_tripleBad {n : ℕ}
+    (i j k : Fin n) (hij : i ≠ j) (hik : i ≠ k) (hjk : j ≠ k)
+    {p : ArrangementParameter n}
+    (hbad : p ∈ tripleBadSet i j k hij hik hjk) :
+    p ∈ (chamberBadUnion : Set (ArrangementParameter n)) := by
+  apply Or.inl
+  exact Set.mem_iUnion.mpr ⟨i,
+    Set.mem_iUnion.mpr ⟨j,
+      Set.mem_iUnion.mpr ⟨k,
+        Set.mem_iUnion.mpr ⟨hij,
+          Set.mem_iUnion.mpr ⟨hik,
+            Set.mem_iUnion.mpr ⟨hjk, hbad⟩⟩⟩⟩⟩⟩
+
+/-- Membership constructor for the parallel-stem part of the reduced
+strict-chamber bad locus. -/
+theorem mem_chamberBad_of_parallelBad {n : ℕ}
+    (i j : Fin n) (hij : i ≠ j)
+    {p : ArrangementParameter n}
+    (hbad : p ∈ parallelBadSet i j hij) :
+    p ∈ (chamberBadUnion : Set (ArrangementParameter n)) := by
+  apply Or.inr
+  exact Set.mem_iUnion.mpr ⟨i,
+    Set.mem_iUnion.mpr ⟨j,
+      Set.mem_iUnion.mpr ⟨hij, hbad⟩⟩⟩
+
+theorem realizesPairCodeSpec_of_ne {n : ℕ}
+    {S : PairCodeSpec n} {A : Arrangement n}
+    (hA : RealizesPairCodeSpec S A)
+    (i j : Fin n) (hij : i ≠ j) :
+    RealizesStrictPairCode (S.code i j) (A i) (A j) := by
+  rcases lt_or_gt_of_ne hij with hlt | hgt
+  · exact hA i j hlt
+  · have hji : RealizesStrictPairCode (S.code j i) (A j) (A i) :=
+      hA j i hgt
+    have hswap : S.code j i = (S.code i j).swap :=
+      S.swap i j hij
+    have hji' :
+        RealizesStrictPairCode ((S.code i j).swap) (A j) (A i) := by
+      simpa [hswap] using hji
+    exact (realizes_swap_iff (S.code i j) (A i) (A j)).2 hji'
+
+/-- A point in a strict pair-code chamber outside the reduced bad locus is
+generic.  The strict pair chamber supplies all pair-local finiteness,
+transversality, and anchor-avoidance facts; the reduced bad locus excludes
+triple contacts and parallel stems. -/
+theorem good_is_generic_in_pair_chamber {n : ℕ}
+    {S : PairCodeSpec n} {p : ArrangementParameter n}
+    (hreal : RealizesPairCodeSpec S p.toArrangement)
+    (hgood : p ∉ chamberBadUnion) :
+    IsGeneric p.toArrangement := by
+  refine
+    { pair_finite := ?_
+      pair_transverse := ?_
+      away_left_anchor := ?_
+      away_right_anchor := ?_
+      no_triple := ?_
+      nonparallel_stems := ?_ }
+  · intro i j hij
+    exact pairCrossingSet_finite_of_realizes
+      (realizesPairCodeSpec_of_ne hreal i j hij)
+  · intro i j hij
+    exact primitivePairwiseTransverse_of_realizes
+      (realizesPairCodeSpec_of_ne hreal i j hij)
+  · intro i j hij
+    exact left_anchor_not_mem_pairCrossingSet_of_realizes
+      (realizesPairCodeSpec_of_ne hreal i j hij)
+  · intro i j hij
+    exact right_anchor_not_mem_pairCrossingSet_of_realizes
+      (realizesPairCodeSpec_of_ne hreal i j hij)
+  · intro i j k hij hik hjk
+    ext x
+    constructor
+    · intro hx
+      exact False.elim (hgood
+        (mem_chamberBad_of_tripleBad i j k hij hik hjk
+          ⟨x, by
+            simpa only [ArrangementParameter.toArrangement, pairCrossingSet,
+              Set.mem_inter_iff] using hx⟩))
+    · intro hx
+      exact False.elim hx
+  · intro i j hij hdet
+    exact hgood (mem_chamberBad_of_parallelBad i j hij (by
+      change detPoint ((p i).toLollipop).radial
+        ((p j).toLollipop).radial = 0
+      simpa only [ArrangementParameter.toArrangement] using hdet))
 
 theorem primitivePairwiseTransverse_of_not_allBad {n : ℕ}
     {p : ArrangementParameter n} (hgood : p ∉ allBad)
@@ -552,6 +652,39 @@ theorem exists_generic_with_pairCrossingCounts_of_avoidance
       ∀ i j : Fin n, i < j →
         pairCrossingCount (B i) (B j) = (S.code i j).crossings := by
   rcases exists_generic_realizing_pair_codes_of_avoidance havoid hA with
+    ⟨B, hB, hgen⟩
+  exact ⟨B, hgen, fun i j hij =>
+    pairCrossingCount_eq_of_realizes (hB i j hij)⟩
+
+/-- Every nonempty strict pair chamber contains a generic arrangement, using
+only the reduced chamber bad-locus avoidance theorem. -/
+theorem exists_generic_realizing_pair_codes_of_chamber_avoidance
+    {n : ℕ} {S : PairCodeSpec n} {A : Arrangement n}
+    (havoid : GenericityPort.ChamberGenericityAvoidance n)
+    (hA : RealizesPairCodeSpec S A) :
+    ∃ B : Arrangement n,
+      RealizesPairCodeSpec S B ∧ IsGeneric B := by
+  let U := pairCodeChamber S
+  have hUopen : IsOpen U := isOpen_pairCodeChamber S
+  have hUne : U.Nonempty :=
+    ⟨arrangementToParameter A, parameter_mem_pairCodeChamber hA⟩
+  rcases havoid.dense_good.exists_mem_open hUopen hUne with
+    ⟨p, hpGood, hpU⟩
+  refine ⟨p.toArrangement, hpU, ?_⟩
+  exact GenericityPort.good_is_generic_in_pair_chamber hpU hpGood
+
+/-- Genericization inside a strict chamber preserves every encoded pair
+crossing count and requires only the reduced chamber bad-locus avoidance
+theorem. -/
+theorem exists_generic_with_pairCrossingCounts_of_chamber_avoidance
+    {n : ℕ} {S : PairCodeSpec n} {A : Arrangement n}
+    (havoid : GenericityPort.ChamberGenericityAvoidance n)
+    (hA : RealizesPairCodeSpec S A) :
+    ∃ B : Arrangement n,
+      IsGeneric B ∧
+      ∀ i j : Fin n, i < j →
+        pairCrossingCount (B i) (B j) = (S.code i j).crossings := by
+  rcases exists_generic_realizing_pair_codes_of_chamber_avoidance havoid hA with
     ⟨B, hB, hgen⟩
   exact ⟨B, hgen, fun i j hij =>
     pairCrossingCount_eq_of_realizes (hB i j hij)⟩

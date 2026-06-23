@@ -41,6 +41,13 @@ recommends:
   complement of the parallel-stem bad-locus union is proved open as
   `Lower.GenericityPort.isOpen_compl_parallelBadUnion`, and genericity
   avoidance is proved outright for arrangements of size zero and one.
+* On June 23, 2026, the lower blow-up interface was narrowed from the full
+  bad-locus density theorem to
+  `Lower.GenericityPort.ChamberGenericityAvoidance`: once a strict pair chamber
+  is fixed, Lean proves pair finiteness, primitive transversality, and anchor
+  avoidance from the chamber itself via
+  `Lower.GenericityPort.good_is_generic_in_pair_chamber`, leaving only triple
+  contacts and parallel stems in the lower genericity input.
 * On June 23, 2026, the `n = 0` instances of the planar-topology package were
   proved directly: component finiteness, the arbitrary upper inequality, and
   the generic Euler equation.

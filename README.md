@@ -81,13 +81,15 @@ the remaining concrete theorem targets.  The current port boundary is:
   inter-cluster chamber radius is `Lower.BlowUp.exists_uniform_intercluster_radius`,
   and the constructed pre-arrangements realize the intended pair chambers by
   `Lower.BlowUp.preArrangement_realizes_concrete`.
-- `GenericityAvoidance`: density of the complement of the finite bad locus.
-  Points outside that locus are proved generic as
-  `Lower.GenericityPort.good_is_generic`.  The bad locus is now decomposed by
-  `Lower.GenericityPort.GenericityAvoidancePieces.toGenericityAvoidance`; the
-  complement of the parallel-stem locus is proved open by
-  `Lower.GenericityPort.isOpen_compl_parallelBadUnion`, and avoidance is
-  proved outright for `n = 0` and `n = 1`.
+- `ChamberGenericityAvoidance`: density of the complement of the reduced
+  strict-chamber bad locus.  Once a strict pair chamber is fixed, Lean now
+  proves pair finiteness, primitive transversality, and anchor avoidance from
+  the chamber itself via `Lower.GenericityPort.good_is_generic_in_pair_chamber`;
+  the lower construction therefore only asks genericity to avoid triple
+  contacts and parallel stems.  The older stronger `GenericityAvoidance` route
+  remains available, with `GenericityAvoidancePieces.toGenericityAvoidance`
+  decomposing the full bad locus; the parallel-stem open-complement theorem and
+  the `n = 0, 1` avoidance proofs are still recorded there.
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation.  The `n = 0` instances of component finiteness, the upper
   inequality, and the generic Euler equation are proved in
