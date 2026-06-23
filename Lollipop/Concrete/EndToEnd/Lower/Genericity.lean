@@ -280,6 +280,17 @@ theorem dense_compl_allBad_of_piece_complements {n : ℕ}
     hpairDense.inter_of_isOpen_left hatp hpairOpen
   simpa [allBad, Set.compl_union, Set.inter_assoc] using hall
 
+theorem dense_compl_chamberBad_of_piece_complements {n : ℕ}
+    (htripleOpen : IsOpen ((tripleBadUnion : Set (ArrangementParameter n))ᶜ))
+    (htripleDense : Dense ((tripleBadUnion : Set (ArrangementParameter n))ᶜ))
+    (hparallelDense : Dense ((parallelBadUnion : Set (ArrangementParameter n))ᶜ)) :
+    Dense ((chamberBadUnion : Set (ArrangementParameter n))ᶜ) := by
+  have htp : Dense
+      (((tripleBadUnion : Set (ArrangementParameter n))ᶜ) ∩
+        ((parallelBadUnion : Set (ArrangementParameter n))ᶜ)) :=
+    htripleDense.inter_of_isOpen_left hparallelDense htripleOpen
+  simpa [chamberBadUnion, Set.compl_union] using htp
+
 /-- Piecewise version of the genericity avoidance theorem.  The parallel
 openness field is proved by `isOpen_compl_parallelBadUnion`; the remaining
 fields isolate the semialgebraic density/closedness work still needed for the
@@ -297,6 +308,14 @@ structure GenericityAvoidancePieces (n : ℕ) : Prop where
 already fixed. -/
 structure ChamberGenericityAvoidance (n : ℕ) : Prop where
   dense_good : Dense ((chamberBadUnion : Set (ArrangementParameter n))ᶜ)
+
+/-- Piecewise version of the reduced strict-chamber genericity theorem.  After
+strict pair chambers supply pair-local facts, only triple contacts and
+parallel stems remain in the bad locus. -/
+structure ChamberGenericityAvoidancePieces (n : ℕ) : Prop where
+  triple_open : IsOpen ((tripleBadUnion : Set (ArrangementParameter n))ᶜ)
+  triple_dense : Dense ((tripleBadUnion : Set (ArrangementParameter n))ᶜ)
+  parallel_dense : Dense ((parallelBadUnion : Set (ArrangementParameter n))ᶜ)
 
 /-- Membership constructor for the pair-tangency part of `allBad`. -/
 theorem mem_allBad_of_pairBad {n : ℕ}
@@ -581,6 +600,13 @@ theorem GenericityAvoidance.toChamberGenericityAvoidance {n : ℕ}
     rcases hbad with htriple | hparallel
     · exact Or.inr (Or.inr (Or.inl htriple))
     · exact Or.inr (Or.inr (Or.inr hparallel))
+
+theorem ChamberGenericityAvoidancePieces.toChamberGenericityAvoidance {n : ℕ}
+    (h : ChamberGenericityAvoidancePieces n) :
+    ChamberGenericityAvoidance n where
+  dense_good :=
+    dense_compl_chamberBad_of_piece_complements
+      h.triple_open h.triple_dense h.parallel_dense
 
 theorem not_mem_allBad_of_subsingleton {n : ℕ} [Subsingleton (Fin n)]
     (p : ArrangementParameter n) :

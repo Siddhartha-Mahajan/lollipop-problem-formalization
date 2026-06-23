@@ -48,6 +48,9 @@ recommends:
   avoidance from the chamber itself via
   `Lower.GenericityPort.good_is_generic_in_pair_chamber`, leaving only triple
   contacts and parallel stems in the lower genericity input.
+* The reduced chamber-genericity input is now assembled by
+  `Lower.GenericityPort.ChamberGenericityAvoidancePieces.toChamberGenericityAvoidance`
+  from the triple-contact and parallel-stem pieces.
 * On June 23, 2026, the `n = 0` instances of the planar-topology package were
   proved directly: component finiteness, the arbitrary upper inequality, and
   the generic Euler equation.

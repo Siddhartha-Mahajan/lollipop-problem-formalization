@@ -86,10 +86,12 @@ the remaining concrete theorem targets.  The current port boundary is:
   proves pair finiteness, primitive transversality, and anchor avoidance from
   the chamber itself via `Lower.GenericityPort.good_is_generic_in_pair_chamber`;
   the lower construction therefore only asks genericity to avoid triple
-  contacts and parallel stems.  The older stronger `GenericityAvoidance` route
-  remains available, with `GenericityAvoidancePieces.toGenericityAvoidance`
-  decomposing the full bad locus; the parallel-stem open-complement theorem and
-  the `n = 0, 1` avoidance proofs are still recorded there.
+  contacts and parallel stems.  The narrow remaining handoff is
+  `Lower.GenericityPort.ChamberGenericityAvoidancePieces.toChamberGenericityAvoidance`.
+  The older stronger `GenericityAvoidance` route remains available, with
+  `GenericityAvoidancePieces.toGenericityAvoidance` decomposing the full bad
+  locus; the parallel-stem open-complement theorem and the `n = 0, 1`
+  avoidance proofs are still recorded there.
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation.  The `n = 0` instances of component finiteness, the upper
   inequality, and the generic Euler equation are proved in

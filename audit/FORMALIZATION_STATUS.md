@@ -52,8 +52,11 @@ structures:
   pair finiteness, primitive transversality, and anchor avoidance from that
   chamber as `Lower.GenericityPort.good_is_generic_in_pair_chamber`, so the
   lower construction now only asks genericity to avoid triple contacts and
-  parallel stems.  The older stronger `GenericityAvoidance` route remains
-  available and is reduced by
+  parallel stems.  This reduced theorem is assembled from triple and parallel
+  pieces by
+  `Lower.GenericityPort.ChamberGenericityAvoidancePieces.toChamberGenericityAvoidance`.
+  The older stronger `GenericityAvoidance` route remains available and is
+  reduced by
   `Lower.GenericityPort.GenericityAvoidancePieces.toGenericityAvoidance` to
   open/dense complement obligations for the named pair, anchor, triple, and
   parallel bad-locus unions; the open-complement part for the parallel-stem
