@@ -1,3 +1,4 @@
+import Lollipop.Concrete.EndToEnd.Insertion
 import Lollipop.Concrete.EndToEnd.Final
 
 /-!

@@ -97,7 +97,9 @@ the remaining concrete theorem targets.  The current port boundary is:
   inequality, and the generic Euler equation are proved in
   `Lollipop/Concrete/EndToEnd/PlanarTopology.lean`.  The quotient-level
   component-fibre bookkeeping for one-component insertions is now proved in
-  `Lollipop/Concrete/EndToEnd/ComponentFibers.lean`.
+  `Lollipop/Concrete/EndToEnd/ComponentFibers.lean`; finite split chains and
+  their translation back to actual `regionCount` insertion bounds are proved
+  in `ComponentSplitChain.lean` and `Insertion.lean`.
 - Pair geometry is no longer a port.  The universal `2+2+2+1` pair bound,
   close-pair saving, intriguing-pair saving, combined close/intriguing saving,
   and Paulsen inflated five-circle forcing are proved in

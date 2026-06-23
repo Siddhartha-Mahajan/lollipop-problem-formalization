@@ -77,6 +77,17 @@ def hatOccupied {n : ℕ} (A : Arrangement n) : Set Sphere2 :=
 def componentCount {X : Type*} [TopologicalSpace X] (S : Set X) : ℕ :=
   Nat.card (ConnectedComponents S)
 
+/-- Region count is component count of the ordinary occupied complement. -/
+theorem regionCount_eq_componentCount_compl {n : ℕ} (A : Arrangement n) :
+    regionCount A = componentCount ((occupied A)ᶜ) := by
+  rfl
+
+/-- Rational region count as component count of the ordinary occupied
+complement. -/
+theorem regionCountRat_eq_componentCount_compl {n : ℕ} (A : Arrangement n) :
+    regionCountRat A = (componentCount ((occupied A)ᶜ) : ℚ) := by
+  rw [regionCountRat, regionCount_eq_componentCount_compl]
+
 def hatPairIntersection (L M : Lollipop) : Set Sphere2 :=
   hatCarrier L ∩ hatCarrier M
 
