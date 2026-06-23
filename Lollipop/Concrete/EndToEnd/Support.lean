@@ -799,6 +799,150 @@ theorem componentCount_iUnion_sub_one_le_sum_sub_one
   dsimp [U] at hcard
   exact Nat.sub_le_iff_le_add.2 (le_trans hcard hlabels)
 
+/-- A finite union of sets with component-finite members has component-finite
+union. -/
+theorem finite_connectedComponents_iUnion
+    {ι X : Type*} [Fintype ι] [TopologicalSpace X]
+    {S : ι → Set X}
+    [∀ i, Finite (ConnectedComponents (S i))] :
+    Finite (ConnectedComponents (⋃ i, S i)) := by
+  classical
+  let U : Set X := ⋃ i, S i
+  let incl (i : ι) : S i → U :=
+    fun x => ⟨x.1, Set.mem_iUnion_of_mem i x.2⟩
+  have hincl (i : ι) : Continuous (incl i) := by
+    dsimp [incl]
+    continuity
+  let componentMap (i : ι) :
+      ConnectedComponents (S i) → ConnectedComponents U :=
+    (hincl i).connectedComponentsMap
+  let labelComponent :
+      (Σ i : ι, ConnectedComponents (S i)) → ConnectedComponents U :=
+    fun x => componentMap x.1 x.2
+  have hmap_mk (i : ι) (x : S i) :
+      componentMap i (ConnectedComponents.mk x) =
+        ConnectedComponents.mk (incl i x) := by
+    simp [componentMap]
+  have hsurj : Function.Surjective labelComponent := by
+    intro q
+    obtain ⟨u, rfl⟩ := ConnectedComponents.surjective_coe q
+    rcases Set.mem_iUnion.mp u.property with ⟨i, hui⟩
+    let ui : S i := ⟨u.1, hui⟩
+    refine ⟨⟨i, ConnectedComponents.mk ui⟩, ?_⟩
+    dsimp [labelComponent]
+    simpa [ui, incl] using hmap_mk i ui
+  exact Finite.of_surjective labelComponent hsurj
+
+/-- A finite pointed union.  The singleton makes the empty-index case uniform. -/
+def pointedFinsetUnion {ι X : Type*} (p : X) (s : Finset ι)
+    (S : ι → Set X) : Set X :=
+  {p} ∪ ⋃ i : {i // i ∈ s}, S i.1
+
+@[simp] theorem mem_pointedFinsetUnion_base
+    {ι X : Type*} (p : X) (s : Finset ι) (S : ι → Set X) :
+    p ∈ pointedFinsetUnion p s S := by
+  simp [pointedFinsetUnion]
+
+theorem mem_pointedFinsetUnion_iff
+    {ι X : Type*} (p z : X) (s : Finset ι) (S : ι → Set X) :
+    z ∈ pointedFinsetUnion p s S ↔
+      z = p ∨ ∃ i ∈ s, z ∈ S i := by
+  constructor
+  · intro hz
+    rcases hz with hz | hz
+    · exact Or.inl hz
+    · rcases Set.mem_iUnion.mp hz with ⟨i, hi⟩
+      exact Or.inr ⟨i.1, i.2, hi⟩
+  · rintro (rfl | ⟨i, hi, hz⟩)
+    · simp [pointedFinsetUnion]
+    · exact Or.inr (Set.mem_iUnion_of_mem ⟨i, hi⟩ hz)
+
+/-- Component excess is subadditive for a finite pointed union whose members
+all contain the chosen point. -/
+theorem componentCount_pointedFinsetUnion_sub_one_le_sum_sub_one
+    {ι X : Type*} [TopologicalSpace X] (p : X) (s : Finset ι)
+    (S : ι → Set X)
+    (hp : ∀ i ∈ s, p ∈ S i)
+    (hfinite : ∀ i ∈ s, Finite (ConnectedComponents (S i))) :
+    componentCount (pointedFinsetUnion p s S) - 1 ≤
+      ∑ i ∈ s, (componentCount (S i) - 1) := by
+  classical
+  let Idx := {i // i ∈ s}
+  let T : Option Idx → Set X
+    | none => {p}
+    | some i => S i.1
+  have hsingleton :
+      componentCount ({p} : Set X) - 1 = 0 := by
+    haveI : Finite (ConnectedComponents ({p} : Set X)) :=
+      finite_connectedComponents_of_finite_set (finite_singleton p)
+    haveI : Subsingleton (ConnectedComponents ({p} : Set X)) := by
+      refine ⟨?_⟩
+      intro q r
+      obtain ⟨x, rfl⟩ := ConnectedComponents.surjective_coe q
+      obtain ⟨y, rfl⟩ := ConnectedComponents.surjective_coe r
+      have hxy : x = y := by
+        apply Subtype.ext
+        have hx : x.1 = p := Set.mem_singleton_iff.mp x.property
+        have hy : y.1 = p := Set.mem_singleton_iff.mp y.property
+        exact hx.trans hy.symm
+      exact congrArg ConnectedComponents.mk hxy
+    unfold componentCount
+    have hcard : Nat.card (ConnectedComponents ({p} : Set X)) ≤ 1 := by
+      exact (Finite.card_le_one_iff_subsingleton).2 inferInstance
+    haveI : Nonempty (ConnectedComponents ({p} : Set X)) :=
+      ConnectedComponents.nonempty_iff_nonempty.mpr ⟨⟨p, by simp⟩⟩
+    have hpos : 0 < Nat.card (ConnectedComponents ({p} : Set X)) :=
+      Nat.card_pos
+    omega
+  have hTfinite : ∀ o : Option Idx,
+      Finite (ConnectedComponents (T o)) := by
+    intro o
+    cases o with
+    | none =>
+        dsimp [T]
+        exact finite_connectedComponents_of_finite_set (finite_singleton p)
+    | some i =>
+        dsimp [T]
+        exact hfinite i.1 i.2
+  haveI (o : Option Idx) : Finite (ConnectedComponents (T o)) :=
+    hTfinite o
+  have hpoint : ∀ o : Option Idx, p ∈ T o := by
+    intro o
+    cases o with
+    | none => simp [T]
+    | some i =>
+        dsimp [T]
+        exact hp i.1 i.2
+  have hunion_eq :
+      pointedFinsetUnion p s S = ⋃ o : Option Idx, T o := by
+    ext z
+    constructor
+    · intro hz
+      rcases (mem_pointedFinsetUnion_iff p z s S).1 hz with hz | hz
+      · exact Set.mem_iUnion_of_mem (none : Option Idx) (by simpa [T] using hz)
+      · rcases hz with ⟨i, hi, hzS⟩
+        exact Set.mem_iUnion_of_mem (some (⟨i, hi⟩ : Idx)) hzS
+    · intro hz
+      rcases Set.mem_iUnion.mp hz with ⟨o, ho⟩
+      cases o with
+      | none =>
+          apply (mem_pointedFinsetUnion_iff p z s S).2
+          exact Or.inl (by simpa [T] using ho)
+      | some i =>
+          apply (mem_pointedFinsetUnion_iff p z s S).2
+          exact Or.inr ⟨i.1, i.2, by simpa [T] using ho⟩
+  have hbound :
+      componentCount (⋃ o : Option Idx, T o) - 1 ≤
+        ∑ o : Option Idx, (componentCount (T o) - 1) :=
+    componentCount_iUnion_sub_one_le_sum_sub_one p hpoint
+  rw [hunion_eq]
+  refine hbound.trans ?_
+  rw [Fintype.sum_option, hsingleton, zero_add]
+  exact le_of_eq (by
+    simpa [Idx, T] using
+      (Finset.sum_attach (s := s)
+        (f := fun i => componentCount (S i) - 1)))
+
 end EndToEnd
 end Concrete
 end Lollipop

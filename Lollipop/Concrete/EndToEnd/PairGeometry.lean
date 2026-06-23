@@ -1129,6 +1129,16 @@ private theorem finite_components_pairPiece (L M : Lollipop) (k : Fin 4) :
   · change Finite (ConnectedComponents (hatPiece (rr L M)))
     exact finite_components_hatPiece_rr L M
 
+/-- The compactified intersection of two concrete lollipop carriers has
+finitely many connected components, including degenerate coincident and
+overlapping cases. -/
+theorem finite_connectedComponents_hatPairIntersection (L M : Lollipop) :
+    Finite (ConnectedComponents (hatPairIntersection L M)) := by
+  rw [hatPairIntersection_eq_iUnion_pairPiece]
+  haveI (k : Fin 4) : Finite (ConnectedComponents (pairPiece L M k)) :=
+    finite_components_pairPiece L M k
+  exact finite_connectedComponents_iUnion
+
 /-- Bound the whole compactified pair intersection from independent bounds on
 the four primitive compactified pieces. -/
 private theorem pairExcessNat_le_of_hatPiece_bounds
