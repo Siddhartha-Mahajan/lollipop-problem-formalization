@@ -608,6 +608,123 @@ theorem ChamberGenericityAvoidancePieces.toChamberGenericityAvoidance {n : ℕ}
     dense_compl_chamberBad_of_piece_complements
       h.triple_open h.triple_dense h.parallel_dense
 
+/-- If the index type has no three pairwise-distinct elements, then the
+triple-contact bad locus is empty. -/
+theorem tripleBadUnion_eq_empty_of_no_three_distinct {n : ℕ}
+    (hno :
+      ∀ i j k : Fin n, i ≠ j → i ≠ k → j ≠ k → False) :
+    (tripleBadUnion : Set (ArrangementParameter n)) = ∅ := by
+  ext p
+  constructor
+  · intro hp
+    rw [tripleBadUnion] at hp
+    rcases Set.mem_iUnion.mp hp with ⟨i, hp⟩
+    rcases Set.mem_iUnion.mp hp with ⟨j, hp⟩
+    rcases Set.mem_iUnion.mp hp with ⟨k, hp⟩
+    rcases Set.mem_iUnion.mp hp with ⟨hij, hp⟩
+    rcases Set.mem_iUnion.mp hp with ⟨hik, hp⟩
+    rcases Set.mem_iUnion.mp hp with ⟨hjk, _hbad⟩
+    exact False.elim (hno i j k hij hik hjk)
+  · intro hp
+    exact False.elim hp
+
+/-- There are no three pairwise-distinct elements of `Fin 2`. -/
+theorem no_three_distinct_fin_two :
+    ∀ i j k : Fin 2, i ≠ j → i ≠ k → j ≠ k → False := by
+  intro i j k hij hik hjk
+  fin_cases i <;> fin_cases j <;> fin_cases k <;> simp at hij hik hjk
+
+/-- With two lollipops, the triple-contact bad locus is empty. -/
+theorem tripleBadUnion_eq_empty_two :
+    (tripleBadUnion : Set (ArrangementParameter 2)) = ∅ :=
+  tripleBadUnion_eq_empty_of_no_three_distinct no_three_distinct_fin_two
+
+/-- With two lollipops, reduced chamber badness is exactly parallel stems. -/
+theorem chamberBadUnion_eq_parallelBadUnion_two :
+    (chamberBadUnion : Set (ArrangementParameter 2)) =
+      parallelBadUnion := by
+  rw [chamberBadUnion, tripleBadUnion_eq_empty_two]
+  simp
+
+/-- With two lollipops, the parallel-stem bad locus is just the determinant
+of the two radial vectors being zero. -/
+theorem parallelBadUnion_two_eq_det_zero :
+    (parallelBadUnion : Set (ArrangementParameter 2)) =
+      {p | detPoint ((p (0 : Fin 2)).toLollipop).radial
+          ((p (1 : Fin 2)).toLollipop).radial = 0} := by
+  ext p
+  constructor
+  · intro hp
+    rw [parallelBadUnion] at hp
+    rcases Set.mem_iUnion.mp hp with ⟨i, hp⟩
+    rcases Set.mem_iUnion.mp hp with ⟨j, hp⟩
+    rcases Set.mem_iUnion.mp hp with ⟨hij, hbad⟩
+    fin_cases i <;> fin_cases j
+    · exact False.elim (hij rfl)
+    · change
+        detPoint ((p (0 : Fin 2)).toLollipop).radial
+          ((p (1 : Fin 2)).toLollipop).radial = 0 at hbad
+      exact hbad
+    · have h10 :
+          detPoint ((p (1 : Fin 2)).toLollipop).radial
+            ((p (0 : Fin 2)).toLollipop).radial = 0 := by
+        change
+          detPoint ((p (1 : Fin 2)).toLollipop).radial
+            ((p (0 : Fin 2)).toLollipop).radial = 0 at hbad
+        exact hbad
+      rw [detPoint_skew] at h10
+      exact neg_eq_zero.mp h10
+    · exact False.elim (hij rfl)
+  · intro hdet
+    rw [parallelBadUnion]
+    exact Set.mem_iUnion.mpr ⟨(0 : Fin 2),
+      Set.mem_iUnion.mpr ⟨(1 : Fin 2),
+        Set.mem_iUnion.mpr ⟨by decide,
+          by
+            change
+              detPoint ((p (0 : Fin 2)).toLollipop).radial
+                ((p (1 : Fin 2)).toLollipop).radial = 0
+            exact hdet⟩⟩⟩
+
+/-- With two lollipops, reduced chamber badness is the single determinant-zero
+condition on the two radial vectors. -/
+theorem chamberBadUnion_two_eq_det_zero :
+    (chamberBadUnion : Set (ArrangementParameter 2)) =
+      {p | detPoint ((p (0 : Fin 2)).toLollipop).radial
+          ((p (1 : Fin 2)).toLollipop).radial = 0} := by
+  rw [chamberBadUnion_eq_parallelBadUnion_two,
+    parallelBadUnion_two_eq_det_zero]
+
+/-- For two lollipops, chamber-genericity avoidance is reduced to density of
+the nonparallel-stem locus. -/
+theorem chamberGenericityAvoidance_two_of_parallel_dense
+    (hparallel :
+      Dense ((parallelBadUnion : Set (ArrangementParameter 2))ᶜ)) :
+    ChamberGenericityAvoidance 2 where
+  dense_good := by
+    rwa [chamberBadUnion_eq_parallelBadUnion_two]
+
+/-- Equivalent two-lollipop chamber-genericity reduction stated directly with
+the determinant-nonzero locus. -/
+theorem chamberGenericityAvoidance_two_of_det_ne_dense
+    (hdet :
+      Dense ({p : ArrangementParameter 2 |
+        detPoint ((p (0 : Fin 2)).toLollipop).radial
+          ((p (1 : Fin 2)).toLollipop).radial ≠ 0})) :
+    ChamberGenericityAvoidance 2 where
+  dense_good := by
+    rw [chamberBadUnion_two_eq_det_zero]
+    have hset :
+        ({p : ArrangementParameter 2 |
+          detPoint ((p (0 : Fin 2)).toLollipop).radial
+            ((p (1 : Fin 2)).toLollipop).radial = 0}ᶜ) =
+          {p : ArrangementParameter 2 |
+            detPoint ((p (0 : Fin 2)).toLollipop).radial
+              ((p (1 : Fin 2)).toLollipop).radial ≠ 0} := by
+      rfl
+    rw [hset]
+    exact hdet
+
 theorem not_mem_allBad_of_subsingleton {n : ℕ} [Subsingleton (Fin n)]
     (p : ArrangementParameter n) :
     p ∉ (allBad : Set (ArrangementParameter n)) := by
