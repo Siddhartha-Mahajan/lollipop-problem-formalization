@@ -16,17 +16,18 @@ recommends:
   the star-forest support-cardinality bound, and the nonstar descent-shape
   classifier were changed from `native_decide` to ordinary kernel-checked Lean
   proofs.
+* The finite star-forest canonical-shape classifier used by the matrix
+  backend was replaced by explicit structural Lean proofs for support sizes
+  zero through five.
 * The refreshed `#print axioms Lollipop.Final.theorem_one` output is recorded
-  verbatim in `README.md`; only one `native_decide` graph-classification
-  certificate remains in that public theorem's axiom list.
+  verbatim in `README.md`; it now reports only `propext`, `Classical.choice`,
+  and `Quot.sound`.
 * `Lollipop.Concrete.EndToEnd` now builds as a concrete endpoint with explicit
   remaining theorem packages instead of broken placeholder proof scripts.  Its
   endpoint has no `GeometryCertificates` argument.  After the concrete upper
   endpoint was connected to the existing colored-Turan backend,
-  `#print axioms Lollipop.Concrete.EndToEnd.lollipopMaximum` reports the same
-  remaining `native_decide` graph-classification dependency as
-  `Lollipop.Final.theorem_one`; this remains to replace before the strictest
-  no-trusted-computation claim.
+  `#print axioms Lollipop.Concrete.EndToEnd.lollipopMaximum` also reports only
+  `propext`, `Classical.choice`, and `Quot.sound`.
 * On June 23, 2026, Paulsen's inflated five-circle forcing for the concrete
   `Intriguing` relation was proved as
   `PairGeometry.intriguing_pair_in_every_five` and removed from `UpperPorts`.

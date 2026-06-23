@@ -72,16 +72,13 @@ That build completed successfully on June 23, 2026 with 3334 jobs.
 The concrete endpoint axiom print is:
 
 ```text
-'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms: [propext,
- Classical.choice,
- Quot.sound,
- Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1]
+'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
-The remaining nonstandard entry comes from the existing colored-Turan finite
-star-forest canonical-shape classifier, now used by the concrete upper
-assembly.  The nonstar descent-shape classifier was replaced by an explicit
-kernel-checked structural proof on June 23, 2026.
+The concrete endpoint has no project `native_decide` axiom in its transitive
+axiom list.  The finite star-forest canonical-shape classifier used by the
+colored-Turan backend was replaced by explicit structural Lean proofs for
+support sizes zero through five on June 23, 2026.
 
 Pinned versions:
 

@@ -109,24 +109,17 @@ repository:
   successfully on June 23, 2026.
 - Main proof checked by the build: yes.  `Lollipop.lean` imports
   `Lollipop.Final`, which imports `Lollipop/Final/TheoremOne.lean`.
-- Standard axioms only: not yet under the strict checklist test.
-  After `lake build Lollipop` on June 23, 2026, the exact output was:
+- Standard axioms only: yes for the checked theorem bodies.  After
+  `lake build Lollipop.Final` on June 23, 2026, the exact output was:
 
   ```text
-  'Lollipop.Final.theorem_one' depends on axioms: [propext,
-   Classical.choice,
-   Quot.sound,
-   Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1]
+  'Lollipop.Final.theorem_one' depends on axioms: [propext, Classical.choice, Quot.sound]
   ```
 
-  The remaining nonstandard entry is the closed finite star-forest
-  canonical-shape classification proved with `native_decide`.  The
-  support-relabel cardinality fact, the star-forest support-cardinality bound,
-  and the nonstar descent-shape classifier were replaced by explicit
-  kernel-checked proofs on June 23, 2026.  The remaining finite classification
-  should be replaced by an explicit kernel-checked finite proof or
-  independently justified before claiming the strictest Lean-community
-  verification standard.
+  The finite star-forest canonical-shape classifier used by the theorem was
+  replaced by explicit structural Lean proofs for support sizes zero through
+  five, so no project `native_decide` axiom remains in this theorem's axiom
+  list.
 - Does it prove the claimed theorem: conditionally.  Lean proves the final
   formula from `GeometryCertificates P`; it does not yet construct those
   certificates for the actual Euclidean lollipop model without remaining
@@ -137,15 +130,11 @@ repository:
   endpoint was:
 
   ```text
-  'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms: [propext,
-   Classical.choice,
-   Quot.sound,
-   Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1]
+  'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms: [propext, Classical.choice, Quot.sound]
   ```
 
-  The concrete endpoint now runs the existing colored-Turán backend, so it has
-  the same remaining finite graph-classification `native_decide` dependency as
-  `Lollipop.Final.theorem_one`.
+  The concrete endpoint now runs the existing colored-Turán backend without
+  adding any nonstandard proof axiom.
 
 ## Geometry And Lower Construction
 
