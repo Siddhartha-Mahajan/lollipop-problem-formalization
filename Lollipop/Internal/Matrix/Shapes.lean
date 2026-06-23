@@ -1054,6 +1054,386 @@ theorem canonicalShape_of_card_eq_four_of_two_rowNeighbors_card_eq_two
       rw [hS, supportRelabel_eq_image]
       simp [T, shape4_two_row2, er, ec, her0, her1, hec0, hec1, hec2, hec3])
 
+/-- A degree-two row and a degree-two column in a four-edge star forest are
+disjoint, giving the mixed row-two/column-two canonical shape. -/
+theorem canonicalShape_of_card_eq_four_of_row_col_neighbors_card_eq_two
+    {S : Finset MatrixEdge} {i : Fin 3} {j : Fin 4}
+    (hcard : S.card = 4) (hstar : IsSupportStarForest S)
+    (hrow : (rowNeighbors S i).card = 2)
+    (hcol : (colNeighbors S j).card = 2) :
+    IsCanonicalStarForestShape S := by
+  rcases Finset.card_eq_two.mp hrow with ⟨j0, j1, hj01, hrow_neighbors⟩
+  rcases Finset.card_eq_two.mp hcol with ⟨i0, i1, hi01, hcol_neighbors⟩
+  have hrow_gt : 1 < (rowNeighbors S i).card := by omega
+  have hcol_gt : 1 < (colNeighbors S j).card := by omega
+  have hj0_mem : (i, j0) ∈ S := by
+    have : j0 ∈ rowNeighbors S i := by rw [hrow_neighbors]; simp
+    simpa using this
+  have hj1_mem : (i, j1) ∈ S := by
+    have : j1 ∈ rowNeighbors S i := by rw [hrow_neighbors]; simp
+    simpa using this
+  have hi0_mem : (i0, j) ∈ S := by
+    have : i0 ∈ colNeighbors S j := by rw [hcol_neighbors]; simp
+    simpa using this
+  have hi1_mem : (i1, j) ∈ S := by
+    have : i1 ∈ colNeighbors S j := by rw [hcol_neighbors]; simp
+    simpa using this
+  have hj_ne_j0 : j ≠ j0 := by
+    intro h
+    exact hstar (hasSupportPath3_of_edge_one_lt_degrees
+      (by simpa [h] using hj0_mem) hrow_gt hcol_gt)
+  have hj_ne_j1 : j ≠ j1 := by
+    intro h
+    exact hstar (hasSupportPath3_of_edge_one_lt_degrees
+      (by simpa [h] using hj1_mem) hrow_gt hcol_gt)
+  have hi0_ne_i : i0 ≠ i := by
+    intro h
+    exact hstar (hasSupportPath3_of_edge_one_lt_degrees
+      (by simpa [h] using hi0_mem) hrow_gt hcol_gt)
+  have hi1_ne_i : i1 ≠ i := by
+    intro h
+    exact hstar (hasSupportPath3_of_edge_one_lt_degrees
+      (by simpa [h] using hi1_mem) hrow_gt hcol_gt)
+  let T : Finset MatrixEdge :=
+    {((i, j0) : MatrixEdge), (i, j1), (i0, j), (i1, j)}
+  have hT_subset : T ⊆ S := by
+    intro e he
+    simp [T] at he
+    rcases he with he | he | he | he
+    · rcases he with ⟨rfl, rfl⟩
+      exact hj0_mem
+    · rcases he with ⟨rfl, rfl⟩
+      exact hj1_mem
+    · rcases he with ⟨rfl, rfl⟩
+      exact hi0_mem
+    · rcases he with ⟨rfl, rfl⟩
+      exact hi1_mem
+  have hT_card : T.card = 4 := by
+    have h01 : ((i, j0) : MatrixEdge) ≠ (i, j1) := by
+      intro h
+      exact hj01 (congrArg Prod.snd h)
+    have h02 : ((i, j0) : MatrixEdge) ≠ (i0, j) := by
+      intro h
+      exact hi0_ne_i (congrArg Prod.fst h).symm
+    have h03 : ((i, j0) : MatrixEdge) ≠ (i1, j) := by
+      intro h
+      exact hi1_ne_i (congrArg Prod.fst h).symm
+    have h12 : ((i, j1) : MatrixEdge) ≠ (i0, j) := by
+      intro h
+      exact hi0_ne_i (congrArg Prod.fst h).symm
+    have h13 : ((i, j1) : MatrixEdge) ≠ (i1, j) := by
+      intro h
+      exact hi1_ne_i (congrArg Prod.fst h).symm
+    have h23 : ((i0, j) : MatrixEdge) ≠ (i1, j) := by
+      intro h
+      exact hi01 (congrArg Prod.fst h)
+    simp [T, h01, h02, h03, h12, h13, h23]
+  have hS : S = T := by
+    exact (Finset.eq_of_subset_of_card_le hT_subset (by omega)).symm
+  let er : Fin 3 ≃ Fin 3 :=
+    permSendTripleToZeroOneTwo (0 : Fin 3) (1 : Fin 3) (2 : Fin 3) i i0 i1
+  let ec : Fin 4 ≃ Fin 4 :=
+    permSendTripleToZeroOneTwo (0 : Fin 4) (1 : Fin 4) (2 : Fin 4) j0 j1 j
+  have hi_ne_i0 : i ≠ i0 := fun h => hi0_ne_i h.symm
+  have hi_ne_i1 : i ≠ i1 := fun h => hi1_ne_i h.symm
+  have hj0_ne_j : j0 ≠ j := fun h => hj_ne_j0 h.symm
+  have hj1_ne_j : j1 ≠ j := fun h => hj_ne_j1 h.symm
+  have her0 : er i = (0 : Fin 3) :=
+    permSendTripleToZeroOneTwo_apply_first (by decide) (by decide) hi_ne_i0 hi_ne_i1
+  have her1 : er i0 = (1 : Fin 3) :=
+    permSendTripleToZeroOneTwo_apply_second (by decide) hi01
+  have her2 : er i1 = (2 : Fin 3) :=
+    permSendTripleToZeroOneTwo_apply_third (0 : Fin 3) (1 : Fin 3) (2 : Fin 3) i i0 i1
+  have hec0 : ec j0 = (0 : Fin 4) :=
+    permSendTripleToZeroOneTwo_apply_first (by decide) (by decide) hj01 hj0_ne_j
+  have hec1 : ec j1 = (1 : Fin 4) :=
+    permSendTripleToZeroOneTwo_apply_second (by decide) hj1_ne_j
+  have hec2 : ec j = (2 : Fin 4) :=
+    permSendTripleToZeroOneTwo_apply_third (0 : Fin 4) (1 : Fin 4) (2 : Fin 4) j0 j1 j
+  exact canonicalShape_of_supportRelabel_eq
+    (S := S) (T := shape4_row2_col2)
+    (by simp [canonicalStarForestSupports, shape4_row2_col2])
+    er ec
+    (by
+      rw [hS, supportRelabel_eq_image]
+      simp [T, shape4_row2_col2, er, ec, her0, her1, her2, hec0, hec1, hec2])
+
+/-- A four-edge support with one degree-two row and otherwise singleton
+components has the exceptional `(2,1,1)` shape. -/
+theorem canonicalShape_of_card_eq_four_of_rowNeighbors_card_eq_two_singletons
+    {S : Finset MatrixEdge} {i : Fin 3}
+    (hcard : S.card = 4)
+    (hrow : (rowNeighbors S i).card = 2)
+    (hrowle : ∀ k : Fin 3, k ≠ i → (rowNeighbors S k).card ≤ 1)
+    (hcolle : ∀ j : Fin 4, (colNeighbors S j).card ≤ 1) :
+    IsCanonicalStarForestShape S := by
+  rcases Finset.card_eq_two.mp hrow with ⟨j0, j1, hj01, hrow_neighbors⟩
+  have hfiber_card : (S.filter fun e : MatrixEdge => e.1 = i).card = 2 := by
+    rw [rowFiber_card_eq_rowNeighbors_card, hrow]
+  have hcomp_card : (S.filter fun e : MatrixEdge => e.1 ≠ i).card = 2 := by
+    have hsplit :=
+      Finset.card_filter_add_card_filter_not
+        (s := S) (p := fun e : MatrixEdge => e.1 = i)
+    rw [hfiber_card, hcard] at hsplit
+    have hsplit' : 2 + (S.filter fun e : MatrixEdge => e.1 ≠ i).card = 4 := by
+      simpa using hsplit
+    omega
+  rcases Finset.card_eq_two.mp hcomp_card with
+    ⟨e2, e3, he23, hcomp⟩
+  rcases e2 with ⟨k0, l0⟩
+  rcases e3 with ⟨k1, l1⟩
+  have hj0_mem : (i, j0) ∈ S := by
+    have : j0 ∈ rowNeighbors S i := by rw [hrow_neighbors]; simp
+    simpa using this
+  have hj1_mem : (i, j1) ∈ S := by
+    have : j1 ∈ rowNeighbors S i := by rw [hrow_neighbors]; simp
+    simpa using this
+  have hk0_mem_filter : (k0, l0) ∈ S.filter (fun e : MatrixEdge => e.1 ≠ i) := by
+    rw [hcomp]
+    simp
+  have hk1_mem_filter : (k1, l1) ∈ S.filter (fun e : MatrixEdge => e.1 ≠ i) := by
+    rw [hcomp]
+    simp
+  have hk0_mem : (k0, l0) ∈ S := (Finset.mem_filter.mp hk0_mem_filter).1
+  have hk1_mem : (k1, l1) ∈ S := (Finset.mem_filter.mp hk1_mem_filter).1
+  have hk0_ne_i : k0 ≠ i := (Finset.mem_filter.mp hk0_mem_filter).2
+  have hk1_ne_i : k1 ≠ i := (Finset.mem_filter.mp hk1_mem_filter).2
+  have hk01 : k0 ≠ k1 := by
+    intro h
+    have hl : l0 ≠ l1 := by
+      intro hl
+      exact he23 (by simp [h, hl])
+    have hrow_gt : 1 < (rowNeighbors S k0).card := by
+      refine Finset.one_lt_card.mpr ?_
+      refine ⟨l0, ?_, l1, ?_, hl⟩
+      · simpa using hk0_mem
+      · simpa [h] using hk1_mem
+    exact (not_lt_of_ge (hrowle k0 hk0_ne_i)) hrow_gt
+  have hl0_ne_j0 : l0 ≠ j0 := by
+    intro h
+    have hcol_gt : 1 < (colNeighbors S j0).card := by
+      refine Finset.one_lt_card.mpr ?_
+      refine ⟨i, ?_, k0, ?_, ?_⟩
+      · simpa using hj0_mem
+      · simpa [h] using hk0_mem
+      · exact fun hik => hk0_ne_i hik.symm
+    exact (not_lt_of_ge (hcolle j0)) hcol_gt
+  have hl0_ne_j1 : l0 ≠ j1 := by
+    intro h
+    have hcol_gt : 1 < (colNeighbors S j1).card := by
+      refine Finset.one_lt_card.mpr ?_
+      refine ⟨i, ?_, k0, ?_, ?_⟩
+      · simpa using hj1_mem
+      · simpa [h] using hk0_mem
+      · exact fun hik => hk0_ne_i hik.symm
+    exact (not_lt_of_ge (hcolle j1)) hcol_gt
+  have hl1_ne_j0 : l1 ≠ j0 := by
+    intro h
+    have hcol_gt : 1 < (colNeighbors S j0).card := by
+      refine Finset.one_lt_card.mpr ?_
+      refine ⟨i, ?_, k1, ?_, ?_⟩
+      · simpa using hj0_mem
+      · simpa [h] using hk1_mem
+      · exact fun hik => hk1_ne_i hik.symm
+    exact (not_lt_of_ge (hcolle j0)) hcol_gt
+  have hl1_ne_j1 : l1 ≠ j1 := by
+    intro h
+    have hcol_gt : 1 < (colNeighbors S j1).card := by
+      refine Finset.one_lt_card.mpr ?_
+      refine ⟨i, ?_, k1, ?_, ?_⟩
+      · simpa using hj1_mem
+      · simpa [h] using hk1_mem
+      · exact fun hik => hk1_ne_i hik.symm
+    exact (not_lt_of_ge (hcolle j1)) hcol_gt
+  have hl01 : l0 ≠ l1 := by
+    intro h
+    have hcol_gt : 1 < (colNeighbors S l0).card := by
+      refine Finset.one_lt_card.mpr ?_
+      refine ⟨k0, ?_, k1, ?_, hk01⟩
+      · simpa using hk0_mem
+      · simpa [h] using hk1_mem
+    exact (not_lt_of_ge (hcolle l0)) hcol_gt
+  let T : Finset MatrixEdge :=
+    {((i, j0) : MatrixEdge), (i, j1), (k0, l0), (k1, l1)}
+  have hT_subset : T ⊆ S := by
+    intro e he
+    simp [T] at he
+    rcases he with he | he | he | he
+    · rcases he with ⟨rfl, rfl⟩
+      exact hj0_mem
+    · rcases he with ⟨rfl, rfl⟩
+      exact hj1_mem
+    · rcases he with ⟨rfl, rfl⟩
+      exact hk0_mem
+    · rcases he with ⟨rfl, rfl⟩
+      exact hk1_mem
+  have hT_card : T.card = 4 := by
+    have h01 : ((i, j0) : MatrixEdge) ≠ (i, j1) := by
+      intro h
+      exact hj01 (congrArg Prod.snd h)
+    have h02 : ((i, j0) : MatrixEdge) ≠ (k0, l0) := by
+      intro h
+      exact hk0_ne_i (congrArg Prod.fst h).symm
+    have h03 : ((i, j0) : MatrixEdge) ≠ (k1, l1) := by
+      intro h
+      exact hk1_ne_i (congrArg Prod.fst h).symm
+    have h12 : ((i, j1) : MatrixEdge) ≠ (k0, l0) := by
+      intro h
+      exact hk0_ne_i (congrArg Prod.fst h).symm
+    have h13 : ((i, j1) : MatrixEdge) ≠ (k1, l1) := by
+      intro h
+      exact hk1_ne_i (congrArg Prod.fst h).symm
+    have h23 : ((k0, l0) : MatrixEdge) ≠ (k1, l1) := by
+      intro h
+      exact hk01 (congrArg Prod.fst h)
+    simp [T, h01, h02, h03, h12, h13, h23]
+  have hS : S = T := by
+    exact (Finset.eq_of_subset_of_card_le hT_subset (by omega)).symm
+  let er : Fin 3 ≃ Fin 3 :=
+    permSendTripleToZeroOneTwo (0 : Fin 3) (1 : Fin 3) (2 : Fin 3) i k0 k1
+  let ec : Fin 4 ≃ Fin 4 :=
+    permSendTripleToZeroOneTwo (0 : Fin 4) (1 : Fin 4) (2 : Fin 4) j0 j1 l0
+  have hi_ne_k0 : i ≠ k0 := fun h => hk0_ne_i h.symm
+  have hi_ne_k1 : i ≠ k1 := fun h => hk1_ne_i h.symm
+  have hj0_ne_l0 : j0 ≠ l0 := fun h => hl0_ne_j0 h.symm
+  have hj1_ne_l0 : j1 ≠ l0 := fun h => hl0_ne_j1 h.symm
+  have her0 : er i = (0 : Fin 3) :=
+    permSendTripleToZeroOneTwo_apply_first (by decide) (by decide) hi_ne_k0 hi_ne_k1
+  have her1 : er k0 = (1 : Fin 3) :=
+    permSendTripleToZeroOneTwo_apply_second (by decide) hk01
+  have her2 : er k1 = (2 : Fin 3) :=
+    permSendTripleToZeroOneTwo_apply_third (0 : Fin 3) (1 : Fin 3) (2 : Fin 3) i k0 k1
+  have hec0 : ec j0 = (0 : Fin 4) :=
+    permSendTripleToZeroOneTwo_apply_first (by decide) (by decide) hj01 hj0_ne_l0
+  have hec1 : ec j1 = (1 : Fin 4) :=
+    permSendTripleToZeroOneTwo_apply_second (by decide) hj1_ne_l0
+  have hec2 : ec l0 = (2 : Fin 4) :=
+    permSendTripleToZeroOneTwo_apply_third (0 : Fin 4) (1 : Fin 4) (2 : Fin 4) j0 j1 l0
+  have hec3 : ec l1 = (3 : Fin 4) := by
+    have hne0 : ec l1 ≠ (0 : Fin 4) := by
+      intro h
+      have : ec l1 = ec j0 := by rw [h, hec0]
+      exact hl1_ne_j0 (ec.injective this)
+    have hne1 : ec l1 ≠ (1 : Fin 4) := by
+      intro h
+      have : ec l1 = ec j1 := by rw [h, hec1]
+      exact hl1_ne_j1 (ec.injective this)
+    have hne2 : ec l1 ≠ (2 : Fin 4) := by
+      intro h
+      have : ec l1 = ec l0 := by rw [h, hec2]
+      exact hl01 (ec.injective this).symm
+    exact fin4_eq_three_of_ne_zero_one_two hne0 hne1 hne2
+  exact canonicalShape_of_supportRelabel_eq
+    (S := S) (T := shape4_exceptional)
+    (by simp [canonicalStarForestSupports, shape4_exceptional])
+    er ec
+    (by
+      rw [hS, supportRelabel_eq_image]
+      simp [T, shape4_exceptional, er, ec, her0, her1, her2, hec0, hec1, hec2, hec3])
+
+/-- A four-edge star forest cannot contain a column of degree three: the
+remaining edge would give one of the three incident rows degree at least two,
+creating a length-three support path. -/
+theorem not_colNeighbors_card_eq_three_of_card_eq_four_starForest
+    {S : Finset MatrixEdge} {j : Fin 4}
+    (hcard : S.card = 4) (hstar : IsSupportStarForest S)
+    (hcol : (colNeighbors S j).card = 3) :
+    False := by
+  have hfiber_card : (S.filter fun e : MatrixEdge => e.2 = j).card = 3 := by
+    rw [colFiber_card_eq_colNeighbors_card, hcol]
+  obtain ⟨e, heS, he_not_fiber⟩ :
+      ∃ e ∈ S, e ∉ S.filter (fun e : MatrixEdge => e.2 = j) :=
+    Finset.exists_mem_notMem_of_card_lt_card (s := S.filter fun e : MatrixEdge => e.2 = j)
+      (t := S) (by omega)
+  rcases e with ⟨k, l⟩
+  have hl_ne_j : l ≠ j := by
+    intro hlj
+    have hkj : (k, j) ∈ S := by simpa [hlj] using heS
+    exact he_not_fiber (by simp [hkj, hlj])
+  have hneigh : colNeighbors S j = Finset.univ :=
+    Finset.eq_univ_of_card (colNeighbors S j)
+      (by simpa [Fintype.card_fin] using hcol)
+  have hkj : (k, j) ∈ S := by
+    have : k ∈ colNeighbors S j := by
+      rw [hneigh]
+      simp
+    simpa using this
+  have hrow_gt : 1 < (rowNeighbors S k).card := by
+    refine Finset.one_lt_card.mpr ?_
+    refine ⟨j, ?_, l, ?_, ?_⟩
+    · simpa using hkj
+    · simpa using heS
+    · exact fun hjl => hl_ne_j hjl.symm
+  exact hstar (hasSupportPath3_of_edge_one_lt_degrees
+    hkj hrow_gt (by omega))
+
+/-- Structural classification of every four-edge star-forest support. -/
+theorem canonicalShape_of_card_eq_four_of_starForest
+    {S : Finset MatrixEdge}
+    (hcard : S.card = 4) (hstar : IsSupportStarForest S) :
+    IsCanonicalStarForestShape S := by
+  by_cases hrow4 : ∃ i : Fin 3, (rowNeighbors S i).card = 4
+  · rcases hrow4 with ⟨i, hi⟩
+    exact canonicalShape_of_card_eq_four_of_rowNeighbors_card_eq_four
+      hcard hi
+  by_cases hrow3 : ∃ i : Fin 3, (rowNeighbors S i).card = 3
+  · rcases hrow3 with ⟨i, hi⟩
+    exact canonicalShape_of_card_eq_four_of_rowNeighbors_card_eq_three
+      hcard hstar hi
+  obtain ⟨i, hi_gt⟩ :
+      ∃ i : Fin 3, 1 < (rowNeighbors S i).card :=
+    exists_one_lt_rowNeighbors_card_of_three_lt_card (by omega)
+  have hi_le4 : (rowNeighbors S i).card ≤ 4 := by
+    have hfiber_le : (S.filter fun e : MatrixEdge => e.1 = i).card ≤ S.card :=
+      Finset.card_le_card (Finset.filter_subset _ _)
+    rwa [rowFiber_card_eq_rowNeighbors_card, hcard] at hfiber_le
+  have hi_ne3 : (rowNeighbors S i).card ≠ 3 := by
+    intro h
+    exact hrow3 ⟨i, h⟩
+  have hi_ne4 : (rowNeighbors S i).card ≠ 4 := by
+    intro h
+    exact hrow4 ⟨i, h⟩
+  have hi_eq2 : (rowNeighbors S i).card = 2 := by
+    omega
+  by_cases hrow2_other :
+      ∃ k : Fin 3, k ≠ i ∧ (rowNeighbors S k).card = 2
+  · rcases hrow2_other with ⟨k, hki, hk⟩
+    exact canonicalShape_of_card_eq_four_of_two_rowNeighbors_card_eq_two
+      hcard hstar hki.symm hi_eq2 hk
+  by_cases hcol2 : ∃ j : Fin 4, (colNeighbors S j).card = 2
+  · rcases hcol2 with ⟨j, hj⟩
+    exact canonicalShape_of_card_eq_four_of_row_col_neighbors_card_eq_two
+      hcard hstar hi_eq2 hj
+  apply canonicalShape_of_card_eq_four_of_rowNeighbors_card_eq_two_singletons
+    hcard hi_eq2
+  · intro k hki
+    have hle4 : (rowNeighbors S k).card ≤ 4 := by
+      have hfiber_le : (S.filter fun e : MatrixEdge => e.1 = k).card ≤ S.card :=
+        Finset.card_le_card (Finset.filter_subset _ _)
+      rwa [rowFiber_card_eq_rowNeighbors_card, hcard] at hfiber_le
+    have hne2 : (rowNeighbors S k).card ≠ 2 := by
+      intro h
+      exact hrow2_other ⟨k, hki, h⟩
+    have hne3 : (rowNeighbors S k).card ≠ 3 := by
+      intro h
+      exact hrow3 ⟨k, h⟩
+    have hne4 : (rowNeighbors S k).card ≠ 4 := by
+      intro h
+      exact hrow4 ⟨k, h⟩
+    omega
+  · intro j
+    have hle3 : (colNeighbors S j).card ≤ 3 := by
+      simpa [Fintype.card_fin] using
+        (Finset.card_le_univ (colNeighbors S j))
+    have hne2 : (colNeighbors S j).card ≠ 2 := by
+      intro h
+      exact hcol2 ⟨j, h⟩
+    have hne3 : (colNeighbors S j).card ≠ 3 := by
+      intro h
+      exact not_colNeighbors_card_eq_three_of_card_eq_four_starForest
+        hcard hstar h
+    omega
+
 /-- Exhaustive finite classification of star-forest supports in `K_{3,4}`. -/
 theorem isSupportStarForest_iff_canonicalShape :
     ∀ S : Finset MatrixEdge,
