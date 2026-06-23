@@ -41,6 +41,15 @@ def closePairPiece (L M : Lollipop) (k : Fin 3) : Set Sphere2 :=
   | 1 => hatPiece (cr L M ∪ rc L M)
   | _ => hatPiece (rr L M)
 
+/-- Four-piece decomposition for intriguing pairs: mixed intersections already
+lying on both circles are counted in the circle-circle piece. -/
+def intriguingPairPiece (L M : Lollipop) (k : Fin 4) : Set Sphere2 :=
+  match k.1 with
+  | 0 => hatPiece (cc L M)
+  | 1 => hatPiece (cr L M \ cc L M)
+  | 2 => hatPiece (rc L M \ cc L M)
+  | _ => hatPiece (rr L M)
+
 @[simp] theorem infinity_mem_hatPiece (S : Set Point) :
     infinity ∈ hatPiece S := by
   simp [hatPiece]
@@ -124,6 +133,48 @@ theorem hatPairIntersection_eq_iUnion_closePairPiece (L M : Lollipop) :
   · intro hx
     rcases Set.mem_iUnion.mp hx with ⟨k, hk⟩
     fin_cases k <;> simp [closePairPiece] at hk ⊢ <;> tauto
+
+/-- Intriguing-pair decomposition that removes the circle-circle overlap from
+the two mixed primitives. -/
+theorem hatPairIntersection_decompose_intriguing (L M : Lollipop) :
+    hatPairIntersection L M =
+      hatPiece (cc L M) ∪ hatPiece (cr L M \ cc L M) ∪
+        hatPiece (rc L M \ cc L M) ∪ hatPiece (rr L M) := by
+  rw [hatPairIntersection_decompose]
+  ext x
+  cases x using OnePoint.rec with
+  | infty =>
+      change infinity ∈
+          hatPiece (cc L M) ∪ hatPiece (rc L M) ∪
+            hatPiece (cr L M) ∪ hatPiece (rr L M) ↔
+        infinity ∈
+          hatPiece (cc L M) ∪ hatPiece (cr L M \ cc L M) ∪
+            hatPiece (rc L M \ cc L M) ∪ hatPiece (rr L M)
+      simp [hatPiece]
+  | coe p =>
+      change finitePoint p ∈
+          hatPiece (cc L M) ∪ hatPiece (rc L M) ∪
+            hatPiece (cr L M) ∪ hatPiece (rr L M) ↔
+        finitePoint p ∈
+          hatPiece (cc L M) ∪ hatPiece (cr L M \ cc L M) ∪
+            hatPiece (rc L M \ cc L M) ∪ hatPiece (rr L M)
+      simp [hatPiece]
+      tauto
+
+theorem hatPairIntersection_eq_iUnion_intriguingPairPiece (L M : Lollipop) :
+    hatPairIntersection L M = ⋃ k : Fin 4, intriguingPairPiece L M k := by
+  rw [hatPairIntersection_decompose_intriguing]
+  ext x
+  constructor
+  · intro hx
+    rcases hx with ((hcc | hcr) | hrc) | hrr
+    · exact Set.mem_iUnion.mpr ⟨0, by simpa [intriguingPairPiece] using hcc⟩
+    · exact Set.mem_iUnion.mpr ⟨1, by simpa [intriguingPairPiece] using hcr⟩
+    · exact Set.mem_iUnion.mpr ⟨2, by simpa [intriguingPairPiece] using hrc⟩
+    · exact Set.mem_iUnion.mpr ⟨3, by simpa [intriguingPairPiece] using hrr⟩
+  · intro hx
+    rcases Set.mem_iUnion.mp hx with ⟨k, hk⟩
+    fin_cases k <;> simp [intriguingPairPiece] at hk ⊢ <;> tauto
 
 /-- Close means the smaller angle between actual stem directions is at most a
 right angle. -/
@@ -445,6 +496,337 @@ theorem centerDistSq_eq_normSqPoint (L M : Lollipop) :
     TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2 R2.ofPoint
   simp [Pi.sub_apply]
   ring
+
+theorem dotPoint_le_one_of_unit
+    {u v : Point} (hu : normSqPoint u = 1) (hv : normSqPoint v = 1) :
+    dotPoint u v ≤ 1 := by
+  have hu' : normSqPoint u = (1 : ℝ) ^ 2 := by simpa using hu
+  exact dotPoint_le_of_normSqPoint_eq_of_unit
+    (r := 1) (by norm_num) hu' hv
+
+theorem sq_sub_le_normSqPoint_neg_smul_add_smul
+    {u v : Point} (hu : normSqPoint u = 1) (hv : normSqPoint v = 1)
+    {s p : ℝ} (hs : 0 ≤ s) (hp : 0 ≤ p) :
+    (p - s) ^ 2 ≤ normSqPoint ((-s) • u + p • v) := by
+  have huv : dotPoint u v ≤ 1 := dotPoint_le_one_of_unit hu hv
+  have hsp : 0 ≤ s * p := mul_nonneg hs hp
+  have hmul : s * p * dotPoint u v ≤ s * p := by
+    have h := mul_le_mul_of_nonneg_left huv hsp
+    simpa [mul_assoc] using h
+  have hu' := hu
+  have hv' := hv
+  unfold normSqPoint at hu' hv' ⊢
+  unfold dotPoint at huv hmul
+  simp [TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2,
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2, R2.ofPoint] at hu' hv' huv hmul ⊢
+  ring_nf at hu' hv' hmul ⊢
+  nlinarith
+
+theorem normSq_radialStemPoint_sub_self (L : Lollipop) (q : ℝ) :
+    normSqPoint (radialStemPoint L q - L.center) = q ^ 2 := by
+  rw [normSq_radialStemPoint_sub_center L L q]
+  simp [dotPoint, normSqPoint,
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.dot2,
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.normSq2, R2.ofPoint]
+
+theorem not_two_stem_circle_points_of_near
+    {L M : Lollipop}
+    (hnear : normSqPoint (M.center - L.center) ≤
+      L.radius ^ 2 + M.radius ^ 2)
+    {x y : Point}
+    (hxstem : x ∈ L.stem) (hxcircle : x ∈ M.circle)
+    (hystem : y ∈ L.stem) (hycircle : y ∈ M.circle)
+    (hxy : x ≠ y) : False := by
+  rcases (mem_stem_iff_exists_radius_le L x).1 hxstem with
+    ⟨q, hq, rfl⟩
+  rcases (mem_stem_iff_exists_radius_le L y).1 hystem with
+    ⟨p, hp, rfl⟩
+  have hqp : q ≠ p := by
+    intro h
+    apply hxy
+    simpa [h]
+  have hqeq :
+      q ^ 2 - 2 * q * dotPoint (M.center - L.center) L.unitRadial +
+          normSqPoint (M.center - L.center) = M.radius ^ 2 := by
+    rw [← normSq_radialStemPoint_sub_center L M q,
+      normSqPoint_eq_norm_sq]
+    have h := hxcircle
+    change ‖radialStemPoint L q - M.center‖ = M.radius at h
+    rw [h]
+  have hpeq :
+      p ^ 2 - 2 * p * dotPoint (M.center - L.center) L.unitRadial +
+          normSqPoint (M.center - L.center) = M.radius ^ 2 := by
+    rw [← normSq_radialStemPoint_sub_center L M p,
+      normSqPoint_eq_norm_sq]
+    have h := hycircle
+    change ‖radialStemPoint L p - M.center‖ = M.radius at h
+    rw [h]
+  let a := dotPoint (M.center - L.center) L.unitRadial
+  have hfactor : (q - p) * (q + p - 2 * a) = 0 := by
+    dsimp [a]
+    nlinarith
+  have hsum : q + p = 2 * a := by
+    rcases mul_eq_zero.mp hfactor with hz | hz
+    · exact (hqp (sub_eq_zero.mp hz)).elim
+    · nlinarith
+  have hprod :
+      normSqPoint (M.center - L.center) - M.radius ^ 2 = q * p := by
+    have hqeq' :
+        q ^ 2 - 2 * q * a +
+            normSqPoint (M.center - L.center) = M.radius ^ 2 := by
+      simpa [a] using hqeq
+    have htwice : 2 * a = q + p := by nlinarith [hsum]
+    have hfrom :
+        normSqPoint (M.center - L.center) - M.radius ^ 2 =
+          -q ^ 2 + 2 * q * a := by
+      nlinarith [hqeq']
+    have hrewrite : 2 * q * a = q * (q + p) := by
+      calc
+        2 * q * a = q * (2 * a) := by ring
+        _ = q * (q + p) := by rw [htwice]
+    calc
+      normSqPoint (M.center - L.center) - M.radius ^ 2 =
+          -q ^ 2 + 2 * q * a := hfrom
+      _ = -q ^ 2 + q * (q + p) := by rw [hrewrite]
+      _ = q * p := by ring
+  have hprod_gt : L.radius ^ 2 < q * p := by
+    have hqpos : 0 < q := lt_of_lt_of_le L.radius_pos hq
+    have hppos : 0 < p := lt_of_lt_of_le L.radius_pos hp
+    by_cases hqeqr : q = L.radius
+    · have hpgt : L.radius < p := by
+        have hpne : p ≠ L.radius := by
+          intro hpr
+          exact hqp (hqeqr.trans hpr.symm)
+        exact lt_of_le_of_ne hp (Ne.symm hpne)
+      rw [hqeqr]
+      nlinarith [L.radius_pos, hpgt]
+    · have hqgt : L.radius < q := lt_of_le_of_ne hq (Ne.symm hqeqr)
+      nlinarith [L.radius_pos, hqgt, hp]
+  nlinarith [hnear, hprod, hprod_gt]
+
+theorem parameter_gt_radius_of_rc_diff_cc
+    {L M : Lollipop} {x : Point} {q : ℝ}
+    (hx : x ∈ rc L M \ cc L M)
+    (hxq : x = radialStemPoint L q) :
+    L.radius < q := by
+  have hq : L.radius ≤ q := by
+    have hxstem : x ∈ L.stem := hx.1.1
+    rcases (mem_stem_iff_exists_radius_le L x).1 hxstem with
+      ⟨p, hp, hpEq⟩
+    have hpq : p = q := radialStemPoint_injective L (hpEq.symm.trans hxq)
+    simpa [hpq] using hp
+  refine lt_of_le_of_ne hq ?_
+  intro hqr
+  have hxanchor : x = L.anchor := by
+    rw [hxq, ← hqr]
+    simp [radialStemPoint, Lollipop.anchor,
+      L.radial_eq_radius_smul_unitRadial]
+  have hxLcircle : x ∈ L.circle := by
+    rw [hxanchor]
+    exact L.anchor_mem_circle
+  have hxMcircle : x ∈ M.circle := hx.1.2
+  exact hx.2 ⟨hxLcircle, hxMcircle⟩
+
+theorem anchor_strictly_inside_of_rc_diff_cc
+    {L M : Lollipop}
+    (hnear : normSqPoint (M.center - L.center) ≤
+      L.radius ^ 2 + M.radius ^ 2)
+    {x : Point}
+    (hx : x ∈ rc L M \ cc L M) :
+    normSqPoint (L.anchor - M.center) < M.radius ^ 2 := by
+  have hxstem : x ∈ L.stem := hx.1.1
+  have hxcircle : x ∈ M.circle := hx.1.2
+  rcases (mem_stem_iff_exists_radius_le L x).1 hxstem with
+    ⟨q, hq, hxq⟩
+  have hqgt : L.radius < q :=
+    parameter_gt_radius_of_rc_diff_cc hx hxq
+  have hroot :
+      q ^ 2 - 2 * q * dotPoint (M.center - L.center) L.unitRadial +
+          normSqPoint (M.center - L.center) = M.radius ^ 2 := by
+    rw [← normSq_radialStemPoint_sub_center L M q,
+      normSqPoint_eq_norm_sq]
+    have h := hxcircle
+    rw [hxq] at h
+    change ‖radialStemPoint L q - M.center‖ = M.radius at h
+    rw [h]
+  have hanchor :
+      normSqPoint (L.anchor - M.center) =
+        L.radius ^ 2 -
+          2 * L.radius * dotPoint (M.center - L.center) L.unitRadial +
+          normSqPoint (M.center - L.center) := by
+    rw [show L.anchor = radialStemPoint L L.radius by
+      simp [Lollipop.anchor, radialStemPoint,
+        L.radial_eq_radius_smul_unitRadial]]
+    exact normSq_radialStemPoint_sub_center L M L.radius
+  have hother_lt :
+      2 * dotPoint (M.center - L.center) L.unitRadial - q < L.radius := by
+    by_contra hnot
+    have hge : L.radius ≤
+        2 * dotPoint (M.center - L.center) L.unitRadial - q :=
+      le_of_not_gt hnot
+    have hqpos : 0 < q := lt_trans L.radius_pos hqgt
+    have hrpos := L.radius_pos
+    nlinarith
+  rw [hanchor]
+  have hfactor :
+      L.radius ^ 2 -
+          2 * L.radius * dotPoint (M.center - L.center) L.unitRadial +
+          normSqPoint (M.center - L.center) - M.radius ^ 2 =
+        (q - L.radius) *
+          (2 * dotPoint (M.center - L.center) L.unitRadial - q - L.radius) := by
+    nlinarith
+  have hneg :
+      (q - L.radius) *
+          (2 * dotPoint (M.center - L.center) L.unitRadial - q - L.radius) < 0 :=
+    mul_neg_of_pos_of_neg (sub_pos.mpr hqgt) (by linarith)
+  nlinarith [hfactor, hneg]
+
+theorem rc_diff_cc_ncard_le_one_of_near
+    {L M : Lollipop}
+    (hnear : normSqPoint (M.center - L.center) ≤
+      L.radius ^ 2 + M.radius ^ 2) :
+    (rc L M \ cc L M).ncard ≤ 1 := by
+  have hfin : (rc L M \ cc L M).Finite :=
+    (finite_ray_circle_intersection L M).diff
+  by_contra hnot
+  have hge : 2 ≤ (rc L M \ cc L M).ncard := by omega
+  have hle : (rc L M \ cc L M).ncard ≤ 2 :=
+    le_trans (Set.ncard_le_ncard Set.diff_subset
+      (finite_ray_circle_intersection L M))
+      (by simpa [rc, cr, inter_comm] using
+        circle_ray_intersection_ncard_le_two M L)
+  have hcard : (rc L M \ cc L M).ncard = 2 := by omega
+  rcases exists_two_distinct_of_finite_ncard_eq_two hfin hcard with
+    ⟨x, hx, y, hy, hxy⟩
+  exact not_two_stem_circle_points_of_near hnear
+    hx.1.1 hx.1.2 hy.1.1 hy.1.2 hxy
+
+theorem cr_diff_cc_ncard_le_one_of_near
+    {L M : Lollipop}
+    (hnear : normSqPoint (M.center - L.center) ≤
+      L.radius ^ 2 + M.radius ^ 2) :
+    (cr L M \ cc L M).ncard ≤ 1 := by
+  have hnear_norm :
+      ‖M.center - L.center‖ ^ 2 ≤ L.radius ^ 2 + M.radius ^ 2 := by
+    simpa [normSqPoint_eq_norm_sq] using hnear
+  have hnear' : normSqPoint (L.center - M.center) ≤
+      M.radius ^ 2 + L.radius ^ 2 := by
+    rw [normSqPoint_eq_norm_sq]
+    simpa [norm_sub_rev, add_comm] using hnear_norm
+  rw [cr_symm_rc L M, cc_symm L M]
+  exact rc_diff_cc_ncard_le_one_of_near (L := M) (M := L) hnear'
+
+theorem rr_eq_empty_of_both_outside_mixed_of_near
+    {L M : Lollipop}
+    (hnear : normSqPoint (M.center - L.center) ≤
+      L.radius ^ 2 + M.radius ^ 2)
+    (hleft : (rc L M \ cc L M).Nonempty)
+    (hright : (cr L M \ cc L M).Nonempty) :
+    rr L M = ∅ := by
+  rcases hleft with ⟨zL, hzL⟩
+  rcases hright with ⟨zM, hzM⟩
+  have hinsideL : normSqPoint (L.anchor - M.center) < M.radius ^ 2 :=
+    anchor_strictly_inside_of_rc_diff_cc hnear hzL
+  have hnear_norm :
+      ‖M.center - L.center‖ ^ 2 ≤ L.radius ^ 2 + M.radius ^ 2 := by
+    simpa [normSqPoint_eq_norm_sq] using hnear
+  have hnear' : normSqPoint (L.center - M.center) ≤
+      M.radius ^ 2 + L.radius ^ 2 := by
+    rw [normSqPoint_eq_norm_sq]
+    simpa [norm_sub_rev, add_comm] using hnear_norm
+  have hzM' : zM ∈ rc M L \ cc M L := by
+    constructor
+    · simpa [cr_symm_rc] using hzM.1
+    · intro hcc
+      exact hzM.2 (by simpa [cc_symm] using hcc)
+  have hinsideM : normSqPoint (M.anchor - L.center) < L.radius ^ 2 :=
+    anchor_strictly_inside_of_rc_diff_cc hnear' hzM'
+  ext x
+  constructor
+  · intro hx
+    have hxLstem : x ∈ L.stem := hx.1
+    have hxMstem : x ∈ M.stem := hx.2
+    rcases (mem_stem_iff_exists_radius_le L x).1 hxLstem with
+      ⟨q, hq, hxq⟩
+    rcases (mem_stem_iff_exists_radius_le M x).1 hxMstem with
+      ⟨p, hp, hxp⟩
+    have hline : radialStemPoint L q = radialStemPoint M p :=
+      hxq.symm.trans hxp
+    have hqgt : L.radius < q := by
+      by_contra hnot
+      have hqeq : q = L.radius := le_antisymm (le_of_not_gt hnot) hq
+      have hxanchor : x = L.anchor := by
+        rw [hxq, hqeq]
+        simp [Lollipop.anchor, radialStemPoint,
+          L.radial_eq_radius_smul_unitRadial]
+      have hnormM : normSqPoint (x - M.center) = p ^ 2 := by
+        rw [hxp, normSq_radialStemPoint_sub_self M p]
+      rw [← hxanchor] at hinsideL
+      have hp2 : M.radius ^ 2 ≤ p ^ 2 := by nlinarith [M.radius_pos, hp]
+      nlinarith
+    have hpgt : M.radius < p := by
+      by_contra hnot
+      have hpeq : p = M.radius := le_antisymm (le_of_not_gt hnot) hp
+      have hxanchor : x = M.anchor := by
+        rw [hxp, hpeq]
+        simp [Lollipop.anchor, radialStemPoint,
+          M.radial_eq_radius_smul_unitRadial]
+      have hnormL : normSqPoint (x - L.center) = q ^ 2 := by
+        rw [hxq, normSq_radialStemPoint_sub_self L q]
+      rw [← hxanchor] at hinsideM
+      have hq2 : L.radius ^ 2 ≤ q ^ 2 := by nlinarith [L.radius_pos, hq]
+      nlinarith
+    let s : ℝ := q - L.radius
+    let t : ℝ := p - M.radius
+    have hs : 0 < s := by dsimp [s]; linarith
+    have ht : 0 < t := by dsimp [t]; linarith
+    have hp0 : 0 ≤ p := le_trans M.radius_pos.le hp
+    have hq0 : 0 ≤ q := le_trans L.radius_pos.le hq
+    have hvecL :
+        L.anchor - M.center = (-s) • L.unitRadial + p • M.unitRadial := by
+      ext i
+      have hi := congrArg (fun z : Point => z i) hline
+      simp [radialStemPoint, Lollipop.anchor,
+        L.radial_eq_radius_smul_unitRadial] at hi ⊢
+      dsimp [s]
+      nlinarith
+    have hvecM :
+        M.anchor - L.center = (-t) • M.unitRadial + q • L.unitRadial := by
+      ext i
+      have hi := congrArg (fun z : Point => z i) hline
+      simp [radialStemPoint, Lollipop.anchor,
+        M.radial_eq_radius_smul_unitRadial] at hi ⊢
+      dsimp [t]
+      nlinarith
+    have hsqL : (p - s) ^ 2 ≤ normSqPoint (L.anchor - M.center) := by
+      rw [hvecL]
+      exact sq_sub_le_normSqPoint_neg_smul_add_smul
+        (normSqPoint_unitRadial L) (normSqPoint_unitRadial M) hs.le hp0
+    have hsqM : (q - t) ^ 2 ≤ normSqPoint (M.anchor - L.center) := by
+      rw [hvecM]
+      exact sq_sub_le_normSqPoint_neg_smul_add_smul
+        (normSqPoint_unitRadial M) (normSqPoint_unitRadial L) ht.le hq0
+    have hts : t < s := by
+      have hps : p - s < M.radius := by
+        by_contra hnot
+        have hge : M.radius ≤ p - s := le_of_not_gt hnot
+        have hsq : M.radius ^ 2 ≤ (p - s) ^ 2 := by
+          nlinarith [M.radius_pos]
+        nlinarith [hsqL, hinsideL, hsq]
+      dsimp [t]
+      linarith
+    have hst : s < t := by
+      have hqt : q - t < L.radius := by
+        by_contra hnot
+        have hge : L.radius ≤ q - t := le_of_not_gt hnot
+        have hsq : L.radius ^ 2 ≤ (q - t) ^ 2 := by
+          nlinarith [L.radius_pos]
+        nlinarith [hsqM, hinsideM, hsq]
+      dsimp [s]
+      linarith
+    exact False.elim ((not_lt_of_ge hts.le) hst)
+  · intro hx
+    simp at hx
 
 /-- If two concrete lollipop circles meet, the distance between their centers
 is at most the sum of their radii. -/
@@ -1048,21 +1430,143 @@ theorem pairExcessNat_le_five_of_close
       (componentCount (hatPiece (rr L M)) - 1) ≤ 5
   omega
 
-/-- Remaining concrete pair-geometry theorem package.
-
-These fields are the remaining robust pair-excess savings used by the colored
-Turan backend.  They are stated for the concrete lollipop carrier/intersection
-semantics, including degeneracies. -/
-structure PairGeometryPorts : Prop where
-  pairExcess_le_five_of_intriguing_near :
-    ∀ {L M : Lollipop},
+/-- Near-circle intriguing branch proved from the outside-mixed component
+collapse. -/
+theorem pairExcessNat_le_four_of_intriguing_near
+    {L M : Lollipop}
+    (hnear :
       TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
         (R2.ofPoint L.center) (R2.ofPoint M.center) ≤
-          L.radius ^ 2 + M.radius ^ 2 →
-        pairExcess L M ≤ 5
-  pairExcess_le_four_of_close_intriguing :
-    ∀ {L M : Lollipop}, Close L M → Intriguing L M →
-      pairExcess L M ≤ 4
+          L.radius ^ 2 + M.radius ^ 2) :
+    pairExcessNat L M ≤ 4 := by
+  have hnearNorm :
+      normSqPoint (M.center - L.center) ≤
+        L.radius ^ 2 + M.radius ^ 2 := by
+    simpa [centerDistSq_eq_normSqPoint] using hnear
+  let S : Fin 4 → Set Sphere2 := intriguingPairPiece L M
+  have hcrFin : (cr L M \ cc L M).Finite :=
+    (finite_circle_ray_intersection L M).diff
+  have hrcFin : (rc L M \ cc L M).Finite :=
+    (finite_ray_circle_intersection L M).diff
+  haveI (k : Fin 4) : Finite (ConnectedComponents (S k)) := by
+    fin_cases k
+    · change Finite (ConnectedComponents (hatPiece (cc L M)))
+      exact finite_components_hatPiece_cc L M
+    · change Finite (ConnectedComponents (hatPiece (cr L M \ cc L M)))
+      exact finite_connectedComponents_finiteLift_union_infinity hcrFin
+    · change Finite (ConnectedComponents (hatPiece (rc L M \ cc L M)))
+      exact finite_connectedComponents_finiteLift_union_infinity hrcFin
+    · change Finite (ConnectedComponents (hatPiece (rr L M)))
+      exact finite_components_hatPiece_rr L M
+  have hcommon : ∀ k : Fin 4, infinity ∈ S k := by
+    intro k
+    fin_cases k <;> simp [S, intriguingPairPiece]
+  have hunion :
+      componentCount (⋃ k : Fin 4, S k) - 1 ≤
+        ∑ k : Fin 4, (componentCount (S k) - 1) :=
+    componentCount_iUnion_sub_one_le_sum_sub_one infinity hcommon
+  have hccHat : componentCount (hatPiece (cc L M)) - 1 ≤ 2 := by
+    simpa [hatPiece] using EuclideanPort.circle_circle_components_le_two L M
+  have hcrHat :
+      componentCount (hatPiece (cr L M \ cc L M)) - 1 ≤ 1 := by
+    rw [componentCount_hatPiece_sub_one_eq_ncard_of_finite hcrFin]
+    exact cr_diff_cc_ncard_le_one_of_near hnearNorm
+  have hrcHat :
+      componentCount (hatPiece (rc L M \ cc L M)) - 1 ≤ 1 := by
+    rw [componentCount_hatPiece_sub_one_eq_ncard_of_finite hrcFin]
+    exact rc_diff_cc_ncard_le_one_of_near hnearNorm
+  have hrrHat : componentCount (hatPiece (rr L M)) - 1 ≤ 1 := by
+    simpa [hatPiece] using EuclideanPort.ray_ray_components_le_one L M
+  have hsum :
+      ∑ k : Fin 4, (componentCount (S k) - 1) ≤ 4 := by
+    rw [Fin.sum_univ_four]
+    change
+      (componentCount (hatPiece (cc L M)) - 1) +
+        (componentCount (hatPiece (cr L M \ cc L M)) - 1) +
+        (componentCount (hatPiece (rc L M \ cc L M)) - 1) +
+        (componentCount (hatPiece (rr L M)) - 1) ≤ 4
+    by_cases hboth :
+        (cr L M \ cc L M).Nonempty ∧
+          (rc L M \ cc L M).Nonempty
+    · have hrr_empty : ¬ (rr L M).Nonempty := by
+        rw [rr_eq_empty_of_both_outside_mixed_of_near
+          hnearNorm hboth.2 hboth.1]
+        simp
+      have hrrZero : componentCount (hatPiece (rr L M)) - 1 ≤ 0 := by
+        rw [componentCount_hatPiece_rr_sub_one_eq_zero_of_empty hrr_empty]
+      omega
+    · have hmixed :
+        (componentCount (hatPiece (cr L M \ cc L M)) - 1) +
+          (componentCount (hatPiece (rc L M \ cc L M)) - 1) ≤ 1 := by
+        by_cases hcr : (cr L M \ cc L M).Nonempty
+        · have hrc : ¬ (rc L M \ cc L M).Nonempty := by
+            intro hrc
+            exact hboth ⟨hcr, hrc⟩
+          have hrcZero :
+              componentCount (hatPiece (rc L M \ cc L M)) - 1 = 0 :=
+            componentCount_hatPiece_sub_one_eq_zero_of_empty hrc
+          rw [hrcZero]
+          omega
+        · have hcrZero :
+              componentCount (hatPiece (cr L M \ cc L M)) - 1 = 0 :=
+            componentCount_hatPiece_sub_one_eq_zero_of_empty hcr
+          rw [hcrZero]
+          omega
+      omega
+  unfold pairExcessNat
+  rw [hatPairIntersection_eq_iUnion_intriguingPairPiece]
+  exact hunion.trans hsum
+
+/-- Weaker natural-number wrapper for callers that only need the ordinary
+intriguing-pair bound. -/
+theorem pairExcessNat_le_five_of_intriguing_near
+    {L M : Lollipop}
+    (hnear :
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+        (R2.ofPoint L.center) (R2.ofPoint M.center) ≤
+          L.radius ^ 2 + M.radius ^ 2) :
+    pairExcessNat L M ≤ 5 := by
+  exact (pairExcessNat_le_four_of_intriguing_near hnear).trans (by norm_num)
+
+/-- Circle-disjoint close pairs satisfy the combined saving. -/
+theorem pairExcessNat_le_four_of_close_cc_empty
+    {L M : Lollipop} (hclose : Close L M)
+    (hcc_empty : ¬ (cc L M).Nonempty) :
+    pairExcessNat L M ≤ 4 := by
+  let S : Fin 3 → Set Sphere2 := closePairPiece L M
+  haveI (k : Fin 3) : Finite (ConnectedComponents (S k)) := by
+    fin_cases k
+    · change Finite (ConnectedComponents (hatPiece (cc L M)))
+      exact finite_components_hatPiece_cc L M
+    · change Finite (ConnectedComponents (hatPiece (cr L M ∪ rc L M)))
+      exact finite_connectedComponents_finiteLift_union_infinity
+        ((finite_circle_ray_intersection L M).union
+          (finite_ray_circle_intersection L M))
+    · change Finite (ConnectedComponents (hatPiece (rr L M)))
+      exact finite_components_hatPiece_rr L M
+  have hcommon : ∀ k : Fin 3, infinity ∈ S k := by
+    intro k
+    fin_cases k <;> simp [S, closePairPiece]
+  have hunion :
+      componentCount (⋃ k : Fin 3, S k) - 1 ≤
+        ∑ k : Fin 3, (componentCount (S k) - 1) :=
+    componentCount_iUnion_sub_one_le_sum_sub_one infinity hcommon
+  have hccHat : componentCount (hatPiece (cc L M)) - 1 ≤ 0 := by
+    rw [componentCount_hatPiece_cc_sub_one_eq_zero_of_empty hcc_empty]
+  have hmixHat :
+      componentCount (hatPiece (cr L M ∪ rc L M)) - 1 ≤ 2 :=
+    componentCount_hatPiece_mixed_sub_one_le_two hclose
+  have hrrHat : componentCount (hatPiece (rr L M)) - 1 ≤ 1 := by
+    simpa [hatPiece] using EuclideanPort.ray_ray_components_le_one L M
+  unfold pairExcessNat
+  rw [hatPairIntersection_eq_iUnion_closePairPiece]
+  refine hunion.trans ?_
+  rw [Fin.sum_univ_three]
+  change
+    (componentCount (hatPiece (cc L M)) - 1) +
+      (componentCount (hatPiece (cr L M ∪ rc L M)) - 1) +
+      (componentCount (hatPiece (rr L M)) - 1) ≤ 4
+  omega
 
 /-- Universal `2+2+2+1` pair bound. -/
 theorem pairExcess_le_seven (L M : Lollipop) : pairExcess L M ≤ 7 := by
@@ -1158,18 +1662,49 @@ theorem pairExcess_le_five_of_close
   unfold pairExcess
   exact_mod_cast pairExcessNat_le_five_of_close hclose
 
+/-- Rational wrapper for the near-circle intriguing branch. -/
+theorem pairExcess_le_five_of_intriguing_near
+    {L M : Lollipop}
+    (hnear :
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+        (R2.ofPoint L.center) (R2.ofPoint M.center) ≤
+          L.radius ^ 2 + M.radius ^ 2) :
+    pairExcess L M ≤ 5 := by
+  unfold pairExcess
+  exact_mod_cast pairExcessNat_le_five_of_intriguing_near hnear
+
+/-- Rational wrapper for the stronger near-circle intriguing branch. -/
+theorem pairExcess_le_four_of_intriguing_near
+    {L M : Lollipop}
+    (hnear :
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+        (R2.ofPoint L.center) (R2.ofPoint M.center) ≤
+          L.radius ^ 2 + M.radius ^ 2) :
+    pairExcess L M ≤ 4 := by
+  unfold pairExcess
+  exact_mod_cast pairExcessNat_le_four_of_intriguing_near hnear
+
 /-- Intriguing-pair saving. -/
-theorem pairExcess_le_five_of_intriguing (ports : PairGeometryPorts)
+theorem pairExcess_le_five_of_intriguing
     {L M : Lollipop} (hintr : Intriguing L M) : pairExcess L M ≤ 5 := by
   rcases hintr with hdisj | hnear
   · exact pairExcess_le_five_of_cc_empty hdisj
-  · exact ports.pairExcess_le_five_of_intriguing_near hnear
+  · exact pairExcess_le_five_of_intriguing_near hnear
+
+/-- Rational wrapper for the circle-disjoint close branch. -/
+theorem pairExcess_le_four_of_close_cc_empty
+    {L M : Lollipop} (hclose : Close L M)
+    (hcc_empty : ¬ (cc L M).Nonempty) : pairExcess L M ≤ 4 := by
+  unfold pairExcess
+  exact_mod_cast pairExcessNat_le_four_of_close_cc_empty hclose hcc_empty
 
 /-- Combined close/intriguing saving. -/
-theorem pairExcess_le_four_of_close_intriguing (ports : PairGeometryPorts)
+theorem pairExcess_le_four_of_close_intriguing
     {L M : Lollipop} (hclose : Close L M) (hintr : Intriguing L M) :
-    pairExcess L M ≤ 4 :=
-  ports.pairExcess_le_four_of_close_intriguing hclose hintr
+    pairExcess L M ≤ 4 := by
+  rcases hintr with hdisj | hnear
+  · exact pairExcess_le_four_of_close_cc_empty hclose hdisj
+  · exact pairExcess_le_four_of_intriguing_near hnear
 
 end PairGeometry
 end EndToEnd

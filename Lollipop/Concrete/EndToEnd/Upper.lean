@@ -6,8 +6,8 @@ import Mathlib.Tactic
 # Concrete upper-bound assembly
 
 The concrete upper theorem turns the arbitrary-arrangement region inequality,
-pair-excess savings, close-pair forcing, intriguing-pair forcing, and the
-colored Turan backend into
+the concrete pair-excess savings, close-pair forcing, intriguing-pair forcing,
+and the colored Turan backend into
 
 `regionCountRat A ≤ candidate n`.
 
@@ -44,13 +44,11 @@ theorem close_pair_in_every_four {n : ℕ} (A : Arrangement n) :
 
 /-- Remaining concrete upper-bound theorem package.
 
-The universal `q ≤ 7` pair bound, four-direction close forcing, and five-circle
-intriguing forcing are no longer fields: they are proved as
-`PairGeometry.pairExcess_le_seven`, `close_pair_in_every_four`, and
-`PairGeometry.intriguing_pair_in_every_five`. -/
+The pair-excess bounds, four-direction close forcing, and five-circle
+intriguing forcing are no longer fields: they are proved in
+`PairGeometry.lean` and above. -/
 structure UpperPorts : Prop where
   topology : PlanarTopologyPorts
-  pairGeometry : PairGeometry.PairGeometryPorts
 
 /-- Concrete arrangement packaged in the geometric upper structure consumed by
 the internal colored-Turan backend. -/
@@ -77,12 +75,10 @@ noncomputable def pairwiseGeometricLollipopUpper
     exact PairGeometry.pairExcess_le_five_of_close hclose
   cross_le_intriguing := by
     intro i j hij hintr
-    exact PairGeometry.pairExcess_le_five_of_intriguing
-      ports.pairGeometry hintr
+    exact PairGeometry.pairExcess_le_five_of_intriguing hintr
   cross_le_close_intriguing := by
     intro i j hij hclose hintr
-    exact PairGeometry.pairExcess_le_four_of_close_intriguing
-      ports.pairGeometry hclose hintr
+    exact PairGeometry.pairExcess_le_four_of_close_intriguing hclose hintr
   close_pair_in_every_four := close_pair_in_every_four A
   intriguing_pair_in_every_five := PairGeometry.intriguing_pair_in_every_five A
   regions_eq := by ring

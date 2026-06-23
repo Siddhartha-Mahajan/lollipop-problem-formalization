@@ -70,11 +70,10 @@ This is not yet an unconditional theorem: `EndToEndPorts` explicitly packages
 the remaining concrete theorem targets.  The current port boundary is:
 
 - `UpperPorts`: upper-bound inputs that still need geometry/topology:
-  `PlanarTopologyPorts` and `PairGeometryPorts`.  The four-direction close
-  forcing is proved as `close_pair_in_every_four`, the five-circle forcing for
-  the concrete `Intriguing` relation is proved as
-  `PairGeometry.intriguing_pair_in_every_five`, and the colored-Turan reduction
-  is run in Lean by `regionCountRat_le_candidate`.
+  currently only `PlanarTopologyPorts`.  The pair-excess bounds, four-direction
+  close forcing, five-circle forcing for the concrete `Intriguing` relation,
+  and colored-Turan reduction are proved in Lean by `PairGeometry.lean` and
+  `regionCountRat_le_candidate`.
 - `LowerPorts`: lower construction from genericity and the planar topology
   generic Euler equation.
 - The blow-up chamber-realization layer is now proved in Lean.  Canonical
@@ -87,19 +86,10 @@ the remaining concrete theorem targets.  The current port boundary is:
   `Lower.GenericityPort.good_is_generic`.
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation.
-- `PairGeometryPorts`: close/intriguing pair-component savings used by the
-  upper proof.
-  The universal `2+2+2+1` pair bound is now proved as
-  `PairGeometry.pairExcess_le_seven`; Paulsen's inflated five-circle forcing is
-  proved as `PairGeometry.intriguing_pair_in_every_five`; and the disjoint
-  circle branch of intriguing-pair savings is proved as
-  `PairGeometry.pairExcess_le_five_of_cc_empty`.  Primitive emptiness
-  accounting is also proved for the useful two-empty-piece combinations, for
-  example `pairExcess_le_three_of_cc_empty_rc_empty`,
-  `pairExcess_le_three_of_cc_empty_cr_empty`,
-  `pairExcess_le_four_of_rc_empty_rr_empty`, and
-  `pairExcess_le_four_of_cr_empty_rr_empty`.  The remaining intriguing field is
-  the near-circle branch.
+- Pair geometry is no longer a port.  The universal `2+2+2+1` pair bound,
+  close-pair saving, intriguing-pair saving, combined close/intriguing saving,
+  and Paulsen inflated five-circle forcing are proved in
+  `Lollipop/Concrete/EndToEnd/PairGeometry.lean`.
 
 Build the Lean project with:
 
@@ -234,4 +224,5 @@ no-op `lake build Lollipop` took 3.83 seconds.
 
 The concrete endpoint build `lake build Lollipop.Concrete.EndToEnd` completed
 successfully on June 23, 2026 with 3334 jobs after proving the concrete
-five-circle forcing theorem and removing it from `UpperPorts`.
+five-circle forcing theorem and the remaining pair-geometry savings, removing
+pair geometry from `UpperPorts`.

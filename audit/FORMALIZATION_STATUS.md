@@ -14,7 +14,7 @@ theorem Lollipop.Concrete.EndToEnd.lollipopMaximum
 
 This endpoint has no `GeometryCertificates` argument.  Its remaining
 assumptions are explicit concrete theorem packages: `UpperPorts`, `LowerPorts`,
-`GenericityAvoidance`, `PlanarTopologyPorts`, and `PairGeometryPorts`.
+`GenericityAvoidance`, and `PlanarTopologyPorts`.
 
 A comment/string-stripped static scan reports no `sorry`, `admit`, top-level `axiom`, `constant`, `opaque`, or `unsafe` declaration in the repository Lean sources. See `verification/lean_static_audit.txt`.
 
@@ -34,26 +34,17 @@ Missing end-to-end layers are now represented by named concrete port
 structures:
 
 - `UpperPorts`: upper-bound inputs still needed by the concrete colored-Turan
-  assembly: `PlanarTopologyPorts` and `PairGeometryPorts`.  The four-direction
-  close forcing and colored-Turan reduction are proved in
-  `Lollipop/Concrete/EndToEnd/Upper.lean`, while the five-circle forcing for
-  the concrete `Intriguing` relation is proved in
+  assembly: currently only `PlanarTopologyPorts`.  The four-direction close
+  forcing and colored-Turan reduction are proved in
+  `Lollipop/Concrete/EndToEnd/Upper.lean`, while the pair-excess savings and
+  five-circle forcing for the concrete `Intriguing` relation are proved in
   `Lollipop/Concrete/EndToEnd/PairGeometry.lean`;
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation;
-- `PairGeometryPorts`: robust close/intriguing pair-component savings; the
-  universal `2+2+2+1` pair bound is proved as
-  `PairGeometry.pairExcess_le_seven`, and Paulsen's inflated five-circle
-  forcing is proved as `PairGeometry.intriguing_pair_in_every_five`.  The
-  disjoint-circle branch of intriguing savings is proved as
-  `PairGeometry.pairExcess_le_five_of_cc_empty`.  The robust component-count
-  accounting now also proves the useful two-empty-piece savings
-  `pairExcess_le_three_of_cc_empty_rc_empty`,
-  `pairExcess_le_three_of_cc_empty_cr_empty`,
-  `pairExcess_le_four_of_rc_empty_rr_empty`, and
-  `pairExcess_le_four_of_cr_empty_rr_empty`, so future geometric emptiness
-  proofs plug directly into the numeric bounds.  The remaining intriguing
-  field is only the near-circle branch;
+- Pair geometry is no longer a port: the universal `2+2+2+1` pair bound,
+  close-pair saving, intriguing-pair saving, combined close/intriguing saving,
+  and Paulsen inflated five-circle forcing are proved in
+  `Lollipop/Concrete/EndToEnd/PairGeometry.lean`;
 - `GenericityAvoidance`: density of the complement of the finite bad locus;
   points outside that locus are proved generic as
   `Lower.GenericityPort.good_is_generic`;
