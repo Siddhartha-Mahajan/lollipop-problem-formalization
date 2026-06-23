@@ -87,6 +87,14 @@ def rowNeighbors (S : Finset MatrixEdge) (i : Fin 3) : Finset (Fin 4) :=
 def colNeighbors (S : Finset MatrixEdge) (j : Fin 4) : Finset (Fin 3) :=
   Finset.univ.filter fun i : Fin 3 => (i, j) ∈ S
 
+/-- Rows of degree at least two in the support graph. -/
+def highRows (S : Finset MatrixEdge) : Finset (Fin 3) :=
+  Finset.univ.filter fun i : Fin 3 => 1 < (rowNeighbors S i).card
+
+/-- Columns of degree at least two in the support graph. -/
+def highCols (S : Finset MatrixEdge) : Finset (Fin 4) :=
+  Finset.univ.filter fun j : Fin 4 => 1 < (colNeighbors S j).card
+
 @[simp] theorem mem_rowNeighbors_iff
     (S : Finset MatrixEdge) (i : Fin 3) (j : Fin 4) :
     j ∈ rowNeighbors S i ↔ (i, j) ∈ S := by
@@ -96,6 +104,58 @@ def colNeighbors (S : Finset MatrixEdge) (j : Fin 4) : Finset (Fin 3) :=
     (S : Finset MatrixEdge) (i : Fin 3) (j : Fin 4) :
     i ∈ colNeighbors S j ↔ (i, j) ∈ S := by
   simp [colNeighbors]
+
+@[simp] theorem mem_highRows_iff
+    (S : Finset MatrixEdge) (i : Fin 3) :
+    i ∈ highRows S ↔ 1 < (rowNeighbors S i).card := by
+  simp [highRows]
+
+@[simp] theorem mem_highCols_iff
+    (S : Finset MatrixEdge) (j : Fin 4) :
+    j ∈ highCols S ↔ 1 < (colNeighbors S j).card := by
+  simp [highCols]
+
+private theorem sum_if_mem_finset_eq_card_mul_add_compl
+    {α : Type*} [Fintype α] [DecidableEq α]
+    (T : Finset α) (c : ℕ) :
+    (∑ x : α, if x ∈ T then c else 1) =
+      T.card * c + (Fintype.card α - T.card) := by
+  classical
+  have hfilter :
+      ((Finset.univ : Finset α).filter fun x => x ∈ T) = T := by
+    ext x
+    simp
+  have hcomp :
+      ((Finset.univ : Finset α).filter fun x => x ∉ T).card =
+        Fintype.card α - T.card := by
+    have h :=
+      Finset.card_filter_add_card_filter_not
+        (s := (Finset.univ : Finset α)) (p := fun x => x ∈ T)
+    rw [hfilter] at h
+    simp only [Finset.card_univ] at h
+    omega
+  rw [← Finset.sum_filter_add_sum_filter_not
+    (s := (Finset.univ : Finset α)) (p := fun x => x ∈ T)
+    (f := fun x => if x ∈ T then c else 1)]
+  calc
+    (((Finset.univ : Finset α).filter (fun x => x ∈ T)).sum
+        fun x => if x ∈ T then c else 1) +
+        (((Finset.univ : Finset α).filter (fun x => ¬x ∈ T)).sum
+          fun x => if x ∈ T then c else 1)
+        = (T.sum fun _ => c) +
+            (((Finset.univ : Finset α).filter (fun x => x ∉ T)).sum
+              fun _ => 1) := by
+          congr 1
+          · rw [hfilter]
+            refine Finset.sum_congr rfl ?_
+            intro x hx
+            simp [hx]
+          · refine Finset.sum_congr rfl ?_
+            intro x hx
+            have hxnot : x ∉ T := (Finset.mem_filter.mp hx).2
+            simp [hxnot]
+    _ = T.card * c + (Fintype.card α - T.card) := by
+          simp [hcomp, Finset.sum_const]
 
 theorem rowFiber_card_eq_rowNeighbors_card
     (S : Finset MatrixEdge) (i : Fin 3) :
@@ -336,6 +396,174 @@ theorem not_mem_of_one_lt_row_col_neighbors_of_starForest
   intro hij
   exact hstar (hasSupportPath3_of_edge_one_lt_degrees hij hrow hcol)
 
+/-- The number of low-degree rows, expressed as a complement count. -/
+theorem lowRows_card_eq (S : Finset MatrixEdge) :
+    ((Finset.univ : Finset (Fin 3)).filter fun i => i ∉ highRows S).card =
+      3 - (highRows S).card := by
+  classical
+  have hfilter :
+      ((Finset.univ : Finset (Fin 3)).filter fun i => i ∈ highRows S) =
+        highRows S := by
+    ext i
+    simp
+  have h :=
+    Finset.card_filter_add_card_filter_not
+      (s := (Finset.univ : Finset (Fin 3)))
+      (p := fun i => i ∈ highRows S)
+  rw [hfilter] at h
+  simp only [Finset.card_univ, Fintype.card_fin] at h
+  omega
+
+/-- The number of low-degree columns, expressed as a complement count. -/
+theorem lowCols_card_eq (S : Finset MatrixEdge) :
+    ((Finset.univ : Finset (Fin 4)).filter fun j => j ∉ highCols S).card =
+      4 - (highCols S).card := by
+  classical
+  have hfilter :
+      ((Finset.univ : Finset (Fin 4)).filter fun j => j ∈ highCols S) =
+        highCols S := by
+    ext j
+    simp
+  have h :=
+    Finset.card_filter_add_card_filter_not
+      (s := (Finset.univ : Finset (Fin 4)))
+      (p := fun j => j ∈ highCols S)
+  rw [hfilter] at h
+  simp only [Finset.card_univ, Fintype.card_fin] at h
+  omega
+
+theorem highRows_card_le_three (S : Finset MatrixEdge) :
+    (highRows S).card ≤ 3 := by
+  have h :=
+    Finset.card_filter_le
+      (s := (Finset.univ : Finset (Fin 3)))
+      (p := fun i => 1 < (rowNeighbors S i).card)
+  simpa [highRows, Fintype.card_fin] using h
+
+theorem highCols_card_le_four (S : Finset MatrixEdge) :
+    (highCols S).card ≤ 4 := by
+  have h :=
+    Finset.card_filter_le
+      (s := (Finset.univ : Finset (Fin 4)))
+      (p := fun j => 1 < (colNeighbors S j).card)
+  simpa [highCols, Fintype.card_fin] using h
+
+theorem rowNeighbors_card_le_lowCols_card_of_highRow_starForest
+    {S : Finset MatrixEdge} (hstar : IsSupportStarForest S)
+    {i : Fin 3} (hi : i ∈ highRows S) :
+    (rowNeighbors S i).card ≤
+      ((Finset.univ : Finset (Fin 4)).filter fun j => j ∉ highCols S).card := by
+  refine Finset.card_le_card ?_
+  intro j hj
+  have hrow : 1 < (rowNeighbors S i).card := by
+    simpa using hi
+  have hij : (i, j) ∈ S := by
+    simpa using hj
+  have hjlow : j ∉ highCols S := by
+    intro hjhigh
+    have hcol : 1 < (colNeighbors S j).card := by
+      simpa using hjhigh
+    exact not_mem_of_one_lt_row_col_neighbors_of_starForest
+      hstar hrow hcol hij
+  exact Finset.mem_filter.mpr ⟨Finset.mem_univ j, hjlow⟩
+
+theorem colNeighbors_card_le_lowRows_card_of_highCol_starForest
+    {S : Finset MatrixEdge} (hstar : IsSupportStarForest S)
+    {j : Fin 4} (hj : j ∈ highCols S) :
+    (colNeighbors S j).card ≤
+      ((Finset.univ : Finset (Fin 3)).filter fun i => i ∉ highRows S).card := by
+  refine Finset.card_le_card ?_
+  intro i hi
+  have hcol : 1 < (colNeighbors S j).card := by
+    simpa using hj
+  have hij : (i, j) ∈ S := by
+    simpa using hi
+  have hilow : i ∉ highRows S := by
+    intro hihigh
+    have hrow : 1 < (rowNeighbors S i).card := by
+      simpa using hihigh
+    exact not_mem_of_one_lt_row_col_neighbors_of_starForest
+      hstar hrow hcol hij
+  exact Finset.mem_filter.mpr ⟨Finset.mem_univ i, hilow⟩
+
+theorem card_le_row_high_bound_of_starForest
+    {S : Finset MatrixEdge} (hstar : IsSupportStarForest S) :
+    S.card ≤
+      (highRows S).card * (4 - (highCols S).card) +
+        (3 - (highRows S).card) := by
+  have hsum_le :
+      (∑ i : Fin 3, (rowNeighbors S i).card) ≤
+        ∑ i : Fin 3,
+          if i ∈ highRows S then 4 - (highCols S).card else 1 := by
+    refine Finset.sum_le_sum ?_
+    intro i _hi
+    by_cases hi : i ∈ highRows S
+    · have hle :=
+        rowNeighbors_card_le_lowCols_card_of_highRow_starForest
+          hstar hi
+      rw [lowCols_card_eq] at hle
+      simpa [hi] using hle
+    · have hle : (rowNeighbors S i).card ≤ 1 := by
+        exact Nat.le_of_not_gt fun h =>
+          hi ((mem_highRows_iff S i).2 h)
+      simpa [hi] using hle
+  have hsum_eq :
+      (∑ i : Fin 3,
+          if i ∈ highRows S then 4 - (highCols S).card else 1) =
+        (highRows S).card * (4 - (highCols S).card) +
+          (3 - (highRows S).card) := by
+    simpa [Fintype.card_fin] using
+      (sum_if_mem_finset_eq_card_mul_add_compl
+        (T := highRows S) (c := 4 - (highCols S).card))
+  calc
+    S.card = ∑ i : Fin 3, (rowNeighbors S i).card :=
+      card_eq_sum_rowNeighbors_card S
+    _ ≤ ∑ i : Fin 3,
+          if i ∈ highRows S then 4 - (highCols S).card else 1 :=
+      hsum_le
+    _ = (highRows S).card * (4 - (highCols S).card) +
+          (3 - (highRows S).card) :=
+      hsum_eq
+
+theorem card_le_col_high_bound_of_starForest
+    {S : Finset MatrixEdge} (hstar : IsSupportStarForest S) :
+    S.card ≤
+      (highCols S).card * (3 - (highRows S).card) +
+        (4 - (highCols S).card) := by
+  have hsum_le :
+      (∑ j : Fin 4, (colNeighbors S j).card) ≤
+        ∑ j : Fin 4,
+          if j ∈ highCols S then 3 - (highRows S).card else 1 := by
+    refine Finset.sum_le_sum ?_
+    intro j _hj
+    by_cases hj : j ∈ highCols S
+    · have hle :=
+        colNeighbors_card_le_lowRows_card_of_highCol_starForest
+          hstar hj
+      rw [lowRows_card_eq] at hle
+      simpa [hj] using hle
+    · have hle : (colNeighbors S j).card ≤ 1 := by
+        exact Nat.le_of_not_gt fun h =>
+          hj ((mem_highCols_iff S j).2 h)
+      simpa [hj] using hle
+  have hsum_eq :
+      (∑ j : Fin 4,
+          if j ∈ highCols S then 3 - (highRows S).card else 1) =
+        (highCols S).card * (3 - (highRows S).card) +
+          (4 - (highCols S).card) := by
+    simpa [Fintype.card_fin] using
+      (sum_if_mem_finset_eq_card_mul_add_compl
+        (T := highCols S) (c := 3 - (highRows S).card))
+  calc
+    S.card = ∑ j : Fin 4, (colNeighbors S j).card :=
+      card_eq_sum_colNeighbors_card S
+    _ ≤ ∑ j : Fin 4,
+          if j ∈ highCols S then 3 - (highRows S).card else 1 :=
+      hsum_le
+    _ = (highCols S).card * (3 - (highRows S).card) +
+          (4 - (highCols S).card) :=
+      hsum_eq
+
 /-- The support of the zero matrix is a star forest. -/
 theorem isSupportStarForest_empty :
     IsSupportStarForest (∅ : Finset MatrixEdge) := by
@@ -346,11 +574,45 @@ theorem isSupportStarForest_empty :
   simp at he
 
 /-- A finite `K_{3,4}` support whose components are stars has at most five
-edges.  This is a small exhaustive graph fact over the twelve possible matrix
-cells. -/
+edges. -/
 theorem support_card_le_five_of_starForest :
     ∀ S : Finset MatrixEdge, IsSupportStarForest S → S.card ≤ 5 := by
-  native_decide
+  intro S hstar
+  by_contra hle
+  have hcard : 5 < S.card := Nat.lt_of_not_ge hle
+  have hrow_exists :
+      ∃ i : Fin 3, 1 < (rowNeighbors S i).card :=
+    exists_one_lt_rowNeighbors_card_of_three_lt_card (by omega)
+  have hcol_exists :
+      ∃ j : Fin 4, 1 < (colNeighbors S j).card :=
+    exists_one_lt_colNeighbors_card_of_four_lt_card (by omega)
+  let a := (highRows S).card
+  let b := (highCols S).card
+  have ha_pos : 0 < a := by
+    rcases hrow_exists with ⟨i, hi⟩
+    exact Finset.card_pos.mpr ⟨i, by simpa [a] using hi⟩
+  have hb_pos : 0 < b := by
+    rcases hcol_exists with ⟨j, hj⟩
+    exact Finset.card_pos.mpr ⟨j, by simpa [b] using hj⟩
+  have ha_le : a ≤ 3 := by
+    simpa [a] using highRows_card_le_three S
+  have hb_le : b ≤ 4 := by
+    simpa [b] using highCols_card_le_four S
+  have hrow_bound : S.card ≤ a * (4 - b) + (3 - a) := by
+    simpa [a, b] using card_le_row_high_bound_of_starForest
+      (S := S) hstar
+  have hcol_bound : S.card ≤ b * (3 - a) + (4 - b) := by
+    simpa [a, b] using card_le_col_high_bound_of_starForest
+      (S := S) hstar
+  have hsmall :
+      a * (4 - b) + (3 - a) ≤ 5 ∨
+        b * (3 - a) + (4 - b) ≤ 5 := by
+    interval_cases a <;> interval_cases b <;> omega
+  rcases hsmall with hsmall | hsmall
+  · have : S.card ≤ 5 := le_trans hrow_bound hsmall
+    omega
+  · have : S.card ≤ 5 := le_trans hcol_bound hsmall
+    omega
 
 /-- Star-forest supports of natural matrices have at most five positive
 entries. -/
