@@ -1,3 +1,4 @@
+import Lollipop.Concrete.EndToEnd.InsertionFan
 import Lollipop.Concrete.EndToEnd.PairGeometry
 import Lollipop.Internal.ColoredTuran.GeometricReduction
 import Mathlib.Tactic
@@ -49,6 +50,12 @@ intriguing forcing are no longer fields: they are proved in
 `PairGeometry.lean` and above. -/
 structure UpperPorts : Prop where
   topology : PlanarTopologyPorts
+
+/-- Build the upper-bound port from the sharper insertion-fan topology
+package. -/
+def UpperPorts.ofFanTopology
+    (topology : InsertionFan.FanTopologyPorts) : UpperPorts where
+  topology := topology.toPlanarTopologyPorts
 
 /-- Concrete arrangement packaged in the geometric upper structure consumed by
 the internal colored-Turan backend. -/

@@ -21,6 +21,16 @@ structure EndToEndPorts : Prop where
   upper : UpperPorts
   lower : LowerPorts
 
+/-- Build the endpoint ports from the sharper fan-topology package and the
+separate lower genericity-avoidance theorem. -/
+def EndToEndPorts.ofFanTopology
+    (topology : InsertionFan.FanTopologyPorts)
+    (genericity : ∀ n : ℕ,
+      Lower.GenericityPort.ChamberGenericityAvoidance n) :
+    EndToEndPorts where
+  upper := UpperPorts.ofFanTopology topology
+  lower := LowerPorts.ofFanTopology topology genericity
+
 /-- Maximum number of complementary regions for `n` concrete Euclidean
 lollipops. -/
 theorem lollipopMaximum (ports : EndToEndPorts) (n : ℕ) :

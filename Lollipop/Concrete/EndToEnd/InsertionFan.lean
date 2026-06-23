@@ -768,6 +768,23 @@ def planarTopologyPorts_of_fan_and_genericExactFan
   planarTopologyPorts_of_fan hfan
     (fun hA => generic_region_eq_of_exactFan hA (hexact hA))
 
+/-- Sharper remaining planar-topology package after the insertion-fan
+reduction.  The arbitrary field is the upper-bound insertion theorem; the
+generic field is the exact Euler-region theorem restricted to generic
+arrangements. -/
+structure FanTopologyPorts : Prop where
+  arbitrary_fan_bound :
+    ∀ {n : ℕ} (A : Arrangement n), OrderedInsertionFanSplitChainBound A
+  generic_exact_fan :
+    ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
+      OrderedExactInsertionFanSplitChain A
+
+/-- The fan-topology package supplies the older planar-topology port. -/
+def FanTopologyPorts.toPlanarTopologyPorts
+    (ports : FanTopologyPorts) : PlanarTopologyPorts :=
+  planarTopologyPorts_of_fan_and_genericExactFan
+    ports.arbitrary_fan_bound ports.generic_exact_fan
+
 end InsertionFan
 end EndToEnd
 end Concrete

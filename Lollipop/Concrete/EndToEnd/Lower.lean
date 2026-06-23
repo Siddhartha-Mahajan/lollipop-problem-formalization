@@ -31,6 +31,16 @@ structure LowerPorts : Prop where
   topology : PlanarTopologyPorts
   genericity : ∀ n : ℕ, Lower.GenericityPort.ChamberGenericityAvoidance n
 
+/-- Build the lower-bound port from the sharper insertion-fan topology package
+and the separate chamber-genericity avoidance theorem. -/
+def LowerPorts.ofFanTopology
+    (topology : InsertionFan.FanTopologyPorts)
+    (genericity : ∀ n : ℕ,
+      Lower.GenericityPort.ChamberGenericityAvoidance n) :
+    LowerPorts where
+  topology := topology.toPlanarTopologyPorts
+  genericity := genericity
+
 /-- Every admissible quadruple has a concrete lollipop realization with its
 exact lower region count. -/
 theorem lowerRealization_all (ports : LowerPorts) (n : ℕ) :
