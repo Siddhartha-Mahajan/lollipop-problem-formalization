@@ -17,6 +17,22 @@ def supportRelabel
     (S : Finset MatrixEdge) : Finset MatrixEdge :=
   Finset.univ.filter fun e : MatrixEdge => (er.symm e.1, ec.symm e.2) ∈ S
 
+theorem supportRelabel_eq_image
+    (er : Fin 3 ≃ Fin 3) (ec : Fin 4 ≃ Fin 4)
+    (S : Finset MatrixEdge) :
+    supportRelabel er ec S =
+      S.image (fun e : MatrixEdge => (er e.1, ec e.2)) := by
+  ext e
+  constructor
+  · intro he
+    refine Finset.mem_image.mpr ?_
+    refine ⟨(er.symm e.1, ec.symm e.2), ?_, ?_⟩
+    · simpa [supportRelabel] using he
+    · simp
+  · intro he
+    rcases Finset.mem_image.mp he with ⟨a, ha, rfl⟩
+    simp [supportRelabel, ha]
+
 /-- Relabeling a support and then relabeling back gives the original support. -/
 theorem supportRelabel_symm_relabel
     (er : Fin 3 ≃ Fin 3) (ec : Fin 4 ≃ Fin 4)
@@ -148,6 +164,108 @@ def IsCanonicalStarForestShape (S : Finset MatrixEdge) : Prop :=
 instance (S : Finset MatrixEdge) : Decidable (IsCanonicalStarForestShape S) := by
   unfold IsCanonicalStarForestShape
   infer_instance
+
+theorem canonicalShape_of_supportRelabel_eq
+    {S T : Finset MatrixEdge}
+    (hT : T ∈ canonicalStarForestSupports)
+    (er : Fin 3 ≃ Fin 3) (ec : Fin 4 ≃ Fin 4)
+    (hrel : supportRelabel er ec S = T) :
+    IsCanonicalStarForestShape S := by
+  unfold IsCanonicalStarForestShape allCanonicalStarForestShapes
+  refine Finset.mem_biUnion.mpr ⟨T, hT, ?_⟩
+  unfold relabeledStarForestSupportsOf
+  refine Finset.mem_biUnion.mpr ⟨er.symm, Finset.mem_univ _, ?_⟩
+  refine Finset.mem_image.mpr ⟨ec.symm, Finset.mem_univ _, ?_⟩
+  rw [← hrel]
+  exact supportRelabel_symm_relabel er ec S
+
+theorem canonicalShape_of_card_eq_zero
+    {S : Finset MatrixEdge} (hcard : S.card = 0) :
+    IsCanonicalStarForestShape S := by
+  have hS : S = ∅ := Finset.card_eq_zero.mp hcard
+  exact canonicalShape_of_supportRelabel_eq
+    (S := S) (T := shape0)
+    (by simp [canonicalStarForestSupports, shape0])
+    (Equiv.refl (Fin 3)) (Equiv.refl (Fin 4))
+    (by simp [hS, supportRelabel, shape0])
+
+theorem canonicalShape_of_card_eq_one
+    {S : Finset MatrixEdge} (hcard : S.card = 1) :
+    IsCanonicalStarForestShape S := by
+  rcases Finset.card_eq_one.mp hcard with ⟨e, hS⟩
+  rcases e with ⟨i, j⟩
+  let er : Fin 3 ≃ Fin 3 := Equiv.swap i 0
+  let ec : Fin 4 ≃ Fin 4 := Equiv.swap j 0
+  exact canonicalShape_of_supportRelabel_eq
+    (S := S) (T := shape1)
+    (by simp [canonicalStarForestSupports, shape1])
+    er ec
+    (by
+      rw [hS, supportRelabel_eq_image]
+      simp [shape1, er, ec])
+
+theorem canonicalShape_of_card_eq_two
+    {S : Finset MatrixEdge} (hcard : S.card = 2) :
+    IsCanonicalStarForestShape S := by
+  rcases Finset.card_eq_two.mp hcard with ⟨e, f, hef, hS⟩
+  rcases e with ⟨i, j⟩
+  rcases f with ⟨k, l⟩
+  by_cases hrow : i = k
+  · subst k
+    have hcol : j ≠ l := by
+      intro h
+      exact hef (by simp [h])
+    let er : Fin 3 ≃ Fin 3 := Equiv.swap i 0
+    let ec : Fin 4 ≃ Fin 4 :=
+      permSendPairToZeroOne (0 : Fin 4) (1 : Fin 4) j l
+    have her0 : er i = (0 : Fin 3) := by simp [er]
+    have hec0 : ec j = (0 : Fin 4) :=
+      permSendPairToZeroOne_apply_first (by decide) hcol
+    have hec1 : ec l = (1 : Fin 4) :=
+      permSendPairToZeroOne_apply_second (0 : Fin 4) (1 : Fin 4) j l
+    exact canonicalShape_of_supportRelabel_eq
+      (S := S) (T := shape2_row)
+      (by simp [canonicalStarForestSupports, shape2_row])
+      er ec
+      (by
+        rw [hS, supportRelabel_eq_image]
+        simp [shape2_row, er, ec, her0, hec0, hec1])
+  · by_cases hcol : j = l
+    · subst l
+      let er : Fin 3 ≃ Fin 3 :=
+        permSendPairToZeroOne (0 : Fin 3) (1 : Fin 3) i k
+      let ec : Fin 4 ≃ Fin 4 := Equiv.swap j 0
+      have her0 : er i = (0 : Fin 3) :=
+        permSendPairToZeroOne_apply_first (by decide) hrow
+      have her1 : er k = (1 : Fin 3) :=
+        permSendPairToZeroOne_apply_second (0 : Fin 3) (1 : Fin 3) i k
+      have hec0 : ec j = (0 : Fin 4) := by simp [ec]
+      exact canonicalShape_of_supportRelabel_eq
+        (S := S) (T := shape2_col)
+        (by simp [canonicalStarForestSupports, shape2_col])
+        er ec
+        (by
+          rw [hS, supportRelabel_eq_image]
+          simp [shape2_col, er, ec, her0, her1, hec0])
+    · let er : Fin 3 ≃ Fin 3 :=
+        permSendPairToZeroOne (0 : Fin 3) (1 : Fin 3) i k
+      let ec : Fin 4 ≃ Fin 4 :=
+        permSendPairToZeroOne (0 : Fin 4) (1 : Fin 4) j l
+      have her0 : er i = (0 : Fin 3) :=
+        permSendPairToZeroOne_apply_first (by decide) hrow
+      have her1 : er k = (1 : Fin 3) :=
+        permSendPairToZeroOne_apply_second (0 : Fin 3) (1 : Fin 3) i k
+      have hec0 : ec j = (0 : Fin 4) :=
+        permSendPairToZeroOne_apply_first (by decide) hcol
+      have hec1 : ec l = (1 : Fin 4) :=
+        permSendPairToZeroOne_apply_second (0 : Fin 4) (1 : Fin 4) j l
+      exact canonicalShape_of_supportRelabel_eq
+        (S := S) (T := shape2_singletons)
+        (by simp [canonicalStarForestSupports, shape2_singletons])
+        er ec
+        (by
+          rw [hS, supportRelabel_eq_image]
+          simp [shape2_singletons, er, ec, her0, her1, hec0, hec1])
 
 /-- Exhaustive finite classification of star-forest supports in `K_{3,4}`. -/
 theorem isSupportStarForest_iff_canonicalShape :

@@ -88,47 +88,6 @@ theorem supportRelabel_supportRelabel
   ext e
   simp [supportRelabel]
 
-/-- A permutation sending `a` to `zero` and `b` to `one` when `a ≠ b` and
-`zero ≠ one`. -/
-private def permSendPairToZeroOne
-    {α : Type*} [DecidableEq α] (zero one a b : α) : Equiv.Perm α :=
-  (Equiv.swap a zero).trans
-    (Equiv.swap ((Equiv.swap a zero) b) one)
-
-private theorem permSendPairToZeroOne_apply_first
-    {α : Type*} [DecidableEq α] {zero one a b : α}
-    (hzeroone : zero ≠ one) (hab : a ≠ b) :
-    permSendPairToZeroOne zero one a b a = zero := by
-  unfold permSendPairToZeroOne
-  rw [Equiv.trans_apply, Equiv.swap_apply_left]
-  have hswap_ne_zero : (Equiv.swap a zero) b ≠ zero := by
-    intro h
-    have hba : b = a := by
-      apply (Equiv.swap a zero).injective
-      simpa [Equiv.swap_apply_left] using h
-    exact hab hba.symm
-  exact Equiv.swap_apply_of_ne_of_ne hswap_ne_zero.symm hzeroone
-
-private theorem permSendPairToZeroOne_apply_second
-    {α : Type*} [DecidableEq α] (zero one a b : α) :
-    permSendPairToZeroOne zero one a b b = one := by
-  unfold permSendPairToZeroOne
-  rw [Equiv.trans_apply, Equiv.swap_apply_left]
-
-private theorem permSendPairToZeroOne_symm_zero
-    {α : Type*} [DecidableEq α] {zero one a b : α}
-    (hzeroone : zero ≠ one) (hab : a ≠ b) :
-    (permSendPairToZeroOne zero one a b).symm zero = a := by
-  exact (Equiv.symm_apply_eq (permSendPairToZeroOne zero one a b)).2
-    (permSendPairToZeroOne_apply_first hzeroone hab).symm
-
-private theorem permSendPairToZeroOne_symm_one
-    {α : Type*} [DecidableEq α] {zero one a b : α}
-    (hzeroone : zero ≠ one) :
-    (permSendPairToZeroOne zero one a b).symm one = b := by
-  exact (Equiv.symm_apply_eq (permSendPairToZeroOne zero one a b)).2
-    (permSendPairToZeroOne_apply_second zero one a b).symm
-
 /-- Any raw double-star core can be put into the canonical coordinates used by
 the local descent lemmas. -/
 theorem exists_relabel_descentDoubleStarCore_subset_of_raw
@@ -144,11 +103,11 @@ theorem exists_relabel_descentDoubleStarCore_subset_of_raw
   have her0 : er.symm 0 = i0 := by
     exact permSendPairToZeroOne_symm_zero (by decide) hrow
   have her1 : er.symm 1 = i1 := by
-    exact permSendPairToZeroOne_symm_one (by decide)
+    exact permSendPairToZeroOne_symm_one
   have hec0 : ec.symm 0 = j0 := by
     exact permSendPairToZeroOne_symm_zero (by decide) hcol
   have hec1 : ec.symm 1 = j1 := by
-    exact permSendPairToZeroOne_symm_one (by decide)
+    exact permSendPairToZeroOne_symm_one
   refine ⟨er, ec, ?_⟩
   intro e he
   simp [descentDoubleStarCore] at he

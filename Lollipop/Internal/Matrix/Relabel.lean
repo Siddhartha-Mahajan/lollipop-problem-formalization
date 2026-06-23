@@ -12,6 +12,46 @@ namespace Lollipop
 
 open BigOperators
 
+/-- A permutation sending `a` to `zero` and `b` to `one` when `a ≠ b` and
+`zero ≠ one`. -/
+def permSendPairToZeroOne
+    {α : Type*} [DecidableEq α] (zero one a b : α) : Equiv.Perm α :=
+  (Equiv.swap a zero).trans
+    (Equiv.swap ((Equiv.swap a zero) b) one)
+
+theorem permSendPairToZeroOne_apply_first
+    {α : Type*} [DecidableEq α] {zero one a b : α}
+    (hzeroone : zero ≠ one) (hab : a ≠ b) :
+    permSendPairToZeroOne zero one a b a = zero := by
+  unfold permSendPairToZeroOne
+  rw [Equiv.trans_apply, Equiv.swap_apply_left]
+  have hswap_ne_zero : (Equiv.swap a zero) b ≠ zero := by
+    intro h
+    have hba : b = a := by
+      apply (Equiv.swap a zero).injective
+      simpa [Equiv.swap_apply_left] using h
+    exact hab hba.symm
+  exact Equiv.swap_apply_of_ne_of_ne hswap_ne_zero.symm hzeroone
+
+theorem permSendPairToZeroOne_apply_second
+    {α : Type*} [DecidableEq α] (zero one a b : α) :
+    permSendPairToZeroOne zero one a b b = one := by
+  unfold permSendPairToZeroOne
+  rw [Equiv.trans_apply, Equiv.swap_apply_left]
+
+theorem permSendPairToZeroOne_symm_zero
+    {α : Type*} [DecidableEq α] {zero one a b : α}
+    (hzeroone : zero ≠ one) (hab : a ≠ b) :
+    (permSendPairToZeroOne zero one a b).symm zero = a := by
+  exact (Equiv.symm_apply_eq (permSendPairToZeroOne zero one a b)).2
+    (permSendPairToZeroOne_apply_first hzeroone hab).symm
+
+theorem permSendPairToZeroOne_symm_one
+    {α : Type*} [DecidableEq α] {zero one a b : α} :
+    (permSendPairToZeroOne zero one a b).symm one = b := by
+  exact (Equiv.symm_apply_eq (permSendPairToZeroOne zero one a b)).2
+    (permSendPairToZeroOne_apply_second zero one a b).symm
+
 /-- Relabel rows and columns of a rational `3 x 4` matrix. -/
 def relabelMatrix
     (er : Fin 3 ≃ Fin 3) (ec : Fin 4 ≃ Fin 4)
