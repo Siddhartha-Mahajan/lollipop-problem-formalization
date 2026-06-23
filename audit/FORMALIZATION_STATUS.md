@@ -40,7 +40,9 @@ structures:
   five-circle forcing for the concrete `Intriguing` relation are proved in
   `Lollipop/Concrete/EndToEnd/PairGeometry.lean`;
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
-  Euler equation;
+  Euler equation.  The `n = 0` instances of component finiteness, the
+  arbitrary upper inequality, and the generic Euler equation are proved in
+  `Lollipop/Concrete/EndToEnd/PlanarTopology.lean`;
 - Pair geometry is no longer a port: the universal `2+2+2+1` pair bound,
   close-pair saving, intriguing-pair saving, combined close/intriguing saving,
   and Paulsen inflated five-circle forcing are proved in

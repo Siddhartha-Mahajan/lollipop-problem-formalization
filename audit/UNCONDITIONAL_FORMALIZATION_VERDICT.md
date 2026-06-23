@@ -41,6 +41,9 @@ recommends:
   complement of the parallel-stem bad-locus union is proved open as
   `Lower.GenericityPort.isOpen_compl_parallelBadUnion`, and genericity
   avoidance is proved outright for arrangements of size zero and one.
+* On June 23, 2026, the `n = 0` instances of the planar-topology package were
+  proved directly: component finiteness, the arbitrary upper inequality, and
+  the generic Euler equation.
 
 ## Verdict
 

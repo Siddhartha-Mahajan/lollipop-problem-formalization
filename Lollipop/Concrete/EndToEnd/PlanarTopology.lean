@@ -1,4 +1,5 @@
 import Lollipop.Concrete.EndToEnd.Support
+import Lollipop.Concrete.Empty
 import Lollipop.Internal.Core
 import Mathlib.Tactic
 
@@ -26,6 +27,8 @@ namespace Lollipop
 namespace Concrete
 namespace EndToEnd
 
+open Set
+
 /-- Remaining planar-topology theorem package for the concrete model. -/
 structure PlanarTopologyPorts : Prop where
   region_components_finite :
@@ -38,6 +41,27 @@ structure PlanarTopologyPorts : Prop where
   generic_region_eq :
     ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
       regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (n : ℚ) + 1
+
+theorem region_components_finite_zero (A : Arrangement 0) :
+    Finite (ConnectedComponents (FreeSpace A)) := by
+  have hset : {x : Point | x ∉ occupied A} = univ := by
+    ext x
+    simp [occupied_zero A]
+  have hpre : IsPreconnected ({x : Point | x ∉ occupied A}) := by
+    rw [hset]
+    exact isPreconnected_univ
+  haveI : PreconnectedSpace (FreeSpace A) := Subtype.preconnectedSpace hpre
+  exact .of_subsingleton
+
+theorem crossing_excess_le_pairSum_zero (A : Arrangement 0) :
+    regionCountRat A - (0 : ℚ) - 1 ≤
+      Lollipop.pairSum 0 (pairExcessTable A) := by
+  simp [regionCountRat_zero A, Lollipop.pairSum, Lollipop.pairFinset]
+
+theorem regionCountRat_eq_crossings_add_zero
+    {A : Arrangement 0} (_hA : IsGeneric A) :
+    regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (0 : ℚ) + 1 := by
+  simp [regionCountRat_zero A, totalCrossingsNat, Lollipop.pairFinset]
 
 /-- Finiteness of concrete complement components, from the planar topology
 package. -/

@@ -89,7 +89,9 @@ the remaining concrete theorem targets.  The current port boundary is:
   `Lower.GenericityPort.isOpen_compl_parallelBadUnion`, and avoidance is
   proved outright for `n = 0` and `n = 1`.
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
-  Euler equation.
+  Euler equation.  The `n = 0` instances of component finiteness, the upper
+  inequality, and the generic Euler equation are proved in
+  `Lollipop/Concrete/EndToEnd/PlanarTopology.lean`.
 - Pair geometry is no longer a port.  The universal `2+2+2+1` pair bound,
   close-pair saving, intriguing-pair saving, combined close/intriguing saving,
   and Paulsen inflated five-circle forcing are proved in
