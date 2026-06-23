@@ -43,6 +43,44 @@ structure PlanarTopologyPorts : Prop where
     ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
       regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (n : ℚ) + 1
 
+/-- Build the planar topology port from local ordered insertion control plus
+the generic Euler equation. -/
+def PlanarTopologyPorts.ofOrderedInsertion
+    (hfinite : ∀ {n : ℕ} (A : Arrangement n),
+      Finite (ConnectedComponents (FreeSpace A)))
+    (hinsert : PlanarInsertion.PlanarInsertionRegionBoundStatement)
+    (hgeneric :
+      ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
+        regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (n : ℚ) + 1) :
+    PlanarTopologyPorts where
+  region_components_finite := hfinite
+  crossing_excess_le_pairSum := by
+    intro n A
+    exact PlanarInsertion.crossing_excess_le_pairSum_of_insertion hinsert A
+  generic_region_eq := hgeneric
+
+/-- Build the planar topology port from universal split-chain insertion data.
+The split chains also prove finiteness of every prefix complement. -/
+def PlanarTopologyPorts.ofSplitChain
+    (hsplit : ∀ {n : ℕ} (A : Arrangement n),
+      PlanarInsertion.OrderedInsertionSplitChainBound A)
+    (hgeneric :
+      ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
+        regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (n : ℚ) + 1) :
+    PlanarTopologyPorts where
+  region_components_finite := by
+    intro n A
+    have hprefix :=
+      PlanarInsertion.finite_prefixComponents_of_orderedSplitChain
+        A (hsplit A) n le_rfl
+    rw [PlanarInsertion.prefix_full A] at hprefix
+    exact hprefix
+  crossing_excess_le_pairSum := by
+    intro n A
+    exact PlanarInsertion.crossing_excess_le_pairSum_of_orderedInsertion A
+      (PlanarInsertion.orderedInsertionRegionBound_of_splitChain A (hsplit A))
+  generic_region_eq := hgeneric
+
 theorem region_components_finite_zero (A : Arrangement 0) :
     Finite (ConnectedComponents (FreeSpace A)) := by
   have hset : {x : Point | x ∉ occupied A} = univ := by

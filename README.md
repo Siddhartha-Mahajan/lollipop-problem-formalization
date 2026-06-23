@@ -102,7 +102,8 @@ the remaining concrete theorem targets.  The current port boundary is:
   in `ComponentSplitChain.lean` and `Insertion.lean`.  The ordered-prefix
   reduction in `PlanarInsertion.lean` proves that local insertion bounds, or
   stronger split-chain data with the right edge budget, imply the global
-  arbitrary-arrangement pair-excess inequality.
+  arbitrary-arrangement pair-excess inequality; `PlanarTopology.lean` exposes
+  constructors from those local inputs to `PlanarTopologyPorts`.
 - Pair geometry is no longer a port.  The universal `2+2+2+1` pair bound,
   close-pair saving, intriguing-pair saving, combined close/intriguing saving,
   and Paulsen inflated five-circle forcing are proved in
