@@ -118,6 +118,259 @@ def Intriguing (L M : Lollipop) : Prop :=
   · exact Or.inl hdisj
   · exact Or.inr (by nlinarith)
 
+/-- If two concrete lollipop circles meet, the distance between their centers
+is at most the sum of their radii. -/
+theorem dist_center_le_radius_add_of_cc_nonempty
+    {L M : Lollipop} (hcc : (cc L M).Nonempty) :
+    dist L.center M.center ≤ L.radius + M.radius := by
+  rcases hcc with ⟨p, hpL, hpM⟩
+  have hpLdist : dist L.center p = L.radius := by
+    rw [dist_comm]
+    simpa [cc, Lollipop.circle, dist_eq_norm] using hpL
+  have hpMdist : dist p M.center = M.radius := by
+    simpa [cc, Lollipop.circle, dist_eq_norm] using hpM
+  have htri :
+      dist L.center M.center ≤ dist L.center p + dist p M.center :=
+    dist_triangle L.center p M.center
+  nlinarith
+
+/-- Squared-coordinate form of
+`dist_center_le_radius_add_of_cc_nonempty`. -/
+theorem distSq2_center_le_radius_add_sq_of_cc_nonempty
+    {L M : Lollipop} (hcc : (cc L M).Nonempty) :
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+      (R2.ofPoint L.center) (R2.ofPoint M.center) ≤
+        (L.radius + M.radius) ^ 2 := by
+  rw [distSq2_ofPoint_eq_dist_sq]
+  have hdist := dist_center_le_radius_add_of_cc_nonempty hcc
+  exact (sq_le_sq₀ dist_nonneg
+    (add_nonneg L.radius_pos.le M.radius_pos.le)).2 hdist
+
+/-- A non-intriguing concrete pair satisfies Paulsen's strict lower
+distance inequality for the uninflated circles. -/
+theorem radius_sq_add_lt_distSq2_of_not_intriguing
+    {L M : Lollipop} (hnot : ¬ Intriguing L M) :
+    L.radius ^ 2 + M.radius ^ 2 <
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+        (R2.ofPoint L.center) (R2.ofPoint M.center) := by
+  unfold Intriguing at hnot
+  push Not at hnot
+  exact hnot.2
+
+/-- A non-intriguing concrete pair satisfies Paulsen's strict upper distance
+inequality after any positive uniform radius inflation. -/
+theorem distSq2_lt_inflated_radius_add_sq_of_not_intriguing
+    {L M : Lollipop} {ε : ℝ} (hε : 0 < ε) (hnot : ¬ Intriguing L M) :
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+      (R2.ofPoint L.center) (R2.ofPoint M.center) <
+        (L.radius + ε + (M.radius + ε)) ^ 2 := by
+  have hnot' := hnot
+  unfold Intriguing at hnot'
+  push Not at hnot'
+  have hle := distSq2_center_le_radius_add_sq_of_cc_nonempty hnot'.1
+  refine hle.trans_lt ?_
+  have hleft_nonneg : 0 ≤ L.radius + M.radius :=
+    add_nonneg L.radius_pos.le M.radius_pos.le
+  have hright_nonneg : 0 ≤ L.radius + ε + (M.radius + ε) := by
+    nlinarith [L.radius_pos, M.radius_pos, hε]
+  have hlt :
+      L.radius + M.radius < L.radius + ε + (M.radius + ε) := by
+    nlinarith
+  exact (sq_lt_sq₀ hleft_nonneg hright_nonneg).2 hlt
+
+/-- If `ε` is smaller than the normalized lower-distance gap, then inflating
+both radii by `ε` preserves Paulsen's strict lower distance inequality. -/
+theorem inflated_radius_sq_add_lt_distSq2_of_epsilon_lt
+    {L M : Lollipop} {ε : ℝ}
+    (hεpos : 0 < ε) (hεlt1 : ε < 1)
+    (hεsmall :
+      ε <
+        (TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+            (R2.ofPoint L.center) (R2.ofPoint M.center) -
+          (L.radius ^ 2 + M.radius ^ 2)) /
+          (4 * (L.radius + M.radius + 1)))
+    (hnot : ¬ Intriguing L M) :
+    (L.radius + ε) ^ 2 + (M.radius + ε) ^ 2 <
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+        (R2.ofPoint L.center) (R2.ofPoint M.center) := by
+  set d2 := TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+    (R2.ofPoint L.center) (R2.ofPoint M.center)
+  set gap := d2 - (L.radius ^ 2 + M.radius ^ 2)
+  have hgap_pos : 0 < gap := by
+    have hlow := radius_sq_add_lt_distSq2_of_not_intriguing hnot
+    dsimp [gap, d2]
+    linarith
+  have hden_pos : 0 < 4 * (L.radius + M.radius + 1) := by
+    nlinarith [L.radius_pos, M.radius_pos]
+  have hmul :
+      ε * (4 * (L.radius + M.radius + 1)) < gap := by
+    have := (lt_div_iff₀ hden_pos).1 hεsmall
+    simpa [gap, d2, mul_comm, mul_left_comm, mul_assoc] using this
+  have hεsq_le : ε ^ 2 ≤ ε := by
+    nlinarith [sq_nonneg (ε - 1), hεpos, hεlt1]
+  have hextra :
+      2 * ε * (L.radius + M.radius) + 2 * ε ^ 2 < gap := by
+    nlinarith [hmul, hεsq_le, L.radius_pos, M.radius_pos, hεpos]
+  dsimp [gap, d2] at hgap_pos hextra ⊢
+  nlinarith
+
+private theorem exists_pos_lt_one_lt_all_finset
+    {ι : Type*} (s : Finset ι) (f : ι → ℝ)
+    (hf : ∀ i ∈ s, 0 < f i) :
+    ∃ ε : ℝ, 0 < ε ∧ ε < 1 ∧ ∀ i ∈ s, ε < f i := by
+  classical
+  induction s using Finset.induction with
+  | empty =>
+      refine ⟨(1 : ℝ) / 2, by norm_num, by norm_num, ?_⟩
+      simp
+  | insert a s ha ih =>
+      have hfs : ∀ i ∈ s, 0 < f i := by
+        intro i hi
+        exact hf i (Finset.mem_insert_of_mem hi)
+      rcases ih hfs with ⟨δ, hδpos, hδlt1, hδall⟩
+      let ε : ℝ := min δ (f a) / 2
+      have hfa : 0 < f a := hf a (Finset.mem_insert_self a s)
+      have hmin_pos : 0 < min δ (f a) := lt_min hδpos hfa
+      have hhalf_lt_min : min δ (f a) / 2 < min δ (f a) := by
+        nlinarith
+      refine ⟨ε, ?_, ?_, ?_⟩
+      · dsimp [ε]
+        nlinarith
+      · dsimp [ε]
+        have hmin_le_delta : min δ (f a) ≤ δ := min_le_left δ (f a)
+        exact (hhalf_lt_min.trans_le hmin_le_delta).trans hδlt1
+      · intro i hi
+        rw [Finset.mem_insert] at hi
+        rcases hi with hi_eq | hi
+        · dsimp [ε]
+          have hmin_le_fi : min δ (f a) ≤ f i := by
+            rw [hi_eq]
+            exact min_le_right δ (f a)
+          exact hhalf_lt_min.trans_le hmin_le_fi
+        · dsimp [ε]
+          have hmin_le_delta : min δ (f a) ≤ δ := min_le_left δ (f a)
+          exact (hhalf_lt_min.trans_le hmin_le_delta).trans (hδall i hi)
+
+set_option maxHeartbeats 4000000
+
+/-- Every five concrete lollipops contain a pair satisfying the manuscript's
+strict concrete `Intriguing` relation. -/
+theorem intriguing_pair_in_every_five
+    {n : ℕ} (A : Arrangement n) :
+    ∀ t : Finset (Fin n), t.card = 5 →
+      ∃ i ∈ t, ∃ j ∈ t, i ≠ j ∧ Intriguing (A i) (A j) := by
+  classical
+  intro t ht
+  by_contra hnone
+  let e : Fin 5 ≃ {x : Fin n // x ∈ t} := (t.equivFinOfCardEq ht).symm
+  have hnot_intr :
+      ∀ i j : Fin 5, i ≠ j → ¬ Intriguing (A (e i)) (A (e j)) := by
+    intro i j hij hintr
+    refine hnone ?_
+    refine ⟨(e i : Fin n), (e i).property, (e j : Fin n), (e j).property, ?_, hintr⟩
+    intro hval
+    exact hij (e.injective (Subtype.ext hval))
+  let distinctPairs : Finset (Fin 5 × Fin 5) :=
+    Finset.univ.filter fun p : Fin 5 × Fin 5 => p.1 ≠ p.2
+  let center : Fin 5 → TheoremOneEndToEnd.PaulsenLinearAlgebra.R2 :=
+    fun i => centerR2 A (e i)
+  let baseRadius : Fin 5 → ℝ := fun i => (A (e i)).radius
+  let gapBound : Fin 5 × Fin 5 → ℝ := fun p =>
+    (TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+        (center p.1) (center p.2) -
+      (baseRadius p.1 ^ 2 + baseRadius p.2 ^ 2)) /
+      (4 * (baseRadius p.1 + baseRadius p.2 + 1))
+  have hgapBound_pos : ∀ p ∈ distinctPairs, 0 < gapBound p := by
+    intro p hp
+    have hp_ne : p.1 ≠ p.2 := by
+      simpa [distinctPairs] using hp
+    have hlow :=
+      radius_sq_add_lt_distSq2_of_not_intriguing
+        (L := A (e p.1)) (M := A (e p.2)) (hnot_intr p.1 p.2 hp_ne)
+    have hnum :
+        0 <
+          TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+            (center p.1) (center p.2) -
+          (baseRadius p.1 ^ 2 + baseRadius p.2 ^ 2) := by
+      dsimp [center, baseRadius] at hlow ⊢
+      simpa [centerR2] using sub_pos.mpr hlow
+    have hden :
+        0 < 4 * (baseRadius p.1 + baseRadius p.2 + 1) := by
+      dsimp [baseRadius]
+      nlinarith [(A (e p.1)).radius_pos, (A (e p.2)).radius_pos]
+    exact div_pos hnum hden
+  let epsSpec :=
+    exists_pos_lt_one_lt_all_finset distinctPairs gapBound hgapBound_pos
+  let ε : ℝ := Classical.choose epsSpec
+  have hεpos : 0 < ε := (Classical.choose_spec epsSpec).1
+  have hεlt1 : ε < 1 := (Classical.choose_spec epsSpec).2.1
+  have hεsmall : ∀ p ∈ distinctPairs, ε < gapBound p :=
+    (Classical.choose_spec epsSpec).2.2
+  let radius : Fin 5 → ℝ := fun i => baseRadius i + ε
+  let vec : Fin 5 → TheoremOneEndToEnd.PaulsenLinearAlgebra.R4 :=
+    fun i => TheoremOneEndToEnd.PaulsenLinearAlgebra.circleVec
+      (radius i) (center i)
+  have hradius_pos : ∀ i : Fin 5, 0 < radius i := by
+    intro i
+    dsimp [radius, baseRadius]
+    nlinarith [(A (e i)).radius_pos, hεpos]
+  have hfirst : ∀ i : Fin 5, 0 < vec i 0 := by
+    intro i
+    exact TheoremOneEndToEnd.PaulsenLinearAlgebra.circleVec_first_pos
+      (hradius_pos i) (center i)
+  have hself :
+      ∀ i : Fin 5,
+        TheoremOneEndToEnd.PaulsenLinearAlgebra.lorentzForm
+          (vec i) (vec i) = 1 := by
+    intro i
+    exact TheoremOneEndToEnd.PaulsenLinearAlgebra.lorentzForm_circleVec_self
+      (center i) (ne_of_gt (hradius_pos i))
+  have hdist_low :
+      ∀ i j : Fin 5, i ≠ j →
+        radius i ^ 2 + radius j ^ 2 <
+          TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+            (center i) (center j) := by
+    intro i j hij
+    have hp_mem : (i, j) ∈ distinctPairs := by
+      simp [distinctPairs, hij]
+    have hsmall := hεsmall (i, j) hp_mem
+    have hlow :=
+      inflated_radius_sq_add_lt_distSq2_of_epsilon_lt
+        (L := A (e i)) (M := A (e j))
+        hεpos hεlt1
+        (by simpa [gapBound, center, baseRadius, centerR2] using hsmall)
+        (hnot_intr i j hij)
+    simpa [radius, baseRadius, center, centerR2] using hlow
+  have hdist_high :
+      ∀ i j : Fin 5, i ≠ j →
+        TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+          (center i) (center j) <
+            (radius i + radius j) ^ 2 := by
+    intro i j hij
+    have hhigh :=
+      distSq2_lt_inflated_radius_add_sq_of_not_intriguing
+        (L := A (e i)) (M := A (e j)) hεpos (hnot_intr i j hij)
+    simpa [radius, baseRadius, center, centerR2] using hhigh
+  have hneg :
+      ∀ i j : Fin 5, i ≠ j →
+        TheoremOneEndToEnd.PaulsenLinearAlgebra.lorentzForm
+          (vec i) (vec j) < 0 := by
+    intro i j hij
+    exact TheoremOneEndToEnd.PaulsenLinearAlgebra.lorentzForm_circleVec_pair_neg
+      (center i) (center j) (hradius_pos i) (hradius_pos j)
+      (hdist_low i j hij)
+  have hgt :
+      ∀ i j : Fin 5, i ≠ j →
+        -1 <
+          TheoremOneEndToEnd.PaulsenLinearAlgebra.lorentzForm
+            (vec i) (vec j) := by
+    intro i j hij
+    exact TheoremOneEndToEnd.PaulsenLinearAlgebra.lorentzForm_circleVec_pair_gt_neg_one
+      (center i) (center j) (hradius_pos i) (hradius_pos j)
+      (hdist_high i j hij)
+  exact TheoremOneEndToEnd.PaulsenLinearAlgebra.no_paulsen_gram_five
+    vec hfirst hself hneg hgt
+
 private theorem finite_components_hatPiece_cc (L M : Lollipop) :
     Finite (ConnectedComponents (hatPiece (cc L M))) := by
   unfold hatPiece

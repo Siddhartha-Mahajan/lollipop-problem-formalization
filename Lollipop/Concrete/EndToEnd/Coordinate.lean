@@ -108,7 +108,7 @@ theorem exists_normalized_angle
     nlinarith [norm_nonneg z, hnormSq']
   have hz : z ≠ 0 := by
     intro hz0
-    have : ‖z‖ = 0 := by simpa [hz0]
+    have : ‖z‖ = 0 := by simp [hz0]
     linarith
   let φ : ℝ := Complex.arg z
   have hcos : Real.cos φ = u 0 := by
@@ -246,6 +246,27 @@ theorem radial_dot_nonneg_of_cyclicClose
   exact TheoremOneManuscript.PrimitiveGeometry.EuclideanLollipop.dot2_rayDirection_nonneg_of_cyclicClosePair
       (toPrimitive_hasNormalizedBearing L)
       (toPrimitive_hasNormalizedBearing M) hclose
+
+/-- Paulsen's squared-distance coordinates agree with the concrete Euclidean
+metric on points. -/
+theorem distSq2_ofPoint_eq_dist_sq (x y : Point) :
+    TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+      (R2.ofPoint x) (R2.ofPoint y) = dist x y ^ 2 := by
+  have hx :
+      TheoremOneManuscript.PrimitiveGeometry.toEuclideanR2
+        (R2.ofPoint x) = x := by
+    ext i
+    exact TheoremOneManuscript.PrimitiveGeometry.toEuclideanR2_apply
+      (R2.ofPoint x) i
+  have hy :
+      TheoremOneManuscript.PrimitiveGeometry.toEuclideanR2
+        (R2.ofPoint y) = y := by
+    ext i
+    exact TheoremOneManuscript.PrimitiveGeometry.toEuclideanR2_apply
+      (R2.ofPoint y) i
+  simpa [hx, hy] using
+    TheoremOneManuscript.PrimitiveGeometry.distSq2_eq_euclidean_dist_sq
+      (R2.ofPoint x) (R2.ofPoint y)
 
 end EndToEnd
 end Concrete

@@ -10,7 +10,7 @@ recommends:
 * `README.md` now treats `Lollipop.Final.theorem_one` as a conditional
   handoff endpoint and names a concrete certificate-free maximum theorem as
   the intended final target.
-* `lake build Lollipop` was rerun successfully on June 22, 2026 and completed
+* `lake build Lollipop` was rerun successfully on June 23, 2026 and completed
   all 3338 jobs.
 * Several closed arithmetic/table facts were changed from `native_decide` to
   ordinary kernel-checked Lean proofs.
@@ -25,6 +25,9 @@ recommends:
   three `native_decide` graph-classification dependencies as
   `Lollipop.Final.theorem_one`; these remain to replace before the strictest
   no-trusted-computation claim.
+* On June 23, 2026, Paulsen's inflated five-circle forcing for the concrete
+  `Intriguing` relation was proved as
+  `PairGeometry.intriguing_pair_in_every_five` and removed from `UpperPorts`.
 
 ## Verdict
 

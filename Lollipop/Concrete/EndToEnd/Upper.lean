@@ -12,9 +12,8 @@ colored Turan backend into
 `regionCountRat A ≤ candidate n`.
 
 The colored Turan backend and the close-pair forcing are proved in Lean.  The
-remaining upper inputs are explicit concrete theorem packages: planar topology,
-close/intriguing pair savings, and the narrow five-circle intriguing forcing
-for the manuscript's concrete `Intriguing` relation.
+remaining upper inputs are explicit concrete theorem packages: planar topology
+and close/intriguing pair savings.
 -/
 
 noncomputable section
@@ -45,15 +44,13 @@ theorem close_pair_in_every_four {n : ℕ} (A : Arrangement n) :
 
 /-- Remaining concrete upper-bound theorem package.
 
-The universal `q ≤ 7` pair bound and four-direction close forcing are no
-longer fields: they are proved as `PairGeometry.pairExcess_le_seven` and
-`close_pair_in_every_four`. -/
+The universal `q ≤ 7` pair bound, four-direction close forcing, and five-circle
+intriguing forcing are no longer fields: they are proved as
+`PairGeometry.pairExcess_le_seven`, `close_pair_in_every_four`, and
+`PairGeometry.intriguing_pair_in_every_five`. -/
 structure UpperPorts : Prop where
   topology : PlanarTopologyPorts
   pairGeometry : PairGeometry.PairGeometryPorts
-  intriguing_pair_in_every_five :
-    ∀ {n : ℕ} (A : Arrangement n), ∀ t : Finset (Fin n), t.card = 5 →
-      ∃ i ∈ t, ∃ j ∈ t, i ≠ j ∧ PairGeometry.Intriguing (A i) (A j)
 
 /-- Concrete arrangement packaged in the geometric upper structure consumed by
 the internal colored-Turan backend. -/
@@ -88,7 +85,7 @@ noncomputable def pairwiseGeometricLollipopUpper
     exact PairGeometry.pairExcess_le_four_of_close_intriguing
       ports.pairGeometry hclose hintr
   close_pair_in_every_four := close_pair_in_every_four A
-  intriguing_pair_in_every_five := ports.intriguing_pair_in_every_five A
+  intriguing_pair_in_every_five := PairGeometry.intriguing_pair_in_every_five A
   regions_eq := by ring
 
 /-- Upper bound for one concrete arrangement. -/

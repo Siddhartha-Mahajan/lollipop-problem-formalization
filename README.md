@@ -70,10 +70,11 @@ This is not yet an unconditional theorem: `EndToEndPorts` explicitly packages
 the remaining concrete theorem targets.  The current port boundary is:
 
 - `UpperPorts`: upper-bound inputs that still need geometry/topology:
-  `PlanarTopologyPorts`, `PairGeometryPorts`, and the five-circle forcing
-  statement for the concrete `Intriguing` relation.  The four-direction close
-  forcing is proved as `close_pair_in_every_four`, and the colored-Turan
-  reduction is now run in Lean by `regionCountRat_le_candidate`.
+  `PlanarTopologyPorts` and `PairGeometryPorts`.  The four-direction close
+  forcing is proved as `close_pair_in_every_four`, the five-circle forcing for
+  the concrete `Intriguing` relation is proved as
+  `PairGeometry.intriguing_pair_in_every_five`, and the colored-Turan reduction
+  is run in Lean by `regionCountRat_le_candidate`.
 - `LowerPorts`: lower construction from genericity and the planar topology
   generic Euler equation.
 - The blow-up chamber-realization layer is now proved in Lean.  Canonical
@@ -89,7 +90,8 @@ the remaining concrete theorem targets.  The current port boundary is:
 - `PairGeometryPorts`: close/intriguing pair-component savings used by the
   upper proof.
   The universal `2+2+2+1` pair bound is now proved as
-  `PairGeometry.pairExcess_le_seven`.
+  `PairGeometry.pairExcess_le_seven`; Paulsen's inflated five-circle forcing is
+  proved as `PairGeometry.intriguing_pair_in_every_five`.
 
 Build the Lean project with:
 
@@ -106,11 +108,11 @@ repository:
 - Repository: yes.  This is a Lake project with `lean-toolchain`,
   `lakefile.lean`, and `lake-manifest.json`.
 - Build: yes for the imported handoff tree.  `lake build Lollipop` completed
-  successfully on June 22, 2026.
+  successfully on June 23, 2026.
 - Main proof checked by the build: yes.  `Lollipop.lean` imports
   `Lollipop.Final`, which imports `Lollipop/Final/TheoremOne.lean`.
 - Standard axioms only: not yet under the strict checklist test.
-  After `lake build Lollipop` on June 22, 2026, the exact output was:
+  After `lake build Lollipop` on June 23, 2026, the exact output was:
 
   ```text
   'Lollipop.Final.theorem_one' depends on axioms: [propext,
@@ -131,7 +133,7 @@ repository:
   geometric assumptions.
 - Concrete endpoint: conditionally, but with no `GeometryCertificates`.
   `lake build Lollipop.Concrete.EndToEnd` completed successfully on
-  June 22, 2026 with 3334 jobs.  The exact axiom check for the concrete
+  June 23, 2026 with 3334 jobs.  The exact axiom check for the concrete
   endpoint was:
 
   ```text
@@ -212,7 +214,8 @@ lean-toolchain
 ## Build Notes
 
 After integrating the research-grade tree on June 22, 2026,
-`lake build Lollipop` completed successfully with 3338 jobs.  With the
+`lake build Lollipop` completed successfully with 3338 jobs.  On June 23, 2026,
+the same full target was rerun successfully with 3338 jobs.  With the
 existing local `.lake/` cache, that build took 9.45 seconds after the one
 local proof-script repair in `PolynomialBlowUp.lean`.
 
@@ -222,4 +225,5 @@ compiling mathlib dependencies.  After the local `.lake/` cache existed, a
 no-op `lake build Lollipop` took 3.83 seconds.
 
 The concrete endpoint build `lake build Lollipop.Concrete.EndToEnd` completed
-successfully on June 22, 2026 with 3334 jobs after the explicit-port refactor.
+successfully on June 23, 2026 with 3334 jobs after proving the concrete
+five-circle forcing theorem and removing it from `UpperPorts`.

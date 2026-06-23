@@ -34,15 +34,17 @@ Missing end-to-end layers are now represented by named concrete port
 structures:
 
 - `UpperPorts`: upper-bound inputs still needed by the concrete colored-Turan
-  assembly: `PlanarTopologyPorts`, `PairGeometryPorts`, and five-circle
-  forcing for the concrete `Intriguing` relation.  The four-direction close
-  forcing and colored-Turan reduction are proved in
-  `Lollipop/Concrete/EndToEnd/Upper.lean`;
+  assembly: `PlanarTopologyPorts` and `PairGeometryPorts`.  The four-direction
+  close forcing and colored-Turan reduction are proved in
+  `Lollipop/Concrete/EndToEnd/Upper.lean`, while the five-circle forcing for
+  the concrete `Intriguing` relation is proved in
+  `Lollipop/Concrete/EndToEnd/PairGeometry.lean`;
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation;
 - `PairGeometryPorts`: robust close/intriguing pair-component savings; the
   universal `2+2+2+1` pair bound is proved as
-  `PairGeometry.pairExcess_le_seven`;
+  `PairGeometry.pairExcess_le_seven`, and Paulsen's inflated five-circle
+  forcing is proved as `PairGeometry.intriguing_pair_in_every_five`;
 - `GenericityAvoidance`: density of the complement of the finite bad locus;
   points outside that locus are proved generic as
   `Lower.GenericityPort.good_is_generic`;
@@ -57,7 +59,7 @@ structures:
 ## Build status
 
 In this integrated repository checkout, `lake build Lollipop` was run
-successfully on June 22, 2026.  The build completed all 3338 jobs.
+successfully on June 23, 2026.  The build completed all 3338 jobs.
 
 The concrete endpoint was also checked with:
 
@@ -65,7 +67,7 @@ The concrete endpoint was also checked with:
 lake build Lollipop.Concrete.EndToEnd
 ```
 
-That build completed successfully on June 22, 2026 with 3334 jobs.
+That build completed successfully on June 23, 2026 with 3334 jobs.
 
 The concrete endpoint axiom print is:
 
