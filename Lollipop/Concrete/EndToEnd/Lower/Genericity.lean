@@ -472,6 +472,56 @@ theorem GenericityAvoidancePieces.toGenericityAvoidance {n : ℕ}
       h.triple_open h.triple_dense
       h.parallel_dense
 
+theorem not_mem_allBad_of_subsingleton {n : ℕ} [Subsingleton (Fin n)]
+    (p : ArrangementParameter n) :
+    p ∉ (allBad : Set (ArrangementParameter n)) := by
+  intro hp
+  rcases hp with hpair | hrest
+  · rw [pairBadUnion] at hpair
+    rcases Set.mem_iUnion.mp hpair with ⟨i, hpair⟩
+    rcases Set.mem_iUnion.mp hpair with ⟨j, hpair⟩
+    rcases Set.mem_iUnion.mp hpair with ⟨hij, _⟩
+    exact hij (Subsingleton.elim i j)
+  rcases hrest with hanchor | hrest
+  · rw [anchorBadUnion] at hanchor
+    rcases Set.mem_iUnion.mp hanchor with ⟨i, hanchor⟩
+    rcases Set.mem_iUnion.mp hanchor with ⟨j, hanchor⟩
+    rcases Set.mem_iUnion.mp hanchor with ⟨hij, _⟩
+    exact hij (Subsingleton.elim i j)
+  rcases hrest with htriple | hparallel
+  · rw [tripleBadUnion] at htriple
+    rcases Set.mem_iUnion.mp htriple with ⟨i, htriple⟩
+    rcases Set.mem_iUnion.mp htriple with ⟨j, htriple⟩
+    rcases Set.mem_iUnion.mp htriple with ⟨_k, htriple⟩
+    rcases Set.mem_iUnion.mp htriple with ⟨hij, _⟩
+    exact hij (Subsingleton.elim i j)
+  · rw [parallelBadUnion] at hparallel
+    rcases Set.mem_iUnion.mp hparallel with ⟨i, hparallel⟩
+    rcases Set.mem_iUnion.mp hparallel with ⟨j, hparallel⟩
+    rcases Set.mem_iUnion.mp hparallel with ⟨hij, _⟩
+    exact hij (Subsingleton.elim i j)
+
+theorem allBad_eq_empty_of_subsingleton {n : ℕ} [Subsingleton (Fin n)] :
+    (allBad : Set (ArrangementParameter n)) = ∅ := by
+  ext p
+  constructor
+  · intro hp
+    exact False.elim (not_mem_allBad_of_subsingleton p hp)
+  · intro hp
+    exact False.elim hp
+
+theorem genericityAvoidance_of_subsingleton {n : ℕ} [Subsingleton (Fin n)] :
+    GenericityAvoidance n where
+  dense_good := by
+    rw [allBad_eq_empty_of_subsingleton]
+    simp
+
+theorem genericityAvoidance_zero : GenericityAvoidance 0 :=
+  genericityAvoidance_of_subsingleton
+
+theorem genericityAvoidance_one : GenericityAvoidance 1 :=
+  genericityAvoidance_of_subsingleton
+
 end GenericityPort
 
 /-- Every nonempty strict pair chamber contains a generic arrangement, assuming

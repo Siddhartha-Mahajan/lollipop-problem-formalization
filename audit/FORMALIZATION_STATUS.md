@@ -51,7 +51,8 @@ structures:
   `Lower.GenericityPort.GenericityAvoidancePieces.toGenericityAvoidance` to
   open/dense complement obligations for the named pair, anchor, triple, and
   parallel bad-locus unions; the open-complement part for the parallel-stem
-  union is proved as `Lower.GenericityPort.isOpen_compl_parallelBadUnion`;
+  union is proved as `Lower.GenericityPort.isOpen_compl_parallelBadUnion`,
+  and avoidance is proved outright for arrangements of size zero and one;
 - blow-up chamber realization is no longer a port: canonical similarity
   transport is proved as `Lower.realizes_similarityTo_iff`, the uniform
   inter-cluster chamber radius is proved as

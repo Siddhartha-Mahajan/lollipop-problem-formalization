@@ -39,7 +39,8 @@ recommends:
 * On June 23, 2026, the genericity bad-locus assumption was decomposed by
   `Lower.GenericityPort.GenericityAvoidancePieces.toGenericityAvoidance`; the
   complement of the parallel-stem bad-locus union is proved open as
-  `Lower.GenericityPort.isOpen_compl_parallelBadUnion`.
+  `Lower.GenericityPort.isOpen_compl_parallelBadUnion`, and genericity
+  avoidance is proved outright for arrangements of size zero and one.
 
 ## Verdict
 

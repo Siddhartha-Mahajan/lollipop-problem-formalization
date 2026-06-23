@@ -86,7 +86,8 @@ the remaining concrete theorem targets.  The current port boundary is:
   `Lower.GenericityPort.good_is_generic`.  The bad locus is now decomposed by
   `Lower.GenericityPort.GenericityAvoidancePieces.toGenericityAvoidance`; the
   complement of the parallel-stem locus is proved open by
-  `Lower.GenericityPort.isOpen_compl_parallelBadUnion`.
+  `Lower.GenericityPort.isOpen_compl_parallelBadUnion`, and avoidance is
+  proved outright for `n = 0` and `n = 1`.
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation.
 - Pair geometry is no longer a port.  The universal `2+2+2+1` pair bound,
