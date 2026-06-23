@@ -126,16 +126,17 @@ repository:
   'Lollipop.Final.theorem_one' depends on axioms: [propext,
    Classical.choice,
    Quot.sound,
-   Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1,
-   Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1]
+   Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1]
   ```
 
-  The remaining nonstandard entries are closed finite graph classifications
-  proved with `native_decide`.  The support-relabel cardinality fact was
-  replaced by an explicit bijection proof on June 23, 2026.  The two remaining
-  finite classifications should be replaced by explicit kernel-checked finite
-  proofs or independently justified before claiming the strictest
-  Lean-community verification standard.
+  The remaining nonstandard entry is the closed finite star-forest
+  canonical-shape classification proved with `native_decide`.  The
+  support-relabel cardinality fact, the star-forest support-cardinality bound,
+  and the nonstar descent-shape classifier were replaced by explicit
+  kernel-checked proofs on June 23, 2026.  The remaining finite classification
+  should be replaced by an explicit kernel-checked finite proof or
+  independently justified before claiming the strictest Lean-community
+  verification standard.
 - Does it prove the claimed theorem: conditionally.  Lean proves the final
   formula from `GeometryCertificates P`; it does not yet construct those
   certificates for the actual Euclidean lollipop model without remaining
@@ -149,12 +150,11 @@ repository:
   'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms: [propext,
    Classical.choice,
    Quot.sound,
-   Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1,
-   Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1]
+   Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1]
   ```
 
   The concrete endpoint now runs the existing colored-Turán backend, so it has
-  the same two finite graph-classification `native_decide` dependencies as
+  the same remaining finite graph-classification `native_decide` dependency as
   `Lollipop.Final.theorem_one`.
 
 ## Geometry And Lower Construction

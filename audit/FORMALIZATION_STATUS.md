@@ -84,12 +84,13 @@ The concrete endpoint axiom print is:
 'Lollipop.Concrete.EndToEnd.lollipopMaximum' depends on axioms: [propext,
  Classical.choice,
  Quot.sound,
- Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1,
- Lollipop.nonstar_support_has_descent_shape._native.native_decide.ax_1_1]
+ Lollipop.isSupportStarForest_iff_canonicalShape._native.native_decide.ax_1_1]
 ```
 
-The two nonstandard entries come from the existing colored-Turan finite
-graph-classification backend, now used by the concrete upper assembly.
+The remaining nonstandard entry comes from the existing colored-Turan finite
+star-forest canonical-shape classifier, now used by the concrete upper
+assembly.  The nonstar descent-shape classifier was replaced by an explicit
+kernel-checked structural proof on June 23, 2026.
 
 Pinned versions:
 

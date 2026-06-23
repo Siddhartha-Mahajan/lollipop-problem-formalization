@@ -80,6 +80,175 @@ theorem supportCardNat_relabelNatMatrix
   unfold supportCardNat
   rw [supportOfNat_relabelNatMatrix, supportRelabel_card er.symm ec.symm]
 
+theorem supportRelabel_supportRelabel
+    (er₁ er₂ : Fin 3 ≃ Fin 3) (ec₁ ec₂ : Fin 4 ≃ Fin 4)
+    (S : Finset MatrixEdge) :
+    supportRelabel er₂ ec₂ (supportRelabel er₁ ec₁ S) =
+      supportRelabel (er₁.trans er₂) (ec₁.trans ec₂) S := by
+  ext e
+  simp [supportRelabel]
+
+/-- A permutation sending `a` to `zero` and `b` to `one` when `a ≠ b` and
+`zero ≠ one`. -/
+private def permSendPairToZeroOne
+    {α : Type*} [DecidableEq α] (zero one a b : α) : Equiv.Perm α :=
+  (Equiv.swap a zero).trans
+    (Equiv.swap ((Equiv.swap a zero) b) one)
+
+private theorem permSendPairToZeroOne_apply_first
+    {α : Type*} [DecidableEq α] {zero one a b : α}
+    (hzeroone : zero ≠ one) (hab : a ≠ b) :
+    permSendPairToZeroOne zero one a b a = zero := by
+  unfold permSendPairToZeroOne
+  rw [Equiv.trans_apply, Equiv.swap_apply_left]
+  have hswap_ne_zero : (Equiv.swap a zero) b ≠ zero := by
+    intro h
+    have hba : b = a := by
+      apply (Equiv.swap a zero).injective
+      simpa [Equiv.swap_apply_left] using h
+    exact hab hba.symm
+  exact Equiv.swap_apply_of_ne_of_ne hswap_ne_zero.symm hzeroone
+
+private theorem permSendPairToZeroOne_apply_second
+    {α : Type*} [DecidableEq α] (zero one a b : α) :
+    permSendPairToZeroOne zero one a b b = one := by
+  unfold permSendPairToZeroOne
+  rw [Equiv.trans_apply, Equiv.swap_apply_left]
+
+private theorem permSendPairToZeroOne_symm_zero
+    {α : Type*} [DecidableEq α] {zero one a b : α}
+    (hzeroone : zero ≠ one) (hab : a ≠ b) :
+    (permSendPairToZeroOne zero one a b).symm zero = a := by
+  exact (Equiv.symm_apply_eq (permSendPairToZeroOne zero one a b)).2
+    (permSendPairToZeroOne_apply_first hzeroone hab).symm
+
+private theorem permSendPairToZeroOne_symm_one
+    {α : Type*} [DecidableEq α] {zero one a b : α}
+    (hzeroone : zero ≠ one) :
+    (permSendPairToZeroOne zero one a b).symm one = b := by
+  exact (Equiv.symm_apply_eq (permSendPairToZeroOne zero one a b)).2
+    (permSendPairToZeroOne_apply_second zero one a b).symm
+
+/-- Any raw double-star core can be put into the canonical coordinates used by
+the local descent lemmas. -/
+theorem exists_relabel_descentDoubleStarCore_subset_of_raw
+    {S : Finset MatrixEdge} {i0 i1 : Fin 3} {j0 j1 : Fin 4}
+    (hrow : i0 ≠ i1) (hcol : j0 ≠ j1)
+    (h00 : (i0, j0) ∈ S) (h01 : (i0, j1) ∈ S) (h10 : (i1, j0) ∈ S) :
+    ∃ er : Fin 3 ≃ Fin 3, ∃ ec : Fin 4 ≃ Fin 4,
+      descentDoubleStarCore ⊆ supportRelabel er ec S := by
+  let er : Fin 3 ≃ Fin 3 :=
+    permSendPairToZeroOne (0 : Fin 3) (1 : Fin 3) i0 i1
+  let ec : Fin 4 ≃ Fin 4 :=
+    permSendPairToZeroOne (0 : Fin 4) (1 : Fin 4) j0 j1
+  have her0 : er.symm 0 = i0 := by
+    exact permSendPairToZeroOne_symm_zero (by decide) hrow
+  have her1 : er.symm 1 = i1 := by
+    exact permSendPairToZeroOne_symm_one (by decide)
+  have hec0 : ec.symm 0 = j0 := by
+    exact permSendPairToZeroOne_symm_zero (by decide) hcol
+  have hec1 : ec.symm 1 = j1 := by
+    exact permSendPairToZeroOne_symm_one (by decide)
+  refine ⟨er, ec, ?_⟩
+  intro e he
+  simp [descentDoubleStarCore] at he
+  rcases he with rfl | rfl | rfl
+  · simp [supportRelabel, her0, hec0, h00]
+  · simp [supportRelabel, her0, hec1, h01]
+  · simp [supportRelabel, her1, hec0, h10]
+
+/-- Structural core of the non-star support classification: every non-star
+support contains the canonical double-star core after row/column relabeling. -/
+theorem nonstar_support_has_relabelled_doubleStarCore
+    {S : Finset MatrixEdge} (hnotstar : ¬ IsSupportStarForest S) :
+    ∃ er : Fin 3 ≃ Fin 3, ∃ ec : Fin 4 ≃ Fin 4,
+      descentDoubleStarCore ⊆ supportRelabel er ec S := by
+  rcases exists_doubleStarCore_edges_of_not_star hnotstar with
+    ⟨i0, i1, j0, j1, hrow, hcol, h00, h01, h10⟩
+  exact exists_relabel_descentDoubleStarCore_subset_of_raw
+    hrow hcol h00 h01 h10
+
+theorem descent_shape_or_doubleStar_envelope_of_core
+    {T : Finset MatrixEdge} (hcore : descentDoubleStarCore ⊆ T) :
+    (∃ er : Fin 3 ≃ Fin 3, ∃ ec : Fin 4 ≃ Fin 4,
+      descentCycleSupport ⊆ supportRelabel er ec T) ∨
+    (∃ er : Fin 3 ≃ Fin 3, ∃ ec : Fin 4 ≃ Fin 4,
+      descentRowPathSupport ⊆ supportRelabel er ec T) ∨
+    (∃ er : Fin 3 ≃ Fin 3, ∃ ec : Fin 4 ≃ Fin 4,
+      descentColPathSupport ⊆ supportRelabel er ec T) ∨
+    T ⊆ descentDoubleStarSupport := by
+  by_cases henv : T ⊆ descentDoubleStarSupport
+  · exact Or.inr <| Or.inr <| Or.inr henv
+  · have h00 : ((0 : Fin 3), (0 : Fin 4)) ∈ T :=
+      hcore (by simp [descentDoubleStarCore])
+    have h01 : ((0 : Fin 3), (1 : Fin 4)) ∈ T :=
+      hcore (by simp [descentDoubleStarCore])
+    have h10 : ((1 : Fin 3), (0 : Fin 4)) ∈ T :=
+      hcore (by simp [descentDoubleStarCore])
+    rcases Finset.not_subset.mp henv with ⟨e, heT, heEnv⟩
+    rcases e with ⟨i, j⟩
+    fin_cases i <;> fin_cases j <;>
+      simp [descentDoubleStarSupport] at heEnv
+    · refine Or.inl ⟨Equiv.refl (Fin 3), Equiv.refl (Fin 4), ?_⟩
+      intro e he
+      simp [descentCycleSupport] at he
+      rcases he with rfl | rfl | rfl | rfl
+      · simpa [supportRelabel] using h00
+      · simpa [supportRelabel] using h01
+      · simpa [supportRelabel] using h10
+      · simpa [supportRelabel] using heT
+    · refine Or.inr <| Or.inr <| Or.inl ?_
+      let er : Fin 3 ≃ Fin 3 := Equiv.swap (0 : Fin 3) 1
+      let p : Fin 4 ≃ Fin 4 :=
+        (Equiv.swap (0 : Fin 4) 2).trans (Equiv.swap (0 : Fin 4) 1)
+      let ec : Fin 4 ≃ Fin 4 := p.symm
+      refine ⟨er, ec, ?_⟩
+      have her0 : er.symm 0 = (1 : Fin 3) := by simp [er]
+      have her1 : er.symm 1 = (0 : Fin 3) := by simp [er]
+      have hec0 : ec.symm 0 = (2 : Fin 4) := by decide
+      have hec1 : ec.symm 1 = (0 : Fin 4) := by decide
+      have hec2 : ec.symm 2 = (1 : Fin 4) := by decide
+      intro e he
+      simp [descentColPathSupport] at he
+      rcases he with rfl | rfl | rfl | rfl
+      · simpa [supportRelabel, her0, hec0] using heT
+      · simp [supportRelabel, her0, hec1, h10]
+      · simp [supportRelabel, her1, hec1, h00]
+      · simp [supportRelabel, her1, hec2, h01]
+    · refine Or.inr <| Or.inr <| Or.inl ?_
+      let er : Fin 3 ≃ Fin 3 := Equiv.swap (0 : Fin 3) 1
+      let p : Fin 4 ≃ Fin 4 :=
+        ((Equiv.swap (0 : Fin 4) 3).trans
+          (Equiv.swap (0 : Fin 4) 2)).trans
+            (Equiv.swap (0 : Fin 4) 1)
+      let ec : Fin 4 ≃ Fin 4 := p.symm
+      refine ⟨er, ec, ?_⟩
+      have her0 : er.symm 0 = (1 : Fin 3) := by simp [er]
+      have her1 : er.symm 1 = (0 : Fin 3) := by simp [er]
+      have hec0 : ec.symm 0 = (3 : Fin 4) := by decide
+      have hec1 : ec.symm 1 = (0 : Fin 4) := by decide
+      have hec2 : ec.symm 2 = (1 : Fin 4) := by decide
+      intro e he
+      simp [descentColPathSupport] at he
+      rcases he with rfl | rfl | rfl | rfl
+      · simpa [supportRelabel, her0, hec0] using heT
+      · simp [supportRelabel, her0, hec1, h10]
+      · simp [supportRelabel, her1, hec1, h00]
+      · simp [supportRelabel, her1, hec2, h01]
+    · refine Or.inr <| Or.inl ?_
+      let er : Fin 3 ≃ Fin 3 := Equiv.swap (0 : Fin 3) 1
+      refine ⟨er, Equiv.refl (Fin 4), ?_⟩
+      have her0 : er.symm 0 = (1 : Fin 3) := by simp [er]
+      have her1 : er.symm 1 = (0 : Fin 3) := by simp [er]
+      have her2 : er.symm 2 = (2 : Fin 3) := by decide
+      intro e he
+      simp [descentRowPathSupport] at he
+      rcases he with rfl | rfl | rfl | rfl
+      · simp [supportRelabel, her0, h10]
+      · simp [supportRelabel, her1, h00]
+      · simp [supportRelabel, her1, h01]
+      · simpa [supportRelabel, her2] using heT
+
 /-- Finite classification of non-star supports into the local descent shapes. -/
 theorem nonstar_support_has_descent_shape :
     ∀ S : Finset MatrixEdge,
@@ -93,7 +262,24 @@ theorem nonstar_support_has_descent_shape :
         (∃ er : Fin 3 ≃ Fin 3, ∃ ec : Fin 4 ≃ Fin 4,
           descentDoubleStarCore ⊆ supportRelabel er ec S ∧
             supportRelabel er ec S ⊆ descentDoubleStarSupport) := by
-  native_decide
+  intro S hnotstar
+  rcases nonstar_support_has_relabelled_doubleStarCore hnotstar with
+    ⟨er, ec, hcore⟩
+  rcases descent_shape_or_doubleStar_envelope_of_core hcore with
+    hcycle | hrow | hcol | hdouble
+  · rcases hcycle with ⟨er₂, ec₂, hcycle⟩
+    refine Or.inl ⟨er.trans er₂, ec.trans ec₂, ?_⟩
+    rw [← supportRelabel_supportRelabel er er₂ ec ec₂ S]
+    exact hcycle
+  · rcases hrow with ⟨er₂, ec₂, hrow⟩
+    refine Or.inr <| Or.inl ⟨er.trans er₂, ec.trans ec₂, ?_⟩
+    rw [← supportRelabel_supportRelabel er er₂ ec ec₂ S]
+    exact hrow
+  · rcases hcol with ⟨er₂, ec₂, hcol⟩
+    refine Or.inr <| Or.inr <| Or.inl ⟨er.trans er₂, ec.trans ec₂, ?_⟩
+    rw [← supportRelabel_supportRelabel er er₂ ec ec₂ S]
+    exact hcol
+  · exact Or.inr <| Or.inr <| Or.inr ⟨er, ec, hcore, hdouble⟩
 
 /-- Positive endpoint of the canonical four-cycle move, as a natural matrix. -/
 def cycleMoveNatPlus (U : NatMatrix) (N : Nat) : NatMatrix :=
