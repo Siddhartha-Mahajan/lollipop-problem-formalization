@@ -551,6 +551,44 @@ theorem pairExcessNat_le_four_of_cc_empty_rr_empty
     hccHat hrcHat hcrHat hrrHat
   omega
 
+/-- Empty circle-circle and left-ray/right-circle primitives give a
+`0+0+2+1` saving. -/
+theorem pairExcessNat_le_three_of_cc_empty_rc_empty
+    {L M : Lollipop}
+    (hcc_empty : ¬ (cc L M).Nonempty)
+    (hrc_empty : ¬ (rc L M).Nonempty) :
+    pairExcessNat L M ≤ 3 := by
+  have hccHat : componentCount (hatPiece (cc L M)) - 1 ≤ 0 := by
+    rw [componentCount_hatPiece_cc_sub_one_eq_zero_of_empty hcc_empty]
+  have hrcHat : componentCount (hatPiece (rc L M)) - 1 ≤ 0 := by
+    rw [componentCount_hatPiece_rc_sub_one_eq_zero_of_empty hrc_empty]
+  have hcrHat : componentCount (hatPiece (cr L M)) - 1 ≤ 2 := by
+    simpa [hatPiece] using EuclideanPort.circle_ray_components_le_two L M
+  have hrrHat : componentCount (hatPiece (rr L M)) - 1 ≤ 1 := by
+    simpa [hatPiece] using EuclideanPort.ray_ray_components_le_one L M
+  have h := pairExcessNat_le_of_hatPiece_bounds L M
+    hccHat hrcHat hcrHat hrrHat
+  omega
+
+/-- Empty circle-circle and left-circle/right-ray primitives give a
+`0+2+0+1` saving. -/
+theorem pairExcessNat_le_three_of_cc_empty_cr_empty
+    {L M : Lollipop}
+    (hcc_empty : ¬ (cc L M).Nonempty)
+    (hcr_empty : ¬ (cr L M).Nonempty) :
+    pairExcessNat L M ≤ 3 := by
+  have hccHat : componentCount (hatPiece (cc L M)) - 1 ≤ 0 := by
+    rw [componentCount_hatPiece_cc_sub_one_eq_zero_of_empty hcc_empty]
+  have hrcHat : componentCount (hatPiece (rc L M)) - 1 ≤ 2 := by
+    simpa [hatPiece] using EuclideanPort.ray_circle_components_le_two L M
+  have hcrHat : componentCount (hatPiece (cr L M)) - 1 ≤ 0 := by
+    rw [componentCount_hatPiece_cr_sub_one_eq_zero_of_empty hcr_empty]
+  have hrrHat : componentCount (hatPiece (rr L M)) - 1 ≤ 1 := by
+    simpa [hatPiece] using EuclideanPort.ray_ray_components_le_one L M
+  have h := pairExcessNat_le_of_hatPiece_bounds L M
+    hccHat hrcHat hcrHat hrrHat
+  omega
+
 /-- Empty mixed primitives give a `2+0+0+1` saving. -/
 theorem pairExcessNat_le_three_of_rc_empty_cr_empty
     {L M : Lollipop}
@@ -565,6 +603,44 @@ theorem pairExcessNat_le_three_of_rc_empty_cr_empty
     rw [componentCount_hatPiece_cr_sub_one_eq_zero_of_empty hcr_empty]
   have hrrHat : componentCount (hatPiece (rr L M)) - 1 ≤ 1 := by
     simpa [hatPiece] using EuclideanPort.ray_ray_components_le_one L M
+  have h := pairExcessNat_le_of_hatPiece_bounds L M
+    hccHat hrcHat hcrHat hrrHat
+  omega
+
+/-- Empty left-ray/right-circle and ray-ray primitives give a `2+0+2+0`
+saving. -/
+theorem pairExcessNat_le_four_of_rc_empty_rr_empty
+    {L M : Lollipop}
+    (hrc_empty : ¬ (rc L M).Nonempty)
+    (hrr_empty : ¬ (rr L M).Nonempty) :
+    pairExcessNat L M ≤ 4 := by
+  have hccHat : componentCount (hatPiece (cc L M)) - 1 ≤ 2 := by
+    simpa [hatPiece] using EuclideanPort.circle_circle_components_le_two L M
+  have hrcHat : componentCount (hatPiece (rc L M)) - 1 ≤ 0 := by
+    rw [componentCount_hatPiece_rc_sub_one_eq_zero_of_empty hrc_empty]
+  have hcrHat : componentCount (hatPiece (cr L M)) - 1 ≤ 2 := by
+    simpa [hatPiece] using EuclideanPort.circle_ray_components_le_two L M
+  have hrrHat : componentCount (hatPiece (rr L M)) - 1 ≤ 0 := by
+    rw [componentCount_hatPiece_rr_sub_one_eq_zero_of_empty hrr_empty]
+  have h := pairExcessNat_le_of_hatPiece_bounds L M
+    hccHat hrcHat hcrHat hrrHat
+  omega
+
+/-- Empty left-circle/right-ray and ray-ray primitives give a `2+2+0+0`
+saving. -/
+theorem pairExcessNat_le_four_of_cr_empty_rr_empty
+    {L M : Lollipop}
+    (hcr_empty : ¬ (cr L M).Nonempty)
+    (hrr_empty : ¬ (rr L M).Nonempty) :
+    pairExcessNat L M ≤ 4 := by
+  have hccHat : componentCount (hatPiece (cc L M)) - 1 ≤ 2 := by
+    simpa [hatPiece] using EuclideanPort.circle_circle_components_le_two L M
+  have hrcHat : componentCount (hatPiece (rc L M)) - 1 ≤ 2 := by
+    simpa [hatPiece] using EuclideanPort.ray_circle_components_le_two L M
+  have hcrHat : componentCount (hatPiece (cr L M)) - 1 ≤ 0 := by
+    rw [componentCount_hatPiece_cr_sub_one_eq_zero_of_empty hcr_empty]
+  have hrrHat : componentCount (hatPiece (rr L M)) - 1 ≤ 0 := by
+    rw [componentCount_hatPiece_rr_sub_one_eq_zero_of_empty hrr_empty]
   have h := pairExcessNat_le_of_hatPiece_bounds L M
     hccHat hrcHat hcrHat hrrHat
   omega
@@ -659,6 +735,28 @@ theorem pairExcess_le_four_of_cc_empty_rr_empty
   exact_mod_cast pairExcessNat_le_four_of_cc_empty_rr_empty
     hcc_empty hrr_empty
 
+/-- Rational wrapper for the empty circle-circle and left-ray/right-circle
+saving. -/
+theorem pairExcess_le_three_of_cc_empty_rc_empty
+    {L M : Lollipop}
+    (hcc_empty : ¬ (cc L M).Nonempty)
+    (hrc_empty : ¬ (rc L M).Nonempty) :
+    pairExcess L M ≤ 3 := by
+  unfold pairExcess
+  exact_mod_cast pairExcessNat_le_three_of_cc_empty_rc_empty
+    hcc_empty hrc_empty
+
+/-- Rational wrapper for the empty circle-circle and left-circle/right-ray
+saving. -/
+theorem pairExcess_le_three_of_cc_empty_cr_empty
+    {L M : Lollipop}
+    (hcc_empty : ¬ (cc L M).Nonempty)
+    (hcr_empty : ¬ (cr L M).Nonempty) :
+    pairExcess L M ≤ 3 := by
+  unfold pairExcess
+  exact_mod_cast pairExcessNat_le_three_of_cc_empty_cr_empty
+    hcc_empty hcr_empty
+
 /-- Rational wrapper for the empty mixed-primitives saving. -/
 theorem pairExcess_le_three_of_rc_empty_cr_empty
     {L M : Lollipop}
@@ -668,6 +766,26 @@ theorem pairExcess_le_three_of_rc_empty_cr_empty
   unfold pairExcess
   exact_mod_cast pairExcessNat_le_three_of_rc_empty_cr_empty
     hrc_empty hcr_empty
+
+/-- Rational wrapper for the empty left-ray/right-circle and ray-ray saving. -/
+theorem pairExcess_le_four_of_rc_empty_rr_empty
+    {L M : Lollipop}
+    (hrc_empty : ¬ (rc L M).Nonempty)
+    (hrr_empty : ¬ (rr L M).Nonempty) :
+    pairExcess L M ≤ 4 := by
+  unfold pairExcess
+  exact_mod_cast pairExcessNat_le_four_of_rc_empty_rr_empty
+    hrc_empty hrr_empty
+
+/-- Rational wrapper for the empty left-circle/right-ray and ray-ray saving. -/
+theorem pairExcess_le_four_of_cr_empty_rr_empty
+    {L M : Lollipop}
+    (hcr_empty : ¬ (cr L M).Nonempty)
+    (hrr_empty : ¬ (rr L M).Nonempty) :
+    pairExcess L M ≤ 4 := by
+  unfold pairExcess
+  exact_mod_cast pairExcessNat_le_four_of_cr_empty_rr_empty
+    hcr_empty hrr_empty
 
 /-- Close-pair saving. -/
 theorem pairExcess_le_five_of_close (ports : PairGeometryPorts)

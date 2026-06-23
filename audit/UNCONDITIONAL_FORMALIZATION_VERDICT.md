@@ -29,6 +29,11 @@ recommends:
 * On June 23, 2026, Paulsen's inflated five-circle forcing for the concrete
   `Intriguing` relation was proved as
   `PairGeometry.intriguing_pair_in_every_five` and removed from `UpperPorts`.
+* On June 23, 2026, the robust pair-excess accounting was extended with
+  two-empty-piece savings such as
+  `pairExcess_le_three_of_cc_empty_rc_empty` and
+  `pairExcess_le_four_of_rc_empty_rr_empty`; these are ordinary component-count
+  consequences and not additional assumptions.
 
 ## Verdict
 

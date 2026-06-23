@@ -93,8 +93,13 @@ the remaining concrete theorem targets.  The current port boundary is:
   `PairGeometry.pairExcess_le_seven`; Paulsen's inflated five-circle forcing is
   proved as `PairGeometry.intriguing_pair_in_every_five`; and the disjoint
   circle branch of intriguing-pair savings is proved as
-  `PairGeometry.pairExcess_le_five_of_cc_empty`.  The remaining intriguing
-  field is the near-circle branch.
+  `PairGeometry.pairExcess_le_five_of_cc_empty`.  Primitive emptiness
+  accounting is also proved for the useful two-empty-piece combinations, for
+  example `pairExcess_le_three_of_cc_empty_rc_empty`,
+  `pairExcess_le_three_of_cc_empty_cr_empty`,
+  `pairExcess_le_four_of_rc_empty_rr_empty`, and
+  `pairExcess_le_four_of_cr_empty_rr_empty`.  The remaining intriguing field is
+  the near-circle branch.
 
 Build the Lean project with:
 

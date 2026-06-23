@@ -46,7 +46,13 @@ structures:
   `PairGeometry.pairExcess_le_seven`, and Paulsen's inflated five-circle
   forcing is proved as `PairGeometry.intriguing_pair_in_every_five`.  The
   disjoint-circle branch of intriguing savings is proved as
-  `PairGeometry.pairExcess_le_five_of_cc_empty`, so the remaining intriguing
+  `PairGeometry.pairExcess_le_five_of_cc_empty`.  The robust component-count
+  accounting now also proves the useful two-empty-piece savings
+  `pairExcess_le_three_of_cc_empty_rc_empty`,
+  `pairExcess_le_three_of_cc_empty_cr_empty`,
+  `pairExcess_le_four_of_rc_empty_rr_empty`, and
+  `pairExcess_le_four_of_cr_empty_rr_empty`, so future geometric emptiness
+  proofs plug directly into the numeric bounds.  The remaining intriguing
   field is only the near-circle branch;
 - `GenericityAvoidance`: density of the complement of the finite bad locus;
   points outside that locus are proved generic as
