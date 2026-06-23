@@ -97,6 +97,96 @@ def colNeighbors (S : Finset MatrixEdge) (j : Fin 4) : Finset (Fin 3) :=
     i ∈ colNeighbors S j ↔ (i, j) ∈ S := by
   simp [colNeighbors]
 
+theorem rowFiber_card_eq_rowNeighbors_card
+    (S : Finset MatrixEdge) (i : Fin 3) :
+    (S.filter fun e : MatrixEdge => e.1 = i).card =
+      (rowNeighbors S i).card := by
+  let f : MatrixEdge → Fin 4 := fun e => e.2
+  have hf : Set.InjOn f (S.filter fun e : MatrixEdge => e.1 = i) := by
+    intro a ha b hb hab
+    rcases a with ⟨ar, ac⟩
+    rcases b with ⟨br, bc⟩
+    have har : ar = i := (Finset.mem_filter.mp ha).2
+    have hbr : br = i := (Finset.mem_filter.mp hb).2
+    have hbc : ac = bc := hab
+    exact Prod.ext (by rw [har, hbr]) hbc
+  have himage :
+      (S.filter fun e : MatrixEdge => e.1 = i).image f =
+        rowNeighbors S i := by
+    ext j
+    constructor
+    · rintro hj
+      rcases Finset.mem_image.mp hj with ⟨e, he, rfl⟩
+      rcases e with ⟨r, c⟩
+      have heS : (r, c) ∈ S := (Finset.mem_filter.mp he).1
+      have hri : r = i := (Finset.mem_filter.mp he).2
+      simpa [rowNeighbors, hri] using heS
+    · intro hj
+      have hij : (i, j) ∈ S := by simpa using hj
+      exact Finset.mem_image.mpr
+        ⟨(i, j), by simp [hij], rfl⟩
+  rw [← himage]
+  exact (Finset.card_image_of_injOn hf).symm
+
+theorem colFiber_card_eq_colNeighbors_card
+    (S : Finset MatrixEdge) (j : Fin 4) :
+    (S.filter fun e : MatrixEdge => e.2 = j).card =
+      (colNeighbors S j).card := by
+  let f : MatrixEdge → Fin 3 := fun e => e.1
+  have hf : Set.InjOn f (S.filter fun e : MatrixEdge => e.2 = j) := by
+    intro a ha b hb hab
+    rcases a with ⟨ar, ac⟩
+    rcases b with ⟨br, bc⟩
+    have hac : ac = j := (Finset.mem_filter.mp ha).2
+    have hbc : bc = j := (Finset.mem_filter.mp hb).2
+    have hbr : ar = br := hab
+    exact Prod.ext hbr (by rw [hac, hbc])
+  have himage :
+      (S.filter fun e : MatrixEdge => e.2 = j).image f =
+        colNeighbors S j := by
+    ext i
+    constructor
+    · rintro hi
+      rcases Finset.mem_image.mp hi with ⟨e, he, rfl⟩
+      rcases e with ⟨r, c⟩
+      have heS : (r, c) ∈ S := (Finset.mem_filter.mp he).1
+      have hcj : c = j := (Finset.mem_filter.mp he).2
+      simpa [colNeighbors, hcj] using heS
+    · intro hi
+      have hij : (i, j) ∈ S := by simpa using hi
+      exact Finset.mem_image.mpr
+        ⟨(i, j), by simp [hij], rfl⟩
+  rw [← himage]
+  exact (Finset.card_image_of_injOn hf).symm
+
+theorem card_eq_sum_rowNeighbors_card (S : Finset MatrixEdge) :
+    S.card = ∑ i : Fin 3, (rowNeighbors S i).card := by
+  classical
+  have hmaps :
+      (S : Set MatrixEdge).MapsTo (fun e : MatrixEdge => e.1)
+        ((Finset.univ : Finset (Fin 3)) : Set (Fin 3)) := by
+    intro e he
+    simp
+  have h :=
+    Finset.card_eq_sum_card_fiberwise
+      (s := S) (t := (Finset.univ : Finset (Fin 3)))
+      (f := fun e : MatrixEdge => e.1) hmaps
+  simpa [rowFiber_card_eq_rowNeighbors_card] using h
+
+theorem card_eq_sum_colNeighbors_card (S : Finset MatrixEdge) :
+    S.card = ∑ j : Fin 4, (colNeighbors S j).card := by
+  classical
+  have hmaps :
+      (S : Set MatrixEdge).MapsTo (fun e : MatrixEdge => e.2)
+        ((Finset.univ : Finset (Fin 4)) : Set (Fin 4)) := by
+    intro e he
+    simp
+  have h :=
+    Finset.card_eq_sum_card_fiberwise
+      (s := S) (t := (Finset.univ : Finset (Fin 4)))
+      (f := fun e : MatrixEdge => e.2) hmaps
+  simpa [colFiber_card_eq_colNeighbors_card] using h
+
 @[simp] theorem supportAdj_symm
     (S : Finset MatrixEdge) (v w : MatrixVertex) :
     SupportAdj S v w ↔ SupportAdj S w v := by
