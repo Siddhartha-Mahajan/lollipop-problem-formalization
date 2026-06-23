@@ -315,6 +315,34 @@ theorem exists_one_lt_colNeighbors_card_of_four_lt_card
       (i, j) ∈ S := by
   rw [supportAdj_symm, supportAdj_row_col_iff]
 
+@[simp] theorem supportAdj_row_row_iff
+    (S : Finset MatrixEdge) (i k : Fin 3) :
+    SupportAdj S (MatrixVertex.row i) (MatrixVertex.row k) ↔ False := by
+  constructor
+  · rintro ⟨hne, e, _he, hi, hk⟩
+    rcases e with ⟨r, c⟩
+    simp [MatrixEdge.Incident, MatrixEdge.rowVertex,
+      MatrixEdge.colVertex] at hi hk
+    subst i
+    subst k
+    exact hne rfl
+  · intro h
+    cases h
+
+@[simp] theorem supportAdj_col_col_iff
+    (S : Finset MatrixEdge) (j l : Fin 4) :
+    SupportAdj S (MatrixVertex.col j) (MatrixVertex.col l) ↔ False := by
+  constructor
+  · rintro ⟨hne, e, _he, hj, hl⟩
+    rcases e with ⟨r, c⟩
+    simp [MatrixEdge.Incident, MatrixEdge.rowVertex,
+      MatrixEdge.colVertex] at hj hl
+    subst j
+    subst l
+    exact hne rfl
+  · intro h
+    cases h
+
 /-- A simple path of length three in a support graph. -/
 def HasSupportPath3 (S : Finset MatrixEdge) : Prop :=
   ∃ v0 v1 v2 v3 : MatrixVertex,
@@ -325,6 +353,51 @@ def HasSupportPath3 (S : Finset MatrixEdge) : Prop :=
 instance (S : Finset MatrixEdge) : Decidable (HasSupportPath3 S) := by
   unfold HasSupportPath3
   infer_instance
+
+/-- A length-three support path is exactly a raw double-star core after
+choosing the middle row/column of the path. -/
+theorem exists_doubleStarCore_edges_of_hasSupportPath3
+    {S : Finset MatrixEdge} (h : HasSupportPath3 S) :
+    ∃ i0 i1 : Fin 3, ∃ j0 j1 : Fin 4,
+      i0 ≠ i1 ∧ j0 ≠ j1 ∧
+        (i0, j0) ∈ S ∧ (i0, j1) ∈ S ∧ (i1, j0) ∈ S := by
+  rcases h with ⟨v0, v1, v2, v3, hne01, hne02, hne03,
+    hne12, hne13, hne23, hadj01, hadj12, hadj23⟩
+  rcases v0 with r0 | c0
+  · rcases v1 with r1 | c1
+    · exfalso
+      simp at hadj01
+    · rcases v2 with r2 | c2
+      · rcases v3 with r3 | c3
+        · exfalso
+          simp at hadj23
+        · refine ⟨r2, r0, c1, c3, ?_, ?_, ?_, ?_, ?_⟩
+          · intro h
+            exact hne02 (by simp [h])
+          · intro h
+            exact hne13 (by simp [h])
+          · simpa using hadj12
+          · simpa using hadj23
+          · simpa using hadj01
+      · exfalso
+        simp at hadj12
+  · rcases v1 with r1 | c1
+    · rcases v2 with r2 | c2
+      · exfalso
+        simp at hadj12
+      · rcases v3 with r3 | c3
+        · refine ⟨r1, r3, c2, c0, ?_, ?_, ?_, ?_, ?_⟩
+          · intro h
+            exact hne13 (by simp [h])
+          · intro h
+            exact hne02 (by simp [h])
+          · simpa using hadj12
+          · simpa using hadj01
+          · simpa using hadj23
+        · exfalso
+          simp at hadj23
+    · exfalso
+      simp at hadj01
 
 /-- An edge with degree at least two at both endpoints immediately gives a
 simple support path of length three. -/
@@ -395,6 +468,16 @@ theorem not_mem_of_one_lt_row_col_neighbors_of_starForest
     (i, j) ∉ S := by
   intro hij
   exact hstar (hasSupportPath3_of_edge_one_lt_degrees hij hrow hcol)
+
+/-- A non-star support contains a raw double-star core. -/
+theorem exists_doubleStarCore_edges_of_not_star
+    {S : Finset MatrixEdge} (h : ¬ IsSupportStarForest S) :
+    ∃ i0 i1 : Fin 3, ∃ j0 j1 : Fin 4,
+      i0 ≠ i1 ∧ j0 ≠ j1 ∧
+        (i0, j0) ∈ S ∧ (i0, j1) ∈ S ∧ (i1, j0) ∈ S := by
+  apply exists_doubleStarCore_edges_of_hasSupportPath3
+  by_contra hpath
+  exact h hpath
 
 /-- The number of low-degree rows, expressed as a complement count. -/
 theorem lowRows_card_eq (S : Finset MatrixEdge) :
