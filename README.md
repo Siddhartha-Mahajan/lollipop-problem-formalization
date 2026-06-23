@@ -99,7 +99,10 @@ the remaining concrete theorem targets.  The current port boundary is:
   component-fibre bookkeeping for one-component insertions is now proved in
   `Lollipop/Concrete/EndToEnd/ComponentFibers.lean`; finite split chains and
   their translation back to actual `regionCount` insertion bounds are proved
-  in `ComponentSplitChain.lean` and `Insertion.lean`.
+  in `ComponentSplitChain.lean` and `Insertion.lean`.  The ordered-prefix
+  reduction in `PlanarInsertion.lean` proves that local insertion bounds, or
+  stronger split-chain data with the right edge budget, imply the global
+  arbitrary-arrangement pair-excess inequality.
 - Pair geometry is no longer a port.  The universal `2+2+2+1` pair bound,
   close-pair saving, intriguing-pair saving, combined close/intriguing saving,
   and Paulsen inflated five-circle forcing are proved in

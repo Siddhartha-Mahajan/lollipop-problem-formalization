@@ -1,5 +1,5 @@
 import Lollipop.Concrete.EndToEnd.Support
-import Lollipop.Concrete.EndToEnd.Insertion
+import Lollipop.Concrete.EndToEnd.PlanarInsertion
 import Lollipop.Concrete.Empty
 import Lollipop.Internal.Core
 import Mathlib.Tactic
