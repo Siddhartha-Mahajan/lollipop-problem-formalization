@@ -527,6 +527,26 @@ def OrderedInsertionFanSplitChainBound {n : ℕ} (A : Arrangement n) : Prop :=
         (A ⟨k, hk⟩),
       (h.edgeCount : ℚ) ≤ (componentCount (insertionFan A k hk) : ℚ)
 
+/-- Exact fan-sized split-chain input for one fixed final arrangement. -/
+def OrderedExactInsertionFanSplitChain {n : ℕ} (A : Arrangement n) : Prop :=
+  ∀ (k : ℕ) (hk : k < n),
+    ∃ h : Insertion.ExactInsertionSplitChain
+        (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+        (A ⟨k, hk⟩),
+      h.edgeCount = componentCount (insertionFan A k hk)
+
+/-- Exact fan-sized chains imply the bounded fan-chain input. -/
+theorem orderedInsertionFanSplitChainBound_of_exact
+    {n : ℕ} {A : Arrangement n}
+    (hexact : OrderedExactInsertionFanSplitChain A) :
+    OrderedInsertionFanSplitChainBound A := by
+  intro k hk
+  rcases hexact k hk with ⟨hchain, hcount⟩
+  refine ⟨hchain.toInsertionSplitChain, ?_⟩
+  change (hchain.edgeCount : ℚ) ≤
+    (componentCount (insertionFan A k hk) : ℚ)
+  rw [hcount]
+
 /-- Fan-bounded split chains imply the older previous-pair split-chain input. -/
 theorem orderedInsertionSplitChainBound_of_fan
     {n : ℕ} (A : Arrangement n)
@@ -538,6 +558,181 @@ theorem orderedInsertionSplitChainBound_of_fan
   have hfanBudget :=
     componentCount_insertionFan_cast_le_previousPairAdded_add_one A k hk
   exact hbudget.trans hfanBudget
+
+/-- Exact fan-region recurrence for one fixed final arrangement. -/
+def OrderedInsertionFanRegionEquality {n : ℕ} (A : Arrangement n) : Prop :=
+  ∀ (k : ℕ) (hk : k < n),
+    regionCountRat
+        (PlanarInsertion.prefixArrangement A (k + 1)
+          (Nat.succ_le_of_lt hk)) =
+      regionCountRat
+        (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)) +
+        (componentCount (insertionFan A k hk) : ℚ)
+
+/-- Exact fan-sized split chains imply the exact fan-region recurrence. -/
+theorem orderedInsertionFanRegionEquality_of_exactFan
+    {n : ℕ} (A : Arrangement n)
+    (hexact : OrderedExactInsertionFanSplitChain A) :
+    OrderedInsertionFanRegionEquality A := by
+  intro k hk
+  rcases hexact k hk with ⟨hchain, hcount⟩
+  have hfanBound : OrderedInsertionFanSplitChainBound A :=
+    orderedInsertionFanSplitChainBound_of_exact hexact
+  have hsplit : PlanarInsertion.OrderedInsertionSplitChainBound A :=
+    orderedInsertionSplitChainBound_of_fan A hfanBound
+  haveI : Finite
+      (ConnectedComponents
+        (FreeSpace
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))) :=
+    PlanarInsertion.finite_prefixComponents_of_orderedSplitChain A hsplit k
+      (Nat.le_of_lt hk)
+  have hnat :
+      regionCount
+          (PlanarInsertion.prefixArrangement A (k + 1)
+            (Nat.succ_le_of_lt hk)) =
+        regionCount
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)) +
+          componentCount (insertionFan A k hk) := by
+    rw [PlanarInsertion.prefix_succ_eq_snocArrangement A hk]
+    have hstep := Insertion.regionCount_snoc_eq_add_edgeCount hchain
+    rw [hstep, hcount]
+  unfold regionCountRat
+  exact_mod_cast hnat
+
+/-- Exact ordered insertion recurrence in the previous-pair coordinates used
+by the manuscript algebra. -/
+def OrderedInsertionRegionEquality {n : ℕ} (A : Arrangement n) : Prop :=
+  ∀ (k : ℕ) (hk : k < n),
+    regionCountRat
+        (PlanarInsertion.prefixArrangement A (k + 1)
+          (Nat.succ_le_of_lt hk)) =
+      regionCountRat
+        (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)) +
+        TheoremOneManuscript.previousPairAdded (pairExcessTable A) k + 1
+
+/-- Exact fan-region recurrence plus generic fan counts gives the exact
+previous-pair insertion recurrence. -/
+theorem orderedInsertionRegionEquality_of_fanRegionEquality_of_isGeneric
+    {n : ℕ} {A : Arrangement n}
+    (hA : IsGeneric A)
+    (hfan : OrderedInsertionFanRegionEquality A) :
+    OrderedInsertionRegionEquality A := by
+  intro k hk
+  calc
+    regionCountRat
+        (PlanarInsertion.prefixArrangement A (k + 1)
+          (Nat.succ_le_of_lt hk)) =
+      regionCountRat
+        (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)) +
+        (componentCount (insertionFan A k hk) : ℚ) := hfan k hk
+    _ =
+      regionCountRat
+        (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)) +
+        TheoremOneManuscript.previousPairAdded (pairExcessTable A) k + 1 := by
+      rw [componentCount_insertionFan_cast_eq_previousPairAdded_add_one_of_isGeneric
+        hA k hk]
+      ring
+
+/-- Exact fan-sized split chains plus genericity give the exact previous-pair
+insertion recurrence. -/
+theorem orderedInsertionRegionEquality_of_exactFan_of_isGeneric
+    {n : ℕ} {A : Arrangement n}
+    (hA : IsGeneric A)
+    (hexact : OrderedExactInsertionFanSplitChain A) :
+    OrderedInsertionRegionEquality A :=
+  orderedInsertionRegionEquality_of_fanRegionEquality_of_isGeneric hA
+    (orderedInsertionFanRegionEquality_of_exactFan A hexact)
+
+/-- Finite induction over prefixes for exact ordered insertion recurrences. -/
+theorem prefix_regionCountRat_eq_of_orderedInsertion
+    {n : ℕ} (A : Arrangement n)
+    (hinsert : OrderedInsertionRegionEquality A) :
+    ∀ (k : ℕ) (hk : k ≤ n),
+      regionCountRat (PlanarInsertion.prefixArrangement A k hk) =
+        (∑ r ∈ Finset.range k,
+          TheoremOneManuscript.previousPairAdded (pairExcessTable A) r) +
+          (k : ℚ) + 1 := by
+  intro k
+  induction k with
+  | zero =>
+      intro hk
+      rw [regionCountRat_zero]
+      simp
+  | succ k ih =>
+      intro hkSucc
+      have hk : k < n := Nat.lt_of_succ_le hkSucc
+      have hstep := hinsert k hk
+      have hprev := ih (Nat.le_of_lt hk)
+      calc
+        regionCountRat
+            (PlanarInsertion.prefixArrangement A (Nat.succ k) hkSucc) =
+          regionCountRat
+              (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)) +
+            TheoremOneManuscript.previousPairAdded (pairExcessTable A) k +
+            1 := by
+          simpa [Nat.succ_eq_add_one] using hstep
+        _ = ((∑ r ∈ Finset.range k,
+                TheoremOneManuscript.previousPairAdded (pairExcessTable A) r) +
+              (k : ℚ) + 1) +
+            TheoremOneManuscript.previousPairAdded (pairExcessTable A) k +
+            1 := by
+          rw [hprev]
+        _ = (∑ r ∈ Finset.range (Nat.succ k),
+                TheoremOneManuscript.previousPairAdded (pairExcessTable A) r) +
+              (Nat.succ k : ℚ) + 1 := by
+          rw [Finset.sum_range_succ]
+          simp [Nat.cast_succ]
+          ring
+
+/-- Exact ordered insertion recurrence gives the pair-excess region equation. -/
+theorem regionCountRat_eq_pairSum_of_orderedInsertion
+    {n : ℕ} (A : Arrangement n)
+    (hinsert : OrderedInsertionRegionEquality A) :
+    regionCountRat A =
+      pairSum n (pairExcessTable A) + (n : ℚ) + 1 := by
+  have hprefix :=
+    prefix_regionCountRat_eq_of_orderedInsertion A hinsert n le_rfl
+  calc
+    regionCountRat A =
+        regionCountRat (PlanarInsertion.prefixArrangement A n le_rfl) := by
+      rw [PlanarInsertion.prefix_full]
+    _ = (∑ r ∈ Finset.range n,
+          TheoremOneManuscript.previousPairAdded (pairExcessTable A) r) +
+          (n : ℚ) + 1 := hprefix
+    _ = pairSum n (pairExcessTable A) + (n : ℚ) + 1 := by
+      rw [TheoremOneManuscript.sum_range_previousPairAdded_eq_pairSum]
+
+/-- For a generic arrangement, robust pair excess is exactly ordinary finite
+crossing count after summing over all unordered pairs. -/
+theorem pairSum_pairExcessTable_eq_totalCrossingsNat_of_isGeneric
+    {n : ℕ} {A : Arrangement n} (hA : IsGeneric A) :
+    pairSum n (pairExcessTable A) = ((totalCrossingsNat A : ℕ) : ℚ) := by
+  classical
+  unfold pairSum totalCrossingsNat pairExcessTable pairExcess
+  rw [Nat.cast_sum]
+  apply Finset.sum_congr rfl
+  intro p hp
+  have hp_lt : p.1 < p.2 := by
+    rw [Lollipop.pairFinset, Finset.mem_filter] at hp
+    exact hp.2
+  exact_mod_cast
+    (pairExcessNat_eq_pairCrossingCount_of_finite
+      (hA.pair_finite p.1 p.2 (ne_of_lt hp_lt)))
+
+/-- Exact generic fan chains prove the generic Euler-region equation needed
+by `PlanarTopologyPorts`. -/
+theorem generic_region_eq_of_exactFan
+    {n : ℕ} {A : Arrangement n}
+    (hA : IsGeneric A)
+    (hexact : OrderedExactInsertionFanSplitChain A) :
+    regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (n : ℚ) + 1 := by
+  calc
+    regionCountRat A =
+        pairSum n (pairExcessTable A) + (n : ℚ) + 1 :=
+      regionCountRat_eq_pairSum_of_orderedInsertion A
+        (orderedInsertionRegionEquality_of_exactFan_of_isGeneric hA hexact)
+    _ = ((totalCrossingsNat A : ℕ) : ℚ) + (n : ℚ) + 1 := by
+      rw [pairSum_pairExcessTable_eq_totalCrossingsNat_of_isGeneric hA]
 
 /-- Universal fan-bounded split-chain data imply the ordered insertion region
 bound used by `PlanarTopologyPorts`. -/
@@ -560,6 +755,18 @@ def planarTopologyPorts_of_fan
   PlanarTopologyPorts.ofSplitChain
     (fun A => orderedInsertionSplitChainBound_of_fan A (hfan A))
     hgeneric
+
+/-- Build the planar topology port from fan-bounded arbitrary insertions and
+exact fan-sized generic insertions. -/
+def planarTopologyPorts_of_fan_and_genericExactFan
+    (hfan : ∀ {n : ℕ} (A : Arrangement n),
+      OrderedInsertionFanSplitChainBound A)
+    (hexact :
+      ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
+        OrderedExactInsertionFanSplitChain A) :
+    PlanarTopologyPorts :=
+  planarTopologyPorts_of_fan hfan
+    (fun hA => generic_region_eq_of_exactFan hA (hexact hA))
 
 end InsertionFan
 end EndToEnd
