@@ -2,7 +2,7 @@ Lean source audit
 =================
 Lean project .lean files (including lakefile.lean): 118
 Lean library source files: 117
-Source lines: 52,569
+Source lines: 52,628
 
 Placeholder/declaration scan after stripping nested comments and strings:
   sorry: 0
@@ -15,7 +15,7 @@ Placeholder/declaration scan after stripping nested comments and strings:
 Public theorem endpoint conditional on GeometryCertificates: True
 Geometry obstruction theorem present: True
 Concrete complement-topology identifier counts:
-  ConnectedComponents: 68
+  ConnectedComponents: 69
   connectedComponent: 0
   IsPreconnected: 1
   Alexander: 0

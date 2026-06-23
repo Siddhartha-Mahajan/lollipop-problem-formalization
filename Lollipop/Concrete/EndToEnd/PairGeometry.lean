@@ -419,6 +419,52 @@ private theorem finite_components_pairPiece (L M : Lollipop) (k : Fin 4) :
   · change Finite (ConnectedComponents (hatPiece (rr L M)))
     exact finite_components_hatPiece_rr L M
 
+/-- If the circle-circle primitive is empty, its compactified contribution is
+zero after subtracting the common infinity component. -/
+theorem componentCount_hatPiece_cc_sub_one_eq_zero_of_empty
+    {L M : Lollipop} (hcc_empty : ¬ (cc L M).Nonempty) :
+    componentCount (hatPiece (cc L M)) - 1 = 0 := by
+  have hempty : cc L M = ∅ := Set.not_nonempty_iff_eq_empty.mp hcc_empty
+  rw [hempty]
+  unfold hatPiece
+  rw [componentCount_finiteLift_union_infinity_sub_one finite_empty]
+  simp
+
+/-- If the two circles do not meet, the pair loses the two possible
+circle-circle components, so the universal `2+2+2+1` bound improves to
+`0+2+2+1`. -/
+theorem pairExcessNat_le_five_of_cc_empty
+    {L M : Lollipop} (hcc_empty : ¬ (cc L M).Nonempty) :
+    pairExcessNat L M ≤ 5 := by
+  let S : Fin 4 → Set Sphere2 := pairPiece L M
+  haveI (k : Fin 4) : Finite (ConnectedComponents (S k)) :=
+    finite_components_pairPiece L M k
+  have hcommon : ∀ k : Fin 4, infinity ∈ S k := by
+    intro k
+    fin_cases k <;> simp [S, pairPiece]
+  have hunion :
+      componentCount (⋃ k : Fin 4, S k) - 1 ≤
+        ∑ k : Fin 4, (componentCount (S k) - 1) :=
+    componentCount_iUnion_sub_one_le_sum_sub_one infinity hcommon
+  have hccHat : componentCount (hatPiece (cc L M)) - 1 ≤ 0 := by
+    rw [componentCount_hatPiece_cc_sub_one_eq_zero_of_empty hcc_empty]
+  have hrcHat : componentCount (hatPiece (rc L M)) - 1 ≤ 2 := by
+    simpa [hatPiece] using EuclideanPort.ray_circle_components_le_two L M
+  have hcrHat : componentCount (hatPiece (cr L M)) - 1 ≤ 2 := by
+    simpa [hatPiece] using EuclideanPort.circle_ray_components_le_two L M
+  have hrrHat : componentCount (hatPiece (rr L M)) - 1 ≤ 1 := by
+    simpa [hatPiece] using EuclideanPort.ray_ray_components_le_one L M
+  unfold pairExcessNat
+  rw [hatPairIntersection_eq_iUnion_pairPiece]
+  refine hunion.trans ?_
+  rw [Fin.sum_univ_four]
+  change
+    (componentCount (hatPiece (cc L M)) - 1) +
+      (componentCount (hatPiece (rc L M)) - 1) +
+      (componentCount (hatPiece (cr L M)) - 1) +
+      (componentCount (hatPiece (rr L M)) - 1) ≤ 5
+  omega
+
 /-- Universal `2+2+2+1` pair bound at the natural-number level. -/
 theorem pairExcessNat_le_seven (L M : Lollipop) :
     pairExcessNat L M ≤ 7 := by
@@ -463,8 +509,12 @@ semantics, including degeneracies. -/
 structure PairGeometryPorts : Prop where
   pairExcess_le_five_of_close :
     ∀ {L M : Lollipop}, Close L M → pairExcess L M ≤ 5
-  pairExcess_le_five_of_intriguing :
-    ∀ {L M : Lollipop}, Intriguing L M → pairExcess L M ≤ 5
+  pairExcess_le_five_of_intriguing_near :
+    ∀ {L M : Lollipop},
+      TheoremOneEndToEnd.PaulsenLinearAlgebra.distSq2
+        (R2.ofPoint L.center) (R2.ofPoint M.center) ≤
+          L.radius ^ 2 + M.radius ^ 2 →
+        pairExcess L M ≤ 5
   pairExcess_le_four_of_close_intriguing :
     ∀ {L M : Lollipop}, Close L M → Intriguing L M →
       pairExcess L M ≤ 4
@@ -474,6 +524,13 @@ theorem pairExcess_le_seven (L M : Lollipop) : pairExcess L M ≤ 7 := by
   unfold pairExcess
   exact_mod_cast pairExcessNat_le_seven L M
 
+/-- Circle-disjoint intriguing branch. -/
+theorem pairExcess_le_five_of_cc_empty
+    {L M : Lollipop} (hcc_empty : ¬ (cc L M).Nonempty) :
+    pairExcess L M ≤ 5 := by
+  unfold pairExcess
+  exact_mod_cast pairExcessNat_le_five_of_cc_empty hcc_empty
+
 /-- Close-pair saving. -/
 theorem pairExcess_le_five_of_close (ports : PairGeometryPorts)
     {L M : Lollipop} (hclose : Close L M) : pairExcess L M ≤ 5 :=
@@ -481,8 +538,10 @@ theorem pairExcess_le_five_of_close (ports : PairGeometryPorts)
 
 /-- Intriguing-pair saving. -/
 theorem pairExcess_le_five_of_intriguing (ports : PairGeometryPorts)
-    {L M : Lollipop} (hintr : Intriguing L M) : pairExcess L M ≤ 5 :=
-  ports.pairExcess_le_five_of_intriguing hintr
+    {L M : Lollipop} (hintr : Intriguing L M) : pairExcess L M ≤ 5 := by
+  rcases hintr with hdisj | hnear
+  · exact pairExcess_le_five_of_cc_empty hdisj
+  · exact ports.pairExcess_le_five_of_intriguing_near hnear
 
 /-- Combined close/intriguing saving. -/
 theorem pairExcess_le_four_of_close_intriguing (ports : PairGeometryPorts)

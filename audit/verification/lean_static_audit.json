@@ -2,7 +2,7 @@
   "scope": "/Users/siddhartha/Lossfunk/lollipop_end_to_end_formalization",
   "lean_project_files_including_lakefile": 118,
   "lean_library_source_files": 117,
-  "source_lines": 52569,
+  "source_lines": 52628,
   "placeholder_scan_after_stripping_comments_and_strings": {
     "sorry": [],
     "admit": [],
@@ -15,7 +15,7 @@
   "public_endpoint_is_conditional_on_GeometryCertificates": true,
   "geometry_obstruction_theorem_present": true,
   "topological_region_semantics_term_counts": {
-    "ConnectedComponents": 68,
+    "ConnectedComponents": 69,
     "connectedComponent": 0,
     "IsPreconnected": 1,
     "Alexander": 0,

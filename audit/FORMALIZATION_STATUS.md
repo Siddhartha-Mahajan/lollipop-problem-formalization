@@ -44,7 +44,10 @@ structures:
 - `PairGeometryPorts`: robust close/intriguing pair-component savings; the
   universal `2+2+2+1` pair bound is proved as
   `PairGeometry.pairExcess_le_seven`, and Paulsen's inflated five-circle
-  forcing is proved as `PairGeometry.intriguing_pair_in_every_five`;
+  forcing is proved as `PairGeometry.intriguing_pair_in_every_five`.  The
+  disjoint-circle branch of intriguing savings is proved as
+  `PairGeometry.pairExcess_le_five_of_cc_empty`, so the remaining intriguing
+  field is only the near-circle branch;
 - `GenericityAvoidance`: density of the complement of the finite bad locus;
   points outside that locus are proved generic as
   `Lower.GenericityPort.good_is_generic`;

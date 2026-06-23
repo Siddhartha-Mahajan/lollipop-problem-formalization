@@ -91,7 +91,10 @@ the remaining concrete theorem targets.  The current port boundary is:
   upper proof.
   The universal `2+2+2+1` pair bound is now proved as
   `PairGeometry.pairExcess_le_seven`; Paulsen's inflated five-circle forcing is
-  proved as `PairGeometry.intriguing_pair_in_every_five`.
+  proved as `PairGeometry.intriguing_pair_in_every_five`; and the disjoint
+  circle branch of intriguing-pair savings is proved as
+  `PairGeometry.pairExcess_le_five_of_cc_empty`.  The remaining intriguing
+  field is the near-circle branch.
 
 Build the Lean project with:
 
