@@ -47,6 +47,64 @@ theorem componentCount_insertionFan_zero
   rw [insertionFan_zero_eq_singleton_infinity A hk]
   exact componentCount_singleton infinity
 
+/-- The remaining first-lollipop bounded topology theorem.
+
+Mathematically, this says inserting one lollipop into the empty carrier is a
+single localized split: the circle supplies the Jordan separation, while the
+outward stem lies on the exterior side and creates no additional component. -/
+noncomputable def firstInsertionLocalizedFiltration
+    {n : ℕ} (A : Arrangement n) (hk : 0 < n) :
+    InsertionFiltration.LocalizedInsertionFiltration
+      (PlanarInsertion.prefixArrangement A 0 (Nat.le_of_lt hk))
+      (A ⟨0, hk⟩) 1 := by
+  sorry
+
+/-- The exact first-lollipop topology theorem.
+
+This strengthens `firstInsertionLocalizedFiltration` by proving that the two
+Jordan sides are both realized, so the first insertion increases the region
+count by exactly one. -/
+noncomputable def firstInsertionLocalizedExactFiltration
+    {n : ℕ} (A : Arrangement n) (hk : 0 < n) :
+    InsertionFiltration.LocalizedExactInsertionFiltration
+      (PlanarInsertion.prefixArrangement A 0 (Nat.le_of_lt hk))
+      (A ⟨0, hk⟩) 1 := by
+  sorry
+
+/-- Arbitrary bounded topology for the first ordered insertion. -/
+theorem localizedInsertionFiltration_bound_zero
+    {n : ℕ} (A : Arrangement n) (hk : 0 < n) :
+    ∃ m : ℕ,
+    ∃ _f : InsertionFiltration.LocalizedInsertionFiltration
+        (PlanarInsertion.prefixArrangement A 0 (Nat.le_of_lt hk))
+        (A ⟨0, hk⟩) m,
+      (m : ℚ) ≤
+        (componentCount (InsertionFan.insertionFan A 0 hk) : ℚ) := by
+  refine ⟨1, firstInsertionLocalizedFiltration A hk, ?_⟩
+  rw [componentCount_insertionFan_zero A hk]
+
+/-- Generic exact topology for the first ordered insertion. -/
+theorem localizedExactInsertionFiltration_zero
+    {n : ℕ} (A : Arrangement n) (hk : 0 < n) :
+    ∃ m : ℕ,
+    ∃ _f : InsertionFiltration.LocalizedExactInsertionFiltration
+        (PlanarInsertion.prefixArrangement A 0 (Nat.le_of_lt hk))
+        (A ⟨0, hk⟩) m,
+      m = componentCount (InsertionFan.insertionFan A 0 hk) := by
+  refine ⟨1, firstInsertionLocalizedExactFiltration A hk, ?_⟩
+  rw [componentCount_insertionFan_zero A hk]
+
+/-- Remaining arbitrary topology theorem for non-first insertions. -/
+theorem localizedInsertionFiltration_bound_positive
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) (hkpos : 0 < k) :
+    ∃ m : ℕ,
+    ∃ _f : InsertionFiltration.LocalizedInsertionFiltration
+        (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+        (A ⟨k, hk⟩) m,
+      (m : ℚ) ≤
+        (componentCount (InsertionFan.insertionFan A k hk) : ℚ) := by
+  sorry
+
 /-- Arbitrary localized filtration for one ordered insertion.
 
 This is the exact topology object required for one insertion step: subdivide
@@ -60,6 +118,21 @@ theorem localizedInsertionFiltration_bound
         (A ⟨k, hk⟩) m,
       (m : ℚ) ≤
         (componentCount (InsertionFan.insertionFan A k hk) : ℚ) := by
+  by_cases hzero : k = 0
+  · subst k
+    exact localizedInsertionFiltration_bound_zero A hk
+  · exact localizedInsertionFiltration_bound_positive A k hk
+      (Nat.pos_of_ne_zero hzero)
+
+/-- Remaining exact topology theorem for non-first generic insertions. -/
+theorem localizedExactInsertionFiltration_of_generic_positive
+    {n : ℕ} {A : Arrangement n} (hA : IsGeneric A)
+    (k : ℕ) (hk : k < n) (hkpos : 0 < k) :
+    ∃ m : ℕ,
+    ∃ _f : InsertionFiltration.LocalizedExactInsertionFiltration
+        (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+        (A ⟨k, hk⟩) m,
+      m = componentCount (InsertionFan.insertionFan A k hk) := by
   sorry
 
 /-- Arbitrary-arrangement localized insertion topology.
@@ -86,7 +159,11 @@ theorem localizedExactInsertionFiltration_of_generic
         (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
         (A ⟨k, hk⟩) m,
       m = componentCount (InsertionFan.insertionFan A k hk) := by
-  sorry
+  by_cases hzero : k = 0
+  · subst k
+    exact localizedExactInsertionFiltration_zero A hk
+  · exact localizedExactInsertionFiltration_of_generic_positive hA k hk
+      (Nat.pos_of_ne_zero hzero)
 
 /-- Generic exact localized insertion topology.
 

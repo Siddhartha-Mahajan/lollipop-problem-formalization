@@ -21,9 +21,11 @@ The theorem spine is:
 
 The current intended `sorry` targets are:
 
-1. `MainTheorem.Topology.localizedInsertionFiltration_bound`
-2. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic`
-3. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
+1. `MainTheorem.Topology.firstInsertionLocalizedFiltration`
+2. `MainTheorem.Topology.firstInsertionLocalizedExactFiltration`
+3. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
+4. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
+5. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
 
 Everything else in the final assembly should be ordinary wiring from those
 named theorem targets into the existing concrete endpoint.

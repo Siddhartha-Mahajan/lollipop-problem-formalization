@@ -24,9 +24,11 @@ Lean reports the current intended `sorry`s below.
 
 ## Current Intended `sorry` Targets
 
-1. `MainTheorem.Topology.localizedInsertionFiltration_bound`
-2. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic`
-3. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
+1. `MainTheorem.Topology.firstInsertionLocalizedFiltration`
+2. `MainTheorem.Topology.firstInsertionLocalizedExactFiltration`
+3. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
+4. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
+5. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
 
 Everything else in `MainTheorem.Assembly` is ordinary wiring from those named
 targets into the existing concrete upper and lower endpoint.
@@ -44,11 +46,19 @@ It is now assembled from:
   `dense_compl_tripleBadUnion_ge_three`.
 
 The previous broad topology placeholders are also no longer direct
-`intro; sorry` proofs.  They now assemble from the exact per-insertion
-filtration targets:
+`intro; sorry` proofs.  They now assemble from first-insertion and
+positive-insertion filtration targets:
 
-* arbitrary bounded localized filtration for one insertion;
-* exact localized filtration for one generic insertion.
+* first-lollipop bounded localized filtration;
+* first-lollipop exact localized filtration;
+* arbitrary bounded localized filtration for non-first insertions;
+* exact localized filtration for non-first generic insertions.
+
+The insertion-fan budget for the first insertion is proved:
+
+```lean
+MainTheorem.Topology.componentCount_insertionFan_zero
+```
 
 ## Removal Order
 
@@ -57,7 +67,8 @@ filtration targets:
 Remove:
 
 ```lean
-MainTheorem.Topology.localizedInsertionFiltration_bound
+MainTheorem.Topology.firstInsertionLocalizedFiltration
+MainTheorem.Topology.localizedInsertionFiltration_bound_positive
 ```
 
 This requires the topology-first plan:
@@ -72,7 +83,8 @@ This requires the topology-first plan:
 Remove:
 
 ```lean
-MainTheorem.Topology.localizedExactInsertionFiltration_of_generic
+MainTheorem.Topology.firstInsertionLocalizedExactFiltration
+MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive
 ```
 
 This uses the same subdivision as the arbitrary theorem, plus generic
