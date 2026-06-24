@@ -2,632 +2,448 @@
 
 Date: 2026-06-24
 
-This note zooms out from the current implementation and fixes the next route.
-The immediate priority is the topology proposition from the manuscript, not
-more lower-construction or combinatorial work.
+This is the current working plan after rereading
+`manuscript/main_manuscript/main.tex` and comparing it with the concrete Lean
+endpoint.  The priority is the topology proposition, not more Turan algebra,
+lower-construction arithmetic, or repository reshuffling.
 
-## Executive Decision
+## Verdict
 
-The current Lean path is valid if, and only if, we prove the remaining
-`FanTopologyPorts` theorem package.
+The current Lean route is valid, but it is not complete.
 
-The manuscript proves the topology step by semialgebraic triangulation,
-Mayer-Vietoris, and Alexander duality on `S^2`.  The current Lean development
-does not try to reproduce that machinery directly.  Instead, it reduces the
-same topology result to a constructive insertion theorem: add lollipops one at
-a time, split each new compactified lollipop at its contacts with the old
-carrier, and prove that each resulting arc raises the complement component
-count by at most one.  In generic position, each such arc raises the count by
-exactly one.
+The manuscript proves the topology proposition by compactifying the plane,
+using semialgebraic triangulation, applying Mayer-Vietoris to the compactified
+carrier union, and then applying Alexander duality on `S^2`.  The Lean route
+does not try to formalize that proof directly.  It replaces it with an
+insertion proof:
 
-This is a good route because it proves the exact facts needed by the
-manuscript:
+1. insert lollipops one at a time;
+2. bound the number of new complement components by the number of components
+   of the compactified old-new intersection fan;
+3. show that this fan count is bounded by the sum of the pair excesses
+   `q(L_i,L_j)`;
+4. in generic position, prove exact splitting and recover the Euler equality.
 
-```lean
-regionCountRat A - (n : Rat) - 1 <= pairSum n (pairExcessTable A)
-```
-
-and, for generic arrangements,
+This matches the manuscript mathematically.  It proves the same two facts the
+rest of the paper needs:
 
 ```lean
-regionCountRat A = ((totalCrossingsNat A : Nat) : Rat) + (n : Rat) + 1
+regionCountRat A - (n : ℚ) - 1 ≤ pairSum n (pairExcessTable A)
+
+IsGeneric A →
+  regionCountRat A = ((totalCrossingsNat A : ℕ) : ℚ) + (n : ℚ) + 1
 ```
 
-It is not yet a proof.  The hard gate is the local planar arc-splitting
-theorem.  If that gate cannot be proved with elementary plane topology, the
-fallback must be a finite embedded-graph/Jordan-curve theorem, not more
-algebra or more Turan work.
+The hard missing theorem is the planar local crosscut/splitting theorem.  If
+that theorem cannot be proved with the available Jordan-curve bridge, the
+fallback should be a finite embedded-graph face formula.  Returning to
+combinatorics will not close the formalization.
 
-## What the Manuscript Needs
+## What The Manuscript Needs
 
-The topology proposition in `manuscript/main_manuscript/main.tex` states:
+The topology proposition is Proposition `top-region` in Section
+`A region bound valid for arbitrary arrangements`.
 
-1. For arbitrary lollipops `L_1, ..., L_n`, if `F` is the number of
-   complementary connected components, then
+For arbitrary lollipops `L_1, ..., L_n`, it states:
 
-   ```text
-   F <= n + 1 + sum_{i<j} q(L_i,L_j).
-   ```
+```text
+F <= n + 1 + sum_{i<j} q(L_i,L_j)
+```
 
-   Here `q(L,M)` is the number of connected components of
-   `hat L inter hat M`, minus the shared component containing infinity.
+where `F` is the number of connected components of the Euclidean complement,
+and
 
-2. For generic arrangements, equality holds and `q(L_i,L_j)` is the ordinary
-   number of finite pairwise crossings.
+```text
+q(L,M) = beta_0(hat L inter hat M) - 1.
+```
 
-The rest of the manuscript uses this in two places:
+For generic arrangements, it states equality:
 
-1. Upper bound: combine the topology inequality with the pair savings and the
-   colored Turan theorem.
-2. Lower bound: construct generic arrangements with the required number of
-   finite crossings, then use the generic topology equality to convert
-   crossings into regions.
+```text
+F = total finite pair crossings + n + 1.
+```
 
-Therefore a complete formalization cannot be finished until the topology
-proposition is proved inside Lean for the concrete lollipop model.
+The manuscript uses this proposition twice:
 
-## Manuscript Cross-Check
+1. Upper bound: combine it with the pair savings and the colored Turan theorem.
+2. Lower bound: build a generic arrangement with the required crossing count,
+   then use the generic equality to convert crossings into regions.
 
-The current topology-first route is aligned with the manuscript, but it is
-not the same proof.
+So an upper-only topology proof is not enough for Theorem 1.  The generic
+equality case is also required.
 
-The manuscript proves Proposition `top-region` by:
+## Definition Check
 
-1. compactifying the plane to `S^2`;
-2. using semialgebraic triangulation to make every lollipop union and
-   intersection a finite compact subcomplex;
-3. applying Mayer-Vietoris to bound `beta_1` of the compactified carrier
-   union;
-4. applying Alexander duality to convert `beta_1` into complement-component
-   count;
-5. using finite graph Euler counting in the generic equality case.
+The concrete Lean definitions match the manuscript quantities.
 
-The Lean route should not silently assume any of those facts.  It replaces
-steps 2--4 by a constructive insertion proof.  This is valid only if it proves
-the same three formal consequences:
+Files:
+
+- `Lollipop/Concrete/Basic.lean`
+- `Lollipop/Concrete/EndToEnd/Compactification.lean`
+- `Lollipop/Concrete/EndToEnd/Support.lean`
+
+Key definitions:
 
 ```lean
-Finite (ConnectedComponents (FreeSpace A))
-regionCountRat A - (n : Rat) - 1 <= pairSum n (pairExcessTable A)
-IsGeneric A -> regionCountRat A =
-  ((totalCrossingsNat A : Nat) : Rat) + (n : Rat) + 1
+abbrev Point : Type :=
+  EuclideanSpace ℝ (Fin 2)
+
+structure Lollipop where
+  center : Point
+  radial : Point
+  radial_ne_zero : radial ≠ 0
+
+def Lollipop.circle (L : Lollipop) : Set Point :=
+  {x | ‖x - L.center‖ = L.radius}
+
+def Lollipop.stem (L : Lollipop) : Set Point :=
+  {x | ∃ t : ℝ, 1 ≤ t ∧ x = L.center + t • L.radial}
+
+def Lollipop.carrier (L : Lollipop) : Set Point :=
+  L.circle ∪ L.stem
+
+def occupied (A : Arrangement n) : Set Point :=
+  ⋃ i, (A i).carrier
+
+def regionCount (A : Arrangement n) : Nat :=
+  Nat.card (ConnectedComponents (FreeSpace A))
 ```
 
-The definitions already match the manuscript's intended quantities:
+The one-vector lollipop model is equivalent to the manuscript's
+`L(c,r,u) = C(c,r) union R(c,r,u)` with `r > 0` and unit `u`, by taking
+`radial = r • u`.  This avoids a separate consistency proof that the ray
+direction and radius agree.
 
-- `hatCarrier L` is the compactified lollipop carrier `L ∪ {∞}`;
-- `hatPairIntersection L M` is `hatCarrier L ∩ hatCarrier M`;
-- `pairExcessNat L M = componentCount (hatPairIntersection L M) - 1`,
-  matching `q(L,M) = beta_0(hat L ∩ hat M) - 1`;
-- `regionCount A` is the cardinality of connected components of the actual
-  Euclidean complement.
+The robust pair invariant is also the manuscript invariant:
 
-So the route is conceptually sound.  The remaining question is not whether the
-target is the right theorem; it is whether the local planar separation theorem
-can be proved in the current Mathlib environment without importing a large
-Jordan-curve/Alexander-duality development.
+```lean
+def hatCarrier (L : Lollipop) : Set Sphere2 :=
+  finiteLift L.carrier ∪ {infinity}
+
+def hatPairIntersection (L M : Lollipop) : Set Sphere2 :=
+  hatCarrier L ∩ hatCarrier M
+
+def pairExcessNat (L M : Lollipop) : Nat :=
+  componentCount (hatPairIntersection L M) - 1
+```
+
+This is exactly `q(L,M)` in the manuscript.
 
 ## Current Lean Boundary
 
-The concrete final theorem is currently conditional:
+The public concrete endpoint is still conditional:
 
 ```lean
 theorem Lollipop.Concrete.EndToEnd.lollipopMaximum
-    (ports : Lollipop.Concrete.EndToEnd.EndToEndPorts) (n : Nat) :
-    Lollipop.Concrete.LollipopMaximumStatement n
+    (ports : EndToEndPorts) (n : ℕ) :
+    LollipopMaximumStatement n
 ```
 
-The topology boundary has already been narrowed.  The older port is
-`PlanarTopologyPorts`:
+The topology part of those ports has already been narrowed to:
 
 ```lean
-structure PlanarTopologyPorts : Prop where
-  region_components_finite :
-    forall {n : Nat} (A : Arrangement n),
-      Finite (ConnectedComponents (FreeSpace A))
-  crossing_excess_le_pairSum :
-    forall {n : Nat} (A : Arrangement n),
-      regionCountRat A - (n : Rat) - 1 <=
-        Lollipop.pairSum n (pairExcessTable A)
-  generic_region_eq :
-    forall {n : Nat} {A : Arrangement n}, IsGeneric A ->
-      regionCountRat A =
-        ((totalCrossingsNat A : Nat) : Rat) + (n : Rat) + 1
-```
-
-The sharper current target is `InsertionFan.FanTopologyPorts`:
-
-```lean
-structure FanTopologyPorts : Prop where
+structure InsertionFan.FanTopologyPorts : Prop where
   arbitrary_fan_bound :
-    forall {n : Nat} (A : Arrangement n),
+    ∀ {n : ℕ} (A : Arrangement n),
       OrderedInsertionFanSplitChainBound A
   generic_exact_fan :
-    forall {n : Nat} {A : Arrangement n}, IsGeneric A ->
+    ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
       OrderedExactInsertionFanSplitChain A
 ```
 
-Once `FanTopologyPorts` is proved, Lean already constructs
-`PlanarTopologyPorts`, and then the existing upper/lower theorem assembly can
-consume it.
-
-The still sharper working target is now the localized-filtration package in
-`Lollipop/Concrete/EndToEnd/LocalizedTopology.lean`:
+Once this is proved as an actual theorem, Lean already constructs the older
+manuscript-facing topology package:
 
 ```lean
-structure LocalizedFiltrationTopologyPorts : Prop where
+def InsertionFan.FanTopologyPorts.toPlanarTopologyPorts :
+    PlanarTopologyPorts
+```
+
+and then `Upper.lean` and `Lower.lean` consume it.
+
+The even sharper internal target is:
+
+```lean
+structure LocalizedTopology.LocalizedFiltrationTopologyPorts : Prop where
   arbitrary_localized :
-    forall {n : Nat} (A : Arrangement n), OrderedLocalizedFiltrationBound A
+    ∀ {n : ℕ} (A : Arrangement n),
+      OrderedLocalizedFiltrationBound A
   generic_exact_localized :
-    forall {n : Nat} {A : Arrangement n}, IsGeneric A ->
+    ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
       OrderedExactLocalizedFiltration A
 ```
 
-This is not intended as a new public certificate boundary.  It is an internal
-reduction target: construct actual localized edge filtrations, then Lean
-already compiles them to `FanTopologyPorts`.
+This is the right implementation target because it asks for actual finite
+edge filtrations of the inserted lollipop carrier.  It is not meant to remain
+as a public assumption.
 
-Files already doing useful checked work:
+## Why The Insertion Route Matches Mayer-Vietoris
 
-- `Lollipop/Concrete/EndToEnd/ComponentFibers.lean`: quotient-level component
-  cardinality for one-component splits.
-- `Lollipop/Concrete/EndToEnd/ComponentSplitChain.lean`: finite chains of
-  those one-component splits.
-- `Lollipop/Concrete/EndToEnd/Insertion.lean`: translates split chains into
-  actual `regionCount` inequalities.
-- `Lollipop/Concrete/EndToEnd/PlanarInsertion.lean`: turns ordered insertion
-  inequalities into the global pair-sum topology inequality.
-- `Lollipop/Concrete/EndToEnd/InsertionFan.lean`: proves fan component
-  budgets and reduces the remaining topology to `FanTopologyPorts`.
-- `Lollipop/Concrete/EndToEnd/ComponentLifting.lean`,
-  `ComponentSurjectivity.lean`, `OccupiedTopology.lean`, `LocalInsertion.lean`,
-  `LocalFiltration.lean`, `InsertionFiltration.lean`, and
-  `LocalizedTopology.lean`: reduce the local topology obligation to producing
-  localized insertion filtrations edge-by-edge.
-
-Untracked Jordan/topology drafts in the working tree are references only.
-They are not part of the checked endpoint until they build cleanly and are
-imported by the main Lake target.
-
-Update: the local `JordanCurveTheorem/` source now builds as a Lake target, and
-`Lollipop.Concrete.EndToEnd.JordanBridge` builds as the narrow endpoint
-component-count/simple-arc bridge.  The larger `Lollipop/Concrete/Actual/`
-topology draft tree is still stale and must not be imported wholesale.  See
-`audit/TOPOLOGY_JORDAN_STATUS.md`.
-
-## Topology-First Work Order
-
-This is the concrete order from here.  Do not return to Turan, matrix, or
-lower-genericity work until either this route succeeds or a fallback is chosen.
-
-1. Verify the definitions-to-manuscript bridge.
-
-   Confirm in Lean that `pairExcessNat` is exactly the manuscript `q`, that
-   the insertion fan is `hatCarrier new ∩ hatOccupied old`, and that the
-   ordered insertion sums telescope to the manuscript pair sum.
-
-2. Prove the local planar arc theorem.
-
-   First target a clean model: a closed embedded segment inside an open disk
-   or rectangle, with endpoints on the old carrier and interior in one old
-   complement component.  Prove deleting it raises the number of complement
-   components by at most one, and in the two-sided/generic case by exactly
-   one.  This is the decisive gate.
-
-3. Transport the local theorem to lollipop carrier edges.
-
-   A subdivided circle arc or stem arc must be reduced to the local model by
-   an explicit homeomorphism or by direct parametrization.  The proof must
-   cover finite stem pieces and the compactified stem edge ending at infinity.
-
-4. Build the carrier subdivision.
-
-   For each ordered insertion, split the new compactified carrier along the
-   fan `hatCarrier new ∩ hatOccupied old`.  Degenerate overlaps must be
-   absorbed into the fan so that the remaining effective pieces are localized
-   edges with interiors disjoint from the old carrier.
-
-5. Assemble localized filtrations.
-
-   Produce `OrderedLocalizedFiltrationBound A` for arbitrary arrangements and
-   `OrderedExactLocalizedFiltration A` under `IsGeneric A`.  Then use
-   `LocalizedFiltrationTopologyPorts.toFanTopologyPorts` to obtain
-   `FanTopologyPorts`.
-
-6. Remove the topology port from the final endpoint.
-
-   Once `FanTopologyPorts` is an actual theorem rather than a parameter, wire
-   it through `EndToEndPorts.ofFanTopology`.  At that point the upper bound
-   no longer depends on caller-supplied topology.
-
-7. Only then return to lower genericity.
-
-   The remaining non-topology gate is
-   `forall n, Lower.GenericityPort.ChamberGenericityAvoidance n`, currently
-   reduced mostly to triple-contact open/dense facts.
-
-## Failure Gates
-
-Route A should be abandoned only for a specific reason:
-
-- If the local segment theorem cannot be proved without a Jordan-style
-  separation result, switch to Route B and formalize the finite embedded-graph
-  face formula.
-- If lollipop edge subdivision cannot handle arbitrary degeneracies, keep the
-  generic exact route but prove the arbitrary upper bound through the finite
-  embedded-graph/Mayer-Vietoris inequality.
-- If Mathlib has usable homology/Alexander-duality APIs that make the
-  manuscript proof shorter than the insertion route, switch to Route C.
-
-Do not add more ports, theorem aliases, or external scripts to bypass these
-gates.  Any successful route must end in ordinary Lean theorems feeding
-`PlanarTopologyPorts`.
-
-## Route A: Preferred Insertion-Split Proof
-
-This route proves the manuscript topology proposition without formalizing
-Alexander duality.
-
-### A1. Freeze the topology interface
-
-Do not broaden `EndToEndPorts`.  Do not add new certificate fields.  The target
-is exactly:
-
-```lean
-theorem fanTopologyPorts :
-    Lollipop.Concrete.EndToEnd.InsertionFan.FanTopologyPorts
-```
-
-and then a no-port final theorem of the form:
-
-```lean
-theorem lollipopMaximum_unconditional (n : Nat) :
-    Lollipop.Concrete.LollipopMaximumStatement n
-```
-
-after the remaining lower genericity port is also proved.
-
-### A2. Prove the local arc-split theorem
-
-Create a small topology module, for example:
+In the manuscript, when adding `hat L_k` to the old compactified union
+`X_{k-1}`, Mayer-Vietoris gives:
 
 ```text
-Lollipop/Concrete/EndToEnd/Topology/ArcSplit.lean
+beta_1(X_k) <= beta_1(X_{k-1}) + beta_1(hat L_k)
+               + beta_0(X_{k-1} inter hat L_k) - 1.
 ```
 
-Target theorem shape:
-
-```lean
-theorem oneComponentSplit_of_embedded_arc
-    {K e : Set Point} :
-    ArcInsertionHypotheses K e ->
-    ComponentFibers.OneComponentSplitData
-      (Insertion.union_compl_subset_occupied_compl_for_sets K e)
-```
-
-and the exact version:
-
-```lean
-theorem exactOneComponentSplit_of_crossing_arc
-    {K e : Set Point} :
-    ExactArcInsertionHypotheses K e ->
-    ComponentFibers.ExactOneComponentSplitData
-      (Insertion.union_compl_subset_occupied_compl_for_sets K e)
-```
-
-The proof obligation is topological:
-
-- all old complement components except the one containing the arc are
-  unchanged;
-- the active old component has at most two new components after deleting the
-  arc;
-- in the exact generic case, both sides of the arc are nonempty and remain
-  separated.
-
-This is the first critical gate.  It may require a specialized Jordan arc
-separation lemma.  The narrowest useful statement is not the full Jordan curve
-theorem, but separation by one embedded arc inside a disk or inside a known
-old complement component.
-
-### A3. Define compactified lollipop edge decompositions
-
-Create:
+Since `hat L_k` has first Betti number one, the increase is bounded by:
 
 ```text
-Lollipop/Concrete/EndToEnd/Topology/CarrierSubdivision.lean
+beta_0(X_{k-1} inter hat L_k).
 ```
 
-Use the existing objects:
-
-- `Sphere2`
-- `hatCarrier`
-- `hatPairIntersection`
-- `InsertionFan.pairIntersectionFan`
-- `pairExcessNat`
-
-For one insertion into a prefix arrangement, define the fan:
+In the Lean insertion route, this same quantity is:
 
 ```lean
-pairIntersectionFan (previousIndices k) (fun i => A i) (A k)
+componentCount (InsertionFan.insertionFan A k hk)
 ```
 
-Then split the new compactified lollipop carrier along this fan.  Each
-remaining edge should be an embedded arc whose interior is disjoint from the
-old occupied carrier.
+and `InsertionFan.lean` already proves:
 
-Degenerate cases must be handled by putting the whole overlap into the fan:
+```lean
+componentCount (insertionFan A k hk) ≤
+  1 + ∑ i ∈ previousIndices (⟨k, hk⟩ : Fin n),
+    pairExcessNat (A i) (A ⟨k, hk⟩)
+```
 
-- coincident circle pieces;
+Thus, if one insertion raises `regionCount` by at most the fan component
+count, telescoping gives the arbitrary-arrangement manuscript inequality.
+
+In generic position, the fan consists of infinity plus the finite old-new
+crossings.  Exact insertion splitting gives:
+
+```text
+region increase at step k = 1 + number of previous crossings with L_k.
+```
+
+Summing over `k` gives:
+
+```text
+F = 1 + n + total crossings.
+```
+
+That is exactly the generic equality case of Proposition `top-region`.
+
+## Exact Work Order
+
+Do these in order.  Do not resume lower genericity or colored Turan work until
+the topology port is either proved or a fallback has been chosen.
+
+### T1. Freeze The Theorem Targets
+
+Create or maintain a small topology endpoint file whose final theorems have
+these shapes:
+
+```lean
+theorem arbitrary_localized_topology :
+    ∀ {n : ℕ} (A : Arrangement n),
+      LocalizedTopology.OrderedLocalizedFiltrationBound A
+
+theorem generic_exact_localized_topology :
+    ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
+      LocalizedTopology.OrderedExactLocalizedFiltration A
+
+def fanTopologyPorts : InsertionFan.FanTopologyPorts :=
+  LocalizedTopology.fanTopologyPorts_of_localizedFiltrations
+    arbitrary_localized_topology
+    generic_exact_localized_topology
+```
+
+This keeps the proof aimed at the exact port currently blocking the endpoint.
+
+### T2. Prove The Local Crosscut Theorem
+
+This is the decisive topology theorem.
+
+Target a new file such as:
+
+```text
+Lollipop/Concrete/EndToEnd/LocalCrosscut.lean
+```
+
+The bounded theorem should say, in effect:
+
+```text
+closed old carrier C
+inserted effective edge E
+simple closed curve J built from E plus an old avoiding arc
+new part of E localized in one old complement component
+equal Jordan side implies an avoiding simple arc in (C union E)^c
+---------------------------------------------------------------
+LocalizedEdgeStep C E
+```
+
+The exact theorem should add that both Jordan sides occur and produce:
+
+```lean
+LocalFiltration.LocalizedExactEdgeStep L C E
+```
+
+The proof should use only the checked small Jordan bridge:
+
+- `JordanBridge.jordan_complement_componentCount_eq_two`
+- `JordanBridge.connectedComponents_mk_eq_of_simpleArcLifting`
+- `JordanBridge.exists_simpleArcEnd_disjoint_of_connectedComponents_mk_eq`
+
+The local theorem is where the Jordan curve theorem enters.  It should not
+mention Turan, pair savings, or the lower construction.
+
+### T3. Handle The First-Lollipop/Base Insertion
+
+The case with no old carrier must be handled explicitly.
+
+For `k = 0`, the insertion fan is just the infinity component, so the fan
+count is one.  Adding one lollipop raises the complement component count from
+one to two.
+
+The proof should use the lollipop's circle as the Jordan curve.  The outward
+stem lies on the exterior side and does not create a third region.  This case
+is small, but it is important because it accounts for the `+n` term in:
+
+```text
+F = crossings + n + 1.
+```
+
+### T4. Prove Carrier-Edge Subdivision
+
+For an ordered insertion, the new compactified lollipop must be decomposed
+relative to:
+
+```lean
+InsertionFan.insertionFan A k hk
+```
+
+Required output:
+
+```text
+exists m, exists f :
+  InsertionFiltration.LocalizedInsertionFiltration oldPrefix newLollipop m,
+  (m : ℚ) ≤ (componentCount (insertionFan A k hk) : ℚ)
+```
+
+For generic arrangements, the output must be exact:
+
+```text
+exists m, exists f :
+  InsertionFiltration.LocalizedExactInsertionFiltration oldPrefix newLollipop m,
+  m = componentCount (insertionFan A k hk)
+```
+
+Degenerate cases cannot be ignored.  The arbitrary upper bound must absorb:
+
+- tangent circle intersections;
+- coincident circles;
 - overlapping stems;
-- tangencies;
-- anchor contacts;
-- contacts connected through infinity.
+- anchors lying in old carriers;
+- fan components that are arcs rather than isolated points;
+- the compactified stem endpoint at infinity.
 
-The budget needed for the arbitrary upper bound is only an inequality:
+The intended rule is: components already lying in the fan are not new edges;
+the remaining effective pieces are localized insertions, and their number is
+bounded by the fan component count.
 
-```text
-number of effective inserted arcs <= componentCount(insertion fan)
-```
+### T5. Assemble Localized Filtrations
 
-The existing `InsertionFan` file already proves the fan count is bounded by
-`1 + sum previous pairExcessNat`; the missing part is constructing the split
-chain from actual carrier arcs.
-
-### A4. Prove arbitrary fan-bound split chains
-
-Target:
+After T4, prove:
 
 ```lean
-theorem arbitrary_fan_bound :
-    forall {n : Nat} (A : Arrangement n),
-      PlanarInsertion.OrderedInsertionFanSplitChainBound A
+theorem arbitrary_localized_topology :
+    ∀ {n : ℕ} (A : Arrangement n),
+      LocalizedTopology.OrderedLocalizedFiltrationBound A
+
+theorem generic_exact_localized_topology :
+    ∀ {n : ℕ} {A : Arrangement n}, IsGeneric A →
+      LocalizedTopology.OrderedExactLocalizedFiltration A
 ```
 
-For each prefix insertion:
-
-1. build the fan;
-2. subdivide the new carrier by the fan;
-3. order the resulting effective arcs;
-4. apply the local arc-split theorem to each arc;
-5. assemble the result with `ComponentSplitChain`.
-
-This proves:
-
-```lean
-regionCountRat A - (n : Rat) - 1 <= pairSum n (pairExcessTable A)
-```
-
-through already checked reductions.
-
-### A5. Prove generic exact fan chains
-
-Target:
-
-```lean
-theorem generic_exact_fan :
-    forall {n : Nat} {A : Arrangement n}, IsGeneric A ->
-      PlanarInsertion.OrderedExactInsertionFanSplitChain A
-```
-
-In a generic arrangement:
-
-- pair intersections are finite points;
-- there are no triple points;
-- no finite crossing lies at an anchor;
-- stems are nonparallel and nonoverlapping;
-- each old/new contact is isolated;
-- each inserted edge contributes exactly one split.
-
-The existing `InsertionFan` counting lemmas already show that the fan count is
-`1 + previousPairAdded`.  What remains is the exact topological separation
-for every inserted edge.
-
-### A6. Assemble topology
-
-After A4 and A5:
-
-```lean
-def fanTopologyPorts : InsertionFan.FanTopologyPorts where
-  arbitrary_fan_bound := arbitrary_fan_bound
-  generic_exact_fan := generic_exact_fan
-```
-
-Then:
-
-```lean
-def planarTopologyPorts : PlanarTopologyPorts :=
-  fanTopologyPorts.toPlanarTopologyPorts
-```
-
-At that point the upper bound has its topology input, and the lower bound has
-the generic Euler equation it needs.
-
-## Route B: Fallback Finite Embedded-Graph Proof
-
-If A2 cannot be proved without a hidden full Jordan theorem, switch to a
-finite embedded-graph theorem.
-
-Target statement:
-
-```text
-For a finite tame graph K embedded in S^2,
-number of components of S^2 \ K = 1 + beta_1(K).
-```
-
-Then instantiate `K` with the compactified lollipop carrier union after
-subdivision at all pair intersections and anchors.
-
-This route is closer to the manuscript's generic graph counting and arbitrary
-Betti-number bound, but it requires more infrastructure:
-
-- a finite graph model for compactified lollipop unions;
-- subdivision of circles and rays into graph edges;
-- Euler characteristic or graph homology;
-- a planar face formula or Jordan-curve theorem for finite embedded graphs.
-
-This is more work than Route A, but it is mathematically robust.
-
-## Route C: Fallback Homology/Alexander-Duality Proof
-
-This follows the manuscript most literally:
-
-1. one-point compactify the plane;
-2. prove compactified lollipop unions are finite semialgebraic subcomplexes;
-3. use Mayer-Vietoris to prove the `beta_1` inequality;
-4. use Alexander duality on `S^2`;
-5. prove the generic graph equality by Euler characteristic.
-
-This route is valid mathematically, but it is probably the longest Lean route
-because Mathlib does not currently make this exact Alexander-duality argument
-available as a ready theorem.
-
-Use this only if the specialized insertion and embedded-graph routes both
-fail.
-
-## What Not To Work On Yet
-
-Until `FanTopologyPorts` is proved or rejected, do not spend main effort on:
-
-- further colored Turan work;
-- more matrix compression proofs;
-- new aliases of Theorem 1;
-- polishing the README;
-- untrusted Jordan imports;
-- lower genericity beyond small reusable lemmas already needed by topology.
-
-Those are not the current bottleneck.
-
-## Exact Milestones From Here
-
-### T0. Clean and verify the baseline
-
-Run:
-
-```sh
-lake build Lollipop.Concrete.EndToEnd
-```
-
-Record the current imported state and keep untracked drafts out of the trusted
-chain unless deliberately imported and built.
-
-Exit criterion: the current conditional concrete endpoint still builds.
-
-### T1. State the local arc-split API
-
-Add only definitions and theorem statements needed for `OneComponentSplitData`
-and `ExactOneComponentSplitData`.
-
-Exit criterion: the API typechecks and does not mention lollipops yet.
-
-### T2. Prove local arc-split for the simplest model
-
-First prove the theorem for a straight closed segment in an open rectangle or
-disk, with endpoints on the boundary and interior in the old complement.
-
-Exit criterion: Lean proves a concrete two-side classifier into `Fin 2` and
-uses it to construct `OneComponentSplitData`.
-
-Decision gate: if this already requires a general Jordan curve theorem, stop
-Route A and switch to Route B.
-
-### T3. Transport local arc-split to lollipop edge arcs
-
-Prove that every carrier edge obtained by subdivision is homeomorphic, locally
-or globally, to the straight-segment model.
-
-Exit criterion: each inserted lollipop edge supplies the split data required
-by `ComponentSplitChain`.
-
-### T4. Build arbitrary insertion chains
-
-Use fan subdivisions for every prefix insertion.
-
-Exit criterion:
-
-```lean
-theorem arbitrary_fan_bound :
-    forall {n : Nat} (A : Arrangement n),
-      OrderedInsertionFanSplitChainBound A
-```
-
-### T5. Build generic exact insertion chains
-
-Use `IsGeneric A` to show each inserted edge exactly splits one active
-component.
-
-Exit criterion:
-
-```lean
-theorem generic_exact_fan :
-    forall {n : Nat} {A : Arrangement n}, IsGeneric A ->
-      OrderedExactInsertionFanSplitChain A
-```
-
-### T6. Remove the topology port
-
-Define:
+Then build:
 
 ```lean
 def fanTopologyPorts : InsertionFan.FanTopologyPorts
 ```
 
-and verify:
-
-```sh
-lake build Lollipop.Concrete.EndToEnd
-```
-
-Exit criterion: `UpperPorts` and `LowerPorts` can obtain topology without a
-caller-supplied field.
-
-### T7. Return to lower genericity
-
-Only after topology is closed, finish:
+At this point the manuscript topology proposition is formally available as:
 
 ```lean
-forall n : Nat, Lower.GenericityPort.ChamberGenericityAvoidance n
+fanTopologyPorts.toPlanarTopologyPorts.crossing_excess_le_pairSum
+fanTopologyPorts.toPlanarTopologyPorts.generic_region_eq
 ```
 
-The parallel-stem density piece is already proved.  The remaining work is the
-triple-contact open/dense theorem.
+### T6. Wire The Topology Theorem Into The Endpoint
 
-### T8. Assemble the no-port final theorem
+Replace the topology field in `EndToEndPorts.ofFanTopology` with the actual
+proved `fanTopologyPorts` theorem.  After this step, the upper bound should no
+longer depend on caller-supplied topology.
 
-Final target:
+The final theorem will still need lower genericity unless that has also been
+proved:
 
 ```lean
-theorem lollipopMaximum_unconditional (n : Nat) :
-    Lollipop.Concrete.LollipopMaximumStatement n
+Lower.GenericityPort.ChamberGenericityAvoidance n
 ```
 
-Then run:
+### T7. Only Then Return To Lower Genericity
 
-```sh
-lake build Lollipop
-#print axioms Lollipop.Concrete.EndToEnd.lollipopMaximum_unconditional
+The remaining non-topology blocker is the generic perturbation/chamber
+avoidance theorem.  It should be handled after topology because the lower
+construction ultimately needs the generic topology equality anyway.
+
+## Fallback Routes
+
+### Route A: Current Local Crosscut Route
+
+Use the checked Jordan bridge to prove each localized edge insertion splits
+at most one old complement component, and in generic position splits it
+exactly.
+
+This is the preferred route.  It is narrower than formalizing Alexander
+duality and matches the current Lean API.
+
+### Route B: Finite Embedded-Graph Face Formula
+
+If the local crosscut theorem becomes too hard, switch to a finite graph
+theorem:
+
+```text
+for a finite tame embedded graph K in S^2,
+  #pi_0(S^2 \ K) = beta_1(K) + 1.
 ```
 
-Exit criterion:
+Then prove that finite lollipop unions are such graphs after subdivision.
+This is larger than Route A, but it is still concrete and manuscript-aligned.
 
-- no `EndToEndPorts` argument;
-- no `GeometryCertificates` argument;
-- no `sorry`, `admit`, project `axiom`, `constant`, `opaque`, or `unsafe`;
-- axiom output only contains ordinary Mathlib/foundational axioms such as
-  `propext`, `Classical.choice`, and `Quot.sound`.
+### Route C: Direct Manuscript Proof
 
-## Current Assessment
+Formalize semialgebraic triangulation, Mayer-Vietoris, and Alexander duality.
 
-The path is good, but the project should now stop circling around the lower
-and combinatorial layers.  The decisive theorem is topology.
+This is mathematically clean but currently the least practical path.  It
+would require a substantial amount of topology/algebraic-topology
+infrastructure beyond the lollipop problem itself.
 
-The insertion-split route is aligned with the manuscript because it proves the
-same arbitrary-region inequality and the same generic Euler equality.  It is
-also narrower than proving Alexander duality in Lean.  Its risk is that the
-local statement "an embedded arc splits at most one planar complement
-component, and exactly one in the generic case" may still require substantial
-Jordan-style topology.
+## Paths To Avoid
 
-If the local arc-split theorem is proved, the rest of the topology route is
-mostly finite bookkeeping and subdivision.  If it fails, the correct fallback
-is a finite embedded-graph theorem for lollipop carrier unions, not another
-certificate abstraction.
+- Do not target an abstract theorem over arbitrary `MaxProblemFamily`; that
+  was the old architecture mistake.
+- Do not prove only the generic case; the upper bound needs arbitrary
+  arrangements.
+- Do not import the stale `Lollipop/Concrete/Actual/` tree wholesale.
+- Do not treat Python, JSON, or rational verification scripts as trusted
+  topology inputs.
+- Do not add new public certificate fields for topology.  Temporary internal
+  theorem targets are fine, but the endpoint should eventually construct the
+  topology port itself.
+
+## Current Bottom Line
+
+The path is good and manuscript-valid.  The exact next mathematical problem
+is:
+
+```text
+Prove the local planar crosscut theorem strongly enough to produce
+localized insertion filtrations for subdivided lollipop carriers.
+```
+
+Once that is done, the existing Lean files already know how to telescope the
+local statements into the manuscript topology inequality and the generic
+Euler equality.
