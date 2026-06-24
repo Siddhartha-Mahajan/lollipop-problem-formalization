@@ -17,12 +17,14 @@ The theorem spine is:
 
 1. `Lollipop/Concrete/EndToEnd/MainTheorem/Topology.lean`
 2. `Lollipop/Concrete/EndToEnd/MainTheorem/Genericity.lean`
-3. `Lollipop/Concrete/EndToEnd/MainTheorem/Assembly.lean`
+3. `Lollipop/Concrete/EndToEnd/MainTheorem/Upper.lean`
+4. `Lollipop/Concrete/EndToEnd/MainTheorem/Lower.lean`
+5. `Lollipop/Concrete/EndToEnd/MainTheorem/Assembly.lean`
 
 The current intended `sorry` targets are:
 
-1. `MainTheorem.Topology.firstInsertionLocalizedFiltration`
-2. `MainTheorem.Topology.firstInsertionLocalizedExactFiltration`
+1. `MainTheorem.Topology.firstLollipopActiveClassifier_injective`
+2. `MainTheorem.Topology.firstLollipopActiveClassifier_surjective`
 3. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
 4. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
 5. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`

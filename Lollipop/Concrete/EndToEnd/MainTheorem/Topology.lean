@@ -1,3 +1,5 @@
+import Lollipop.Concrete.EndToEnd.CircleJordan
+import Lollipop.Concrete.EndToEnd.JordanClassifier
 import Lollipop.Concrete.EndToEnd.LocalizedTopology
 
 /-!
@@ -47,6 +49,86 @@ theorem componentCount_insertionFan_zero
   rw [insertionFan_zero_eq_singleton_infinity A hk]
   exact componentCount_singleton infinity
 
+/-- The unique old complement component for an insertion over the empty
+carrier. -/
+noncomputable def firstLollipopActive (L : Lollipop) :
+    ConnectedComponents (((∅ : Set Point)ᶜ) : Set Point) :=
+  ConnectedComponents.mk
+    (⟨L.center, by simp⟩ : (((∅ : Set Point)ᶜ) : Set Point))
+
+/-- All points in the complement of the empty carrier lie in the same old
+component. -/
+theorem connectedComponents_empty_compl_eq
+    (x y : (((∅ : Set Point)ᶜ) : Set Point)) :
+    ConnectedComponents.mk x = ConnectedComponents.mk y := by
+  have hconn : IsConnected (Set.univ : Set Point) := isConnected_univ
+  exact ComponentLifting.connectedComponents_mk_eq_of_isConnected_subset
+    (P := Set.univ) (S := ((∅ : Set Point)ᶜ))
+    hconn (by intro z _hz; simp) (by simp) (by simp)
+
+/-- The whole first lollipop carrier is localized in the unique old component
+of the empty-carrier complement. -/
+theorem firstLollipopEdgeLocalized (L : Lollipop) :
+    LocalInsertion.EdgeLocalized (∅ : Set Point) L.carrier
+      (firstLollipopActive L) := by
+  intro z _hzCarrier hzOld
+  exact connectedComponents_empty_compl_eq
+    (⟨z, hzOld⟩ : (((∅ : Set Point)ᶜ) : Set Point))
+    (⟨L.center, by simp⟩ : (((∅ : Set Point)ᶜ) : Set Point))
+
+/-- The remaining bounded classifier for the complement of one full lollipop
+carrier. -/
+noncomputable def firstLollipopActiveClassifier (L : Lollipop) :
+    LocalFiltration.ActiveClassifier (∅ : Set Point) L.carrier
+      (firstLollipopActive L) :=
+  fun a =>
+    JordanClassifier.sideOfComponent
+      (by
+        intro x hx
+        exact Or.inr (Lollipop.circle_subset_carrier L hx))
+      (CircleJordan.isSimpleClosedCurve_circle L)
+      a.1
+
+/-- The bounded classifier is injective: a single full lollipop carrier
+creates at most two complementary components. -/
+theorem firstLollipopActiveClassifier_injective (L : Lollipop) :
+    Function.Injective (firstLollipopActiveClassifier L) := by
+  sorry
+
+/-- The bounded classifier is surjective: a single full lollipop carrier
+really has both complementary sides. -/
+theorem firstLollipopActiveClassifier_surjective (L : Lollipop) :
+    Function.Surjective (firstLollipopActiveClassifier L) := by
+  sorry
+
+/-- The bounded one-edge topology statement for a single lollipop over the
+empty old carrier.
+
+This is the real first-lollipop upper topology theorem: the complement of a
+single lollipop carrier has at most two components. -/
+noncomputable def firstLollipopLocalizedEdgeStep (L : Lollipop) :
+    LocalFiltration.LocalizedEdgeStep (∅ : Set Point) L.carrier where
+  active := firstLollipopActive L
+  localized := firstLollipopEdgeLocalized L
+  activeClassifier := firstLollipopActiveClassifier L
+  active_injective := firstLollipopActiveClassifier_injective L
+
+/-- The exact one-edge topology statement for a single lollipop over the
+empty old carrier.
+
+This is the real first-lollipop exact topology theorem: the complement of a
+single lollipop carrier has exactly two components, witnessed by both sides
+of the circle after accounting for the outward stem. -/
+noncomputable def firstLollipopLocalizedExactEdgeStep (L : Lollipop) :
+    LocalFiltration.LocalizedExactEdgeStep L (∅ : Set Point) L.carrier where
+  old_closed := isClosed_empty
+  edge_subset_carrier := fun _ hx => hx
+  active := firstLollipopActive L
+  localized := firstLollipopEdgeLocalized L
+  activeClassifier := firstLollipopActiveClassifier L
+  active_injective := firstLollipopActiveClassifier_injective L
+  active_surjective := firstLollipopActiveClassifier_surjective L
+
 /-- The remaining first-lollipop bounded topology theorem.
 
 Mathematically, this says inserting one lollipop into the empty carrier is a
@@ -57,7 +139,15 @@ noncomputable def firstInsertionLocalizedFiltration
     InsertionFiltration.LocalizedInsertionFiltration
       (PlanarInsertion.prefixArrangement A 0 (Nat.le_of_lt hk))
       (A ⟨0, hk⟩) 1 := by
-  sorry
+  let L := A ⟨0, hk⟩
+  let f : LocalFiltration.LocalizedEdgeFiltration 1 (∅ : Set Point)
+      (LocalInsertion.carrierExtension (∅ : Set Point) L.carrier) :=
+    LocalFiltration.LocalizedEdgeFiltration.snoc
+      (LocalFiltration.LocalizedEdgeFiltration.nil (∅ : Set Point))
+      L.carrier
+      (firstLollipopLocalizedEdgeStep L)
+  simpa [InsertionFiltration.LocalizedInsertionFiltration, L,
+    occupied_zero, LocalInsertion.carrierExtension] using f
 
 /-- The exact first-lollipop topology theorem.
 
@@ -69,7 +159,17 @@ noncomputable def firstInsertionLocalizedExactFiltration
     InsertionFiltration.LocalizedExactInsertionFiltration
       (PlanarInsertion.prefixArrangement A 0 (Nat.le_of_lt hk))
       (A ⟨0, hk⟩) 1 := by
-  sorry
+  let L := A ⟨0, hk⟩
+  let f : LocalFiltration.LocalizedExactEdgeFiltration L 1
+      (∅ : Set Point)
+      (LocalInsertion.carrierExtension (∅ : Set Point) L.carrier) :=
+    LocalFiltration.LocalizedExactEdgeFiltration.snoc
+      (LocalFiltration.LocalizedExactEdgeFiltration.nil (L := L)
+        (∅ : Set Point))
+      L.carrier
+      (firstLollipopLocalizedExactEdgeStep L)
+  simpa [InsertionFiltration.LocalizedExactInsertionFiltration, L,
+    occupied_zero, LocalInsertion.carrierExtension] using f
 
 /-- Arbitrary bounded topology for the first ordered insertion. -/
 theorem localizedInsertionFiltration_bound_zero

@@ -9,6 +9,16 @@ The final endpoint is now visible in:
 Lollipop/Concrete/EndToEnd/MainTheorem/Assembly.lean
 ```
 
+The main theorem path is split into:
+
+```text
+Lollipop/Concrete/EndToEnd/MainTheorem/Topology.lean
+Lollipop/Concrete/EndToEnd/MainTheorem/Genericity.lean
+Lollipop/Concrete/EndToEnd/MainTheorem/Upper.lean
+Lollipop/Concrete/EndToEnd/MainTheorem/Lower.lean
+Lollipop/Concrete/EndToEnd/MainTheorem/Assembly.lean
+```
+
 The assembly theorem has no caller-supplied `EndToEndPorts` argument.  Its
 remaining trust gap is exactly the named `sorry` list below.
 
@@ -24,8 +34,8 @@ Lean reports the current intended `sorry`s below.
 
 ## Current Intended `sorry` Targets
 
-1. `MainTheorem.Topology.firstInsertionLocalizedFiltration`
-2. `MainTheorem.Topology.firstInsertionLocalizedExactFiltration`
+1. `MainTheorem.Topology.firstLollipopActiveClassifier_injective`
+2. `MainTheorem.Topology.firstLollipopActiveClassifier_surjective`
 3. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
 4. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
 5. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
@@ -49,8 +59,8 @@ The previous broad topology placeholders are also no longer direct
 `intro; sorry` proofs.  They now assemble from first-insertion and
 positive-insertion filtration targets:
 
-* first-lollipop bounded localized filtration;
-* first-lollipop exact localized filtration;
+* first-lollipop side-classifier injectivity;
+* first-lollipop side-classifier surjectivity;
 * arbitrary bounded localized filtration for non-first insertions;
 * exact localized filtration for non-first generic insertions.
 
@@ -60,6 +70,13 @@ The insertion-fan budget for the first insertion is proved:
 MainTheorem.Topology.componentCount_insertionFan_zero
 ```
 
+The whole first-insertion filtration is now ordinary constructor wiring from
+the two first-lollipop edge-step targets.
+
+The two first-lollipop edge-step targets are now ordinary constructor wiring
+from the active classifier.  The actual first-lollipop gaps are the
+classifier injectivity and surjectivity theorems listed above.
+
 ## Removal Order
 
 ### 1. Arbitrary topology
@@ -67,7 +84,7 @@ MainTheorem.Topology.componentCount_insertionFan_zero
 Remove:
 
 ```lean
-MainTheorem.Topology.firstInsertionLocalizedFiltration
+MainTheorem.Topology.firstLollipopActiveClassifier_injective
 MainTheorem.Topology.localizedInsertionFiltration_bound_positive
 ```
 
@@ -83,7 +100,7 @@ This requires the topology-first plan:
 Remove:
 
 ```lean
-MainTheorem.Topology.firstInsertionLocalizedExactFiltration
+MainTheorem.Topology.firstLollipopActiveClassifier_surjective
 MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive
 ```
 
