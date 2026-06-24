@@ -47,6 +47,20 @@ theorem connectedComponents_mk_eq_of_isConnected_subset
   have hmap := congrArg hf.connectedComponentsMap hxy
   simpa [f, xP, yP] using hmap
 
+/-- Equality in the connected-component quotient of a subtype gives ambient
+membership in the corresponding relative connected component. -/
+theorem mem_connectedComponentIn_of_connectedComponents_mk_eq
+    {F : Set X} (x y : F)
+    (hxy : ConnectedComponents.mk x = ConnectedComponents.mk y) :
+    y.1 ∈ connectedComponentIn F x.1 := by
+  have hcomp : connectedComponent x = connectedComponent y :=
+    ConnectedComponents.coe_eq_coe.mp hxy
+  have hy : y ∈ connectedComponent x := by
+    rw [hcomp]
+    exact mem_connectedComponent
+  rw [connectedComponentIn_eq_image x.2]
+  exact ⟨y, hy, rfl⟩
+
 /-- A concrete lifting condition for one fibre of an inclusion-induced
 component map.  Whenever two points of `S` map to the same target component
 `b`, and they are not literally the same point, there is an actual connected

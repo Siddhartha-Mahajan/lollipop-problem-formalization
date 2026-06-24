@@ -33,6 +33,58 @@ def complementSubset {C K : Set Point} (hCK : C ⊆ K) :
     Kᶜ ⊆ Cᶜ :=
   fun _ hxK hxC => hxK (hCK hxC)
 
+/-- Every newly inserted point that is not already in the old carrier lies in
+one distinguished old complement component.  This is the non-separation part
+of the local arc insertion proof: outside that active component, the insertion
+cannot split anything. -/
+def NewPartLocalized {C K : Set Point} (_hCK : C ⊆ K)
+    (active : ConnectedComponents (Cᶜ : Set Point)) : Prop :=
+  ∀ z : Point, z ∈ K → (hzC : z ∉ C) →
+    ConnectedComponents.mk (⟨z, hzC⟩ : (Cᶜ : Set Point)) = active
+
+/-- If the new part is localized in one old complement component, all inactive
+old components have connected lifting automatically: use the old relative
+connected component itself as the connected witness. -/
+theorem inactiveConnectedLifting_of_newPartLocalized
+    {C K : Set Point} (hCK : C ⊆ K)
+    {active : ConnectedComponents (Cᶜ : Set Point)}
+    (hloc : NewPartLocalized hCK active) :
+    ComponentLifting.InactiveConnectedLifting
+      (complementSubset hCK) active := by
+  intro b hb x y hx hy _hxy
+  let xOld : (Cᶜ : Set Point) :=
+    ⟨x.1, complementSubset hCK x.2⟩
+  let yOld : (Cᶜ : Set Point) :=
+    ⟨y.1, complementSubset hCK y.2⟩
+  have hxold : ConnectedComponents.mk xOld = b := by
+    simpa [xOld, ComponentFibers.inclusion, complementSubset] using hx
+  have hyold : ConnectedComponents.mk yOld = b := by
+    simpa [yOld, ComponentFibers.inclusion, complementSubset] using hy
+  let P : Set Point := connectedComponentIn Cᶜ x.1
+  have hxC : x.1 ∈ Cᶜ := complementSubset hCK x.2
+  have hxP : x.1 ∈ P := mem_connectedComponentIn hxC
+  have hPconn : IsConnected P :=
+    ⟨⟨x.1, hxP⟩, isPreconnected_connectedComponentIn⟩
+  have hPS : P ⊆ Kᶜ := by
+    intro z hzP hzK
+    have hzC : z ∈ Cᶜ :=
+      connectedComponentIn_subset Cᶜ x.1 hzP
+    have hzx :
+        ConnectedComponents.mk (⟨z, hzC⟩ : (Cᶜ : Set Point)) =
+          ConnectedComponents.mk xOld :=
+      ComponentLifting.connectedComponents_mk_eq_of_isConnected_subset
+        hPconn (connectedComponentIn_subset Cᶜ x.1) hzP hxP
+    have hzb : ConnectedComponents.mk (⟨z, hzC⟩ : (Cᶜ : Set Point)) = b :=
+      hzx.trans hxold
+    exact hb (hzb.symm.trans (hloc z hzK hzC))
+  have hyP : y.1 ∈ P := by
+    have hsame : ConnectedComponents.mk xOld = ConnectedComponents.mk yOld :=
+      hxold.trans hyold.symm
+    exact
+      ComponentLifting.mem_connectedComponentIn_of_connectedComponents_mk_eq
+        xOld yOld hsame
+  exact ⟨P, hPconn, hPS, hxP, hyP⟩
+
 /-- If the enlarged carrier differs from a closed old carrier by at most one
 concrete lollipop, every old complementary component still contains a point
 of the new complement. -/
@@ -103,6 +155,26 @@ def exactOneComponentSplitDataOfConnectedLifting
     componentMap_surjective_of_closed_of_subset_union_carrier
       hCK hCclosed L hKsub
   activeSide_surjective := active_surjective
+
+/-- Exact split data with the inactive fibres discharged from localization of
+the new part.  The only remaining genuinely planar input is the active
+two-side classifier and its bijectivity. -/
+def exactOneComponentSplitDataOfLocalizedConnectedLifting
+    {C K : Set Point} (hCK : C ⊆ K) (hCclosed : IsClosed C)
+    (L : Lollipop) (hKsub : K ⊆ C ∪ L.carrier)
+    (active : ConnectedComponents (Cᶜ : Set Point))
+    (hloc : NewPartLocalized hCK active)
+    (activeClassifier :
+      ComponentFibers.Fiber
+        (ComponentFibers.inclusionMap (complementSubset hCK)) active →
+          Fin 2)
+    (active_injective : Injective activeClassifier)
+    (active_surjective : Surjective activeClassifier) :
+    ComponentFibers.ExactOneComponentSplitData (complementSubset hCK) :=
+  exactOneComponentSplitDataOfConnectedLifting hCK hCclosed L hKsub
+    active activeClassifier active_injective
+    (inactiveConnectedLifting_of_newPartLocalized hCK hloc)
+    active_surjective
 
 end ComponentSurjectivity
 end EndToEnd
