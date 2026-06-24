@@ -1,3 +1,4 @@
+import Lollipop.Concrete.EndToEnd.ComponentSplitChain
 import Lollipop.Concrete.EndToEnd.ComponentSurjectivity
 
 /-!
@@ -84,8 +85,50 @@ def exactOneComponentSplitDataOfLocalizedEdge
     (newPartLocalized_of_edgeLocalized hloc)
     activeClassifier active_injective active_surjective
 
+/-- A localized exact edge split gives a one-step exact split chain.  This is
+the chain-level object that a later carrier-subdivision proof will concatenate
+over all effective inserted edges. -/
+def exactChainOfLocalizedEdge
+    {C E : Set Point} (hCclosed : IsClosed C)
+    (L : Lollipop) (hE : E ⊆ L.carrier)
+    (active : ConnectedComponents (Cᶜ : Set Point))
+    (hloc : EdgeLocalized C E active)
+    (activeClassifier :
+      ComponentFibers.Fiber
+        (ComponentFibers.inclusionMap
+          (ComponentSurjectivity.complementSubset
+            (old_subset_carrierExtension C E))) active →
+          Fin 2)
+    (active_injective : Injective activeClassifier)
+    (active_surjective : Surjective activeClassifier) :
+    ComponentSplitChain.ExactChain 1
+      ((carrierExtension C E)ᶜ) (Cᶜ) :=
+  ComponentSplitChain.ExactChain.singleton
+    (ComponentSurjectivity.complementSubset
+      (old_subset_carrierExtension C E))
+    (exactOneComponentSplitDataOfLocalizedEdge hCclosed L hE active hloc
+      activeClassifier active_injective active_surjective)
+
+/-- Forget exactness from a localized one-edge split chain. -/
+def chainOfLocalizedEdge
+    {C E : Set Point} (hCclosed : IsClosed C)
+    (L : Lollipop) (hE : E ⊆ L.carrier)
+    (active : ConnectedComponents (Cᶜ : Set Point))
+    (hloc : EdgeLocalized C E active)
+    (activeClassifier :
+      ComponentFibers.Fiber
+        (ComponentFibers.inclusionMap
+          (ComponentSurjectivity.complementSubset
+            (old_subset_carrierExtension C E))) active →
+          Fin 2)
+    (active_injective : Injective activeClassifier)
+    (active_surjective : Surjective activeClassifier) :
+    ComponentSplitChain.Chain 1
+      ((carrierExtension C E)ᶜ) (Cᶜ) :=
+  (exactChainOfLocalizedEdge hCclosed L hE active hloc
+    activeClassifier active_injective active_surjective).toChain
+
 end LocalInsertion
 end EndToEnd
 end Concrete
 end Lollipop
-
