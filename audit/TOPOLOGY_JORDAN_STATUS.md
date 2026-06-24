@@ -51,7 +51,8 @@ The simple-arc complement consequence also builds:
 lake build Lollipop.Concrete.EndToEnd.SimpleArcComplement
 ```
 
-The concrete primitive-arc layer for finite stem subsegments also builds:
+The concrete primitive-arc layer for finite stem and circle subarcs also
+builds:
 
 ```sh
 lake build Lollipop.Concrete.EndToEnd.PrimitiveArcs
@@ -112,8 +113,9 @@ The Jordan dependency makes the topology route more realistic.  In particular:
   consequence of `simple_arc_conn_complement`: the complement of a compact
   simple arc is connected, with one connected component.
 - `Lollipop.Concrete.EndToEnd.PrimitiveArcs` proves finite lollipop stem
-  subsegments are simple arcs, lie in the concrete carrier when their
-  parameters are on the outward ray, and have connected complements.
+  subsegments and proper one-turn circular subarcs are simple arcs, lie in
+  the concrete carrier under the expected parameter hypotheses, and have
+  connected complements.
 - `Lollipop.Concrete.EndToEnd.LocalCrosscut` packages the same data into
   `LocalizedEdgeStep`, `LocalizedExactEdgeStep`, and one-step localized
   filtrations.  It also exposes convenience constructors for the common case
