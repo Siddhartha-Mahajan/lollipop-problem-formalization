@@ -33,8 +33,14 @@ The Jordan-side classifier for localized one-edge insertions also builds:
 lake build Lollipop.Concrete.EndToEnd.JordanClassifier
 ```
 
-The aggregate concrete endpoint builds with the Jordan bridge and classifier
-imported:
+The local crosscut packaging layer also builds:
+
+```sh
+lake build Lollipop.Concrete.EndToEnd.LocalCrosscut
+```
+
+The aggregate concrete endpoint builds with the Jordan bridge, classifier, and
+crosscut packaging layer imported:
 
 ```sh
 lake build Lollipop.Concrete.EndToEnd
@@ -71,6 +77,10 @@ The Jordan dependency makes the topology route more realistic.  In particular:
 - `Lollipop.Concrete.EndToEnd.JordanClassifier` turns Jordan-side equality
   plus an avoiding-arc lifting obligation into the `OneComponentSplitData` and
   `ExactOneComponentSplitData` expected by the localized insertion API.
+- `Lollipop.Concrete.EndToEnd.LocalCrosscut` packages the same data into
+  `LocalizedEdgeStep`, `LocalizedExactEdgeStep`, and one-step localized
+  filtrations, which are the objects consumed by the insertion-filtration
+  pipeline.
 
 This directly supports the planned local arc-splitting theorem: form a simple
 closed curve from an inserted edge plus an old avoiding arc, classify the two
@@ -93,10 +103,11 @@ such as `Coordinates.lean` and `JordanConsequences.lean`; those modules assume
 old names and an older geometry bridge.  They should not be imported into the
 trusted endpoint as-is.
 
-The useful path is now to build on the small, checked
-`EndToEnd` topology bridge and classifier:
+The useful path is now to build on the small, checked `EndToEnd` topology
+bridge, classifier, and crosscut packaging layer:
 
-1. prove the local arc-split theorem for one inserted edge;
+1. prove the geometric local arc-lifting and side-surjectivity facts for one
+   inserted edge;
 2. use that theorem to construct localized insertion filtrations;
 3. compile those filtrations through `LocalizedTopology` into
    `InsertionFan.FanTopologyPorts`.
@@ -110,5 +121,6 @@ small API repairs.
 However, the final endpoint should not import the stale `Actual` topology
 tree.  The next implementation step should use
 `Lollipop/Concrete/EndToEnd/JordanBridge.lean` and
-`Lollipop/Concrete/EndToEnd/JordanClassifier.lean` to prove the local
-arc-splitting theorem against the current `EndToEnd` component-split API.
+`Lollipop/Concrete/EndToEnd/JordanClassifier.lean`, packaged through
+`Lollipop/Concrete/EndToEnd/LocalCrosscut.lean`, to prove the local
+arc-lifting theorem against the current `EndToEnd` component-split API.
