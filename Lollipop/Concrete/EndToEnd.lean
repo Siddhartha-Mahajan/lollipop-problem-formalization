@@ -5,6 +5,7 @@ import Lollipop.Concrete.EndToEnd.ComponentSurjectivity
 import Lollipop.Concrete.EndToEnd.OccupiedTopology
 import Lollipop.Concrete.EndToEnd.LocalInsertion
 import Lollipop.Concrete.EndToEnd.LocalFiltration
+import Lollipop.Concrete.EndToEnd.InsertionFiltration
 import Lollipop.Concrete.EndToEnd.TranslationGenericity
 import Lollipop.Concrete.EndToEnd.Final
 
