@@ -24,6 +24,7 @@ namespace EndToEnd
 namespace Lower
 
 open Set BigOperators
+open scoped Topology
 
 /-- Raw center/radial parameters for one lollipop. -/
 abbrev RawLollipopParameter := Point × Point
@@ -724,6 +725,201 @@ theorem chamberGenericityAvoidance_two_of_det_ne_dense
       rfl
     rw [hset]
     exact hdet
+
+/-- Rotate a displayed point by a quarter turn. -/
+def rotate90 (u : Point) : Point :=
+  R2.toPoint (fun i : Fin 2 => if i = 0 then -u 1 else u 0)
+
+@[simp] theorem rotate90_zero (u : Point) : rotate90 u 0 = -u 1 := by
+  simp [rotate90]
+
+@[simp] theorem rotate90_one (u : Point) : rotate90 u 1 = u 0 := by
+  simp [rotate90]
+
+/-- The determinant of a vector with its quarter turn is its squared length in
+coordinates. -/
+theorem detPoint_self_rotate90 (u : Point) :
+    detPoint u (rotate90 u) = u 0 ^ 2 + u 1 ^ 2 := by
+  unfold detPoint
+  simp [pow_two]
+
+theorem detPoint_self_rotate90_ne_zero {u : Point} (hu : u ≠ 0) :
+    detPoint u (rotate90 u) ≠ 0 := by
+  rw [detPoint_self_rotate90]
+  intro hsum
+  have h0 : u 0 = 0 := by
+    nlinarith [sq_nonneg (u 0), sq_nonneg (u 1)]
+  have h1 : u 1 = 0 := by
+    nlinarith [sq_nonneg (u 0), sq_nonneg (u 1)]
+  apply hu
+  have hR : R2.ofPoint u = (0 : R2) := by
+    ext i
+    fin_cases i <;> simp [R2.ofPoint, h0, h1]
+  rw [← R2.toPoint_ofPoint u, hR]
+  change R2.toPoint (0 : R2) = (0 : Point)
+  have h0R : (0 : R2) = R2.ofPoint (0 : Point) := by
+    ext i
+    rfl
+  rw [h0R]
+  exact R2.toPoint_ofPoint (0 : Point)
+
+/-- If the two radials are parallel, perturb the second radial in the
+quarter-turn direction of the first. -/
+def perturbSecondRadialOfParallel
+    (p : ArrangementParameter 2)
+    (hparallel :
+      detPoint (p (0 : Fin 2)).1.2 (p (1 : Fin 2)).1.2 = 0)
+    (t : ℝ) : ArrangementParameter 2
+  | 0 => p 0
+  | 1 =>
+      ⟨((p (1 : Fin 2)).1.1,
+        (p (1 : Fin 2)).1.2 +
+          t • rotate90 (p (0 : Fin 2)).1.2),
+        by
+          by_cases ht : t = 0
+          · simpa [ht] using (p (1 : Fin 2)).2
+          · intro hzero
+            have hdet_zero :
+                detPoint (p (0 : Fin 2)).1.2
+                  ((p (1 : Fin 2)).1.2 +
+                    t • rotate90 (p (0 : Fin 2)).1.2) = 0 := by
+              change (p (1 : Fin 2)).1.2 +
+                    t • rotate90 (p (0 : Fin 2)).1.2 = 0 at hzero
+              rw [hzero]
+              unfold detPoint
+              simp
+            have hformula :
+                detPoint (p (0 : Fin 2)).1.2
+                  ((p (1 : Fin 2)).1.2 +
+                    t • rotate90 (p (0 : Fin 2)).1.2) =
+                  t * detPoint (p (0 : Fin 2)).1.2
+                    (rotate90 (p (0 : Fin 2)).1.2) := by
+              unfold detPoint at hparallel ⊢
+              simp
+              ring_nf at hparallel ⊢
+              nlinarith
+            have hprod :
+                t * detPoint (p (0 : Fin 2)).1.2
+                  (rotate90 (p (0 : Fin 2)).1.2) = 0 := by
+              rwa [hformula] at hdet_zero
+            rcases mul_eq_zero.mp hprod with htzero | hrot
+            · exact ht htzero
+            · exact detPoint_self_rotate90_ne_zero (p (0 : Fin 2)).2 hrot⟩
+
+@[simp] theorem perturbSecondRadialOfParallel_zero
+    (p : ArrangementParameter 2) (hparallel) (t : ℝ) :
+    perturbSecondRadialOfParallel p hparallel t (0 : Fin 2) = p 0 := rfl
+
+@[simp] theorem perturbSecondRadialOfParallel_one_val
+    (p : ArrangementParameter 2) (hparallel) (t : ℝ) :
+    (perturbSecondRadialOfParallel p hparallel t (1 : Fin 2)).1 =
+      ((p (1 : Fin 2)).1.1,
+        (p (1 : Fin 2)).1.2 +
+          t • rotate90 (p (0 : Fin 2)).1.2) := rfl
+
+@[simp] theorem perturbSecondRadialOfParallel_zero_time
+    (p : ArrangementParameter 2) (hparallel) :
+    perturbSecondRadialOfParallel p hparallel 0 = p := by
+  funext i
+  fin_cases i
+  · rfl
+  · apply Subtype.ext
+    simp
+
+theorem continuous_perturbSecondRadialOfParallel
+    (p : ArrangementParameter 2) (hparallel) :
+    Continuous (fun t : ℝ =>
+      perturbSecondRadialOfParallel p hparallel t) := by
+  apply continuous_pi
+  intro i
+  fin_cases i
+  · exact continuous_const
+  · rw [continuous_induced_rng]
+    change Continuous (fun t : ℝ =>
+      ((p (1 : Fin 2)).1.1,
+        (p (1 : Fin 2)).1.2 +
+          t • rotate90 (p (0 : Fin 2)).1.2))
+    fun_prop
+
+theorem detPoint_perturbSecondRadialOfParallel
+    (p : ArrangementParameter 2) (hparallel) (t : ℝ) :
+    detPoint
+        ((perturbSecondRadialOfParallel p hparallel t
+          (0 : Fin 2)).toLollipop).radial
+        ((perturbSecondRadialOfParallel p hparallel t
+          (1 : Fin 2)).toLollipop).radial =
+      t * detPoint (p (0 : Fin 2)).1.2
+        (rotate90 (p (0 : Fin 2)).1.2) := by
+  change
+    detPoint (p (0 : Fin 2)).1.2
+        ((p (1 : Fin 2)).1.2 +
+          t • rotate90 (p (0 : Fin 2)).1.2) =
+      t * detPoint (p (0 : Fin 2)).1.2
+        (rotate90 (p (0 : Fin 2)).1.2)
+  unfold detPoint at hparallel ⊢
+  simp
+  ring_nf at hparallel ⊢
+  nlinarith
+
+theorem detPoint_perturbSecondRadialOfParallel_ne_zero
+    (p : ArrangementParameter 2) (hparallel) {t : ℝ} (ht : t ≠ 0) :
+    detPoint
+        ((perturbSecondRadialOfParallel p hparallel t
+          (0 : Fin 2)).toLollipop).radial
+        ((perturbSecondRadialOfParallel p hparallel t
+          (1 : Fin 2)).toLollipop).radial ≠ 0 := by
+  rw [detPoint_perturbSecondRadialOfParallel]
+  exact mul_ne_zero ht
+    (detPoint_self_rotate90_ne_zero (p (0 : Fin 2)).2)
+
+/-- Nonparallel two-radial parameters are dense. -/
+theorem dense_det_ne_two :
+    Dense ({p : ArrangementParameter 2 |
+      detPoint ((p (0 : Fin 2)).toLollipop).radial
+        ((p (1 : Fin 2)).toLollipop).radial ≠ 0}) := by
+  rw [dense_iff_inter_open]
+  intro U hU hUne
+  rcases hUne with ⟨p, hpU⟩
+  by_cases hdet :
+      detPoint ((p (0 : Fin 2)).toLollipop).radial
+        ((p (1 : Fin 2)).toLollipop).radial ≠ 0
+  · exact ⟨p, hpU, hdet⟩
+  · have hparallel :
+        detPoint (p (0 : Fin 2)).1.2 (p (1 : Fin 2)).1.2 = 0 := by
+      change detPoint ((p (0 : Fin 2)).toLollipop).radial
+        ((p (1 : Fin 2)).toLollipop).radial = 0
+      exact not_not.mp hdet
+    let γ : ℝ → ArrangementParameter 2 :=
+      fun t => perturbSecondRadialOfParallel p hparallel t
+    have hγcont : Continuous γ :=
+      continuous_perturbSecondRadialOfParallel p hparallel
+    have hpreOpen : IsOpen (γ ⁻¹' U) := hU.preimage hγcont
+    have hzero_mem : (0 : ℝ) ∈ γ ⁻¹' U := by
+      change γ 0 ∈ U
+      have hγ0 : γ 0 = p := by
+        simpa [γ] using
+          perturbSecondRadialOfParallel_zero_time p hparallel
+      simpa [hγ0] using hpU
+    have hnhds : γ ⁻¹' U ∈ 𝓝 (0 : ℝ) :=
+      hpreOpen.mem_nhds hzero_mem
+    rcases Metric.mem_nhds_iff.mp hnhds with ⟨ε, hεpos, hεsub⟩
+    let t : ℝ := ε / 2
+    have htpos : 0 < t := by
+      positivity
+    have htne : t ≠ 0 := ne_of_gt htpos
+    have htball : t ∈ Metric.ball (0 : ℝ) ε := by
+      rw [Metric.mem_ball, Real.dist_eq]
+      have htlt : t < ε := by
+        dsimp [t]
+        linarith
+      rw [sub_zero, abs_of_pos htpos]
+      exact htlt
+    refine ⟨γ t, hεsub htball, ?_⟩
+    exact detPoint_perturbSecondRadialOfParallel_ne_zero p hparallel htne
+
+/-- The reduced genericity port is fully proved for two lollipops. -/
+theorem chamberGenericityAvoidance_two : ChamberGenericityAvoidance 2 :=
+  chamberGenericityAvoidance_two_of_det_ne_dense dense_det_ne_two
 
 theorem not_mem_allBad_of_subsingleton {n : ℕ} [Subsingleton (Fin n)]
     (p : ArrangementParameter n) :
