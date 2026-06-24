@@ -253,6 +253,27 @@ theorem firstLollipopActiveSideArcLifting (L : Lollipop) :
         x y hP hPdisj
     · -- Remaining exterior stem-slit step: the exterior of the circle minus
       -- the outward stem is connected.
+      have hyOutsideBall : y.1 ∉ Metric.ball L.center L.radius := by
+        intro hyInside
+        exact hxInside ((circleComponent_mem_ball_iff L hcircleMk).2 hyInside)
+      have hxExterior : L.radius < dist x.1 L.center := by
+        simp only [Metric.mem_ball] at hxInside
+        have hne : dist x.1 L.center ≠ L.radius := by
+          intro hdist
+          exact x.2 (by
+            unfold LocalInsertion.carrierExtension Lollipop.carrier
+            exact Or.inr (Or.inl (by
+              simpa [Lollipop.circle, dist_eq_norm] using hdist)))
+        exact lt_of_le_of_ne (le_of_not_gt hxInside) (Ne.symm hne)
+      have hyExterior : L.radius < dist y.1 L.center := by
+        simp only [Metric.mem_ball] at hyOutsideBall
+        have hne : dist y.1 L.center ≠ L.radius := by
+          intro hdist
+          exact y.2 (by
+            unfold LocalInsertion.carrierExtension Lollipop.carrier
+            exact Or.inr (Or.inl (by
+              simpa [Lollipop.circle, dist_eq_norm] using hdist)))
+        exact lt_of_le_of_ne (le_of_not_gt hyOutsideBall) (Ne.symm hne)
       sorry
   exact JordanBridge.exists_simpleArcEnd_disjoint_of_connectedComponents_mk_eq
     hKclosed x y hcarrierComponent hxy
