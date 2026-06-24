@@ -4,6 +4,7 @@ import Lollipop.Concrete.EndToEnd.ComponentLifting
 import Lollipop.Concrete.EndToEnd.JordanBridge
 import Lollipop.Concrete.EndToEnd.CircleJordan
 import Lollipop.Concrete.EndToEnd.SimpleArcComplement
+import Lollipop.Concrete.EndToEnd.PrimitiveArcs
 import Lollipop.Concrete.EndToEnd.ComponentSurjectivity
 import Lollipop.Concrete.EndToEnd.OccupiedTopology
 import Lollipop.Concrete.EndToEnd.LocalInsertion
