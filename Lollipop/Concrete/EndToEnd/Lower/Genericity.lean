@@ -921,6 +921,297 @@ theorem dense_det_ne_two :
 theorem chamberGenericityAvoidance_two : ChamberGenericityAvoidance 2 :=
   chamberGenericityAvoidance_two_of_det_ne_dense dense_det_ne_two
 
+/-- Finite intersections of open dense sets are dense.  This local form avoids
+the stronger countable Baire theorem. -/
+theorem dense_biInter_finset_of_open_dense
+    {α X : Type*} [TopologicalSpace X] [DecidableEq α]
+    (s : Finset α) (U : α → Set X)
+    (hopen : ∀ a ∈ s, IsOpen (U a))
+    (hdense : ∀ a ∈ s, Dense (U a)) :
+    Dense (⋂ a ∈ s, U a) := by
+  classical
+  revert hopen hdense
+  refine Finset.induction_on s ?_ ?_
+  · intro _hopen _hdense
+    simpa using (dense_univ : Dense (Set.univ : Set X))
+  · intro a s ha ih hopen hdense
+    have hopena : IsOpen (U a) :=
+      hopen a (Finset.mem_insert_self a s)
+    have hdensea : Dense (U a) :=
+      hdense a (Finset.mem_insert_self a s)
+    have hopenS : ∀ b ∈ s, IsOpen (U b) := by
+      intro b hb
+      exact hopen b (Finset.mem_insert_of_mem hb)
+    have hdenseS : ∀ b ∈ s, Dense (U b) := by
+      intro b hb
+      exact hdense b (Finset.mem_insert_of_mem hb)
+    have hS : Dense (⋂ b ∈ s, U b) := ih hopenS hdenseS
+    have hInter : Dense (U a ∩ ⋂ b ∈ s, U b) :=
+      hdensea.inter_of_isOpen_left hS hopena
+    have hEq : (U a ∩ ⋂ b ∈ s, U b) =
+        (⋂ b ∈ insert a s, U b) := by
+      ext x
+      constructor
+      · rintro ⟨hxa, hxs⟩
+        rw [Set.mem_iInter]
+        intro b
+        rw [Set.mem_iInter]
+        intro hb
+        rw [Finset.mem_insert] at hb
+        rcases hb with rfl | hb
+        · exact hxa
+        · exact Set.mem_iInter.mp (Set.mem_iInter.mp hxs b) hb
+      · intro hx
+        constructor
+        · exact Set.mem_iInter.mp
+            (Set.mem_iInter.mp hx a) (Finset.mem_insert_self a s)
+        · rw [Set.mem_iInter]
+          intro b
+          rw [Set.mem_iInter]
+          intro hb
+          exact Set.mem_iInter.mp
+            (Set.mem_iInter.mp hx b) (Finset.mem_insert_of_mem hb)
+    rw [← hEq]
+    exact hInter
+
+/-- Fintype form of finite open-dense intersection. -/
+theorem dense_iInter_fintype_of_open_dense
+    {α X : Type*} [TopologicalSpace X] [Fintype α] [DecidableEq α]
+    (U : α → Set X)
+    (hopen : ∀ a, IsOpen (U a))
+    (hdense : ∀ a, Dense (U a)) :
+    Dense (⋂ a, U a) := by
+  classical
+  have h := dense_biInter_finset_of_open_dense
+    (Finset.univ : Finset α) U
+    (by intro a _ha; exact hopen a)
+    (by intro a _ha; exact hdense a)
+  simpa using h
+
+/-- Perturb the radial of the selected second index in the quarter-turn
+direction of the first selected radial. -/
+def perturbRadialAtOfParallel {n : ℕ}
+    (p : ArrangementParameter n) (i j : Fin n)
+    (hparallel : detPoint (p i).1.2 (p j).1.2 = 0)
+    (t : ℝ) : ArrangementParameter n :=
+  fun a =>
+    if h : a = j then
+      ⟨((p j).1.1,
+        (p j).1.2 + t • rotate90 (p i).1.2),
+        by
+          by_cases ht : t = 0
+          · simpa [ht] using (p j).2
+          · intro hzero
+            have hdet_zero :
+                detPoint (p i).1.2
+                  ((p j).1.2 + t • rotate90 (p i).1.2) = 0 := by
+              change (p j).1.2 + t • rotate90 (p i).1.2 = 0 at hzero
+              rw [hzero]
+              unfold detPoint
+              simp
+            have hformula :
+                detPoint (p i).1.2
+                  ((p j).1.2 + t • rotate90 (p i).1.2) =
+                  t * detPoint (p i).1.2 (rotate90 (p i).1.2) := by
+              unfold detPoint at hparallel ⊢
+              simp
+              ring_nf at hparallel ⊢
+              nlinarith
+            have hprod :
+                t * detPoint (p i).1.2 (rotate90 (p i).1.2) = 0 := by
+              rwa [hformula] at hdet_zero
+            rcases mul_eq_zero.mp hprod with htzero | hrot
+            · exact ht htzero
+            · exact detPoint_self_rotate90_ne_zero (p i).2 hrot⟩
+    else p a
+
+theorem perturbRadialAtOfParallel_apply_ne {n : ℕ}
+    (p : ArrangementParameter n) (i j a : Fin n) (hparallel)
+    (t : ℝ) (ha : a ≠ j) :
+    perturbRadialAtOfParallel p i j hparallel t a = p a := by
+  unfold perturbRadialAtOfParallel
+  rw [dif_neg ha]
+
+theorem perturbRadialAtOfParallel_apply_j_val {n : ℕ}
+    (p : ArrangementParameter n) (i j : Fin n) (hparallel) (t : ℝ) :
+    (perturbRadialAtOfParallel p i j hparallel t j).1 =
+      ((p j).1.1, (p j).1.2 + t • rotate90 (p i).1.2) := by
+  unfold perturbRadialAtOfParallel
+  rw [dif_pos rfl]
+
+@[simp] theorem perturbRadialAtOfParallel_zero_time {n : ℕ}
+    (p : ArrangementParameter n) (i j : Fin n) (hparallel) :
+    perturbRadialAtOfParallel p i j hparallel 0 = p := by
+  funext a
+  by_cases ha : a = j
+  · subst a
+    apply Subtype.ext
+    simp [perturbRadialAtOfParallel]
+  · simp [perturbRadialAtOfParallel, ha]
+
+theorem continuous_perturbRadialAtOfParallel {n : ℕ}
+    (p : ArrangementParameter n) (i j : Fin n) (hparallel) :
+    Continuous (fun t : ℝ =>
+      perturbRadialAtOfParallel p i j hparallel t) := by
+  apply continuous_pi
+  intro a
+  by_cases ha : a = j
+  · subst a
+    rw [continuous_induced_rng]
+    change Continuous (fun t : ℝ =>
+      (perturbRadialAtOfParallel p i j hparallel t j).1)
+    rw [show (fun t : ℝ =>
+        (perturbRadialAtOfParallel p i j hparallel t j).1) =
+        (fun t : ℝ =>
+          ((p j).1.1, (p j).1.2 + t • rotate90 (p i).1.2)) by
+      funext t
+      exact perturbRadialAtOfParallel_apply_j_val p i j hparallel t]
+    fun_prop
+  · rw [show (fun t : ℝ =>
+        perturbRadialAtOfParallel p i j hparallel t a) =
+        (fun _ : ℝ => p a) by
+      funext t
+      exact perturbRadialAtOfParallel_apply_ne p i j a hparallel t ha]
+    exact continuous_const
+
+theorem detPoint_perturbRadialAtOfParallel {n : ℕ}
+    (p : ArrangementParameter n) {i j : Fin n} (hij : i ≠ j)
+    (hparallel : detPoint (p i).1.2 (p j).1.2 = 0) (t : ℝ) :
+    detPoint
+        ((perturbRadialAtOfParallel p i j hparallel t
+          i).toLollipop).radial
+        ((perturbRadialAtOfParallel p i j hparallel t
+          j).toLollipop).radial =
+      t * detPoint (p i).1.2 (rotate90 (p i).1.2) := by
+  change
+    detPoint
+        ((perturbRadialAtOfParallel p i j hparallel t i).1.2)
+        ((perturbRadialAtOfParallel p i j hparallel t j).1.2) =
+      t * detPoint (p i).1.2 (rotate90 (p i).1.2)
+  unfold perturbRadialAtOfParallel
+  rw [dif_neg hij, dif_pos rfl]
+  change detPoint (p i).1.2
+      ((p j).1.2 + t • rotate90 (p i).1.2) =
+    t * detPoint (p i).1.2 (rotate90 (p i).1.2)
+  unfold detPoint at hparallel ⊢
+  simp
+  ring_nf at hparallel ⊢
+  nlinarith
+
+theorem detPoint_perturbRadialAtOfParallel_ne_zero {n : ℕ}
+    (p : ArrangementParameter n) {i j : Fin n} (hij : i ≠ j)
+    (hparallel : detPoint (p i).1.2 (p j).1.2 = 0)
+    {t : ℝ} (ht : t ≠ 0) :
+    detPoint
+        ((perturbRadialAtOfParallel p i j hparallel t
+          i).toLollipop).radial
+        ((perturbRadialAtOfParallel p i j hparallel t
+          j).toLollipop).radial ≠ 0 := by
+  rw [detPoint_perturbRadialAtOfParallel p hij hparallel]
+  exact mul_ne_zero ht (detPoint_self_rotate90_ne_zero (p i).2)
+
+/-- For every fixed ordered distinct pair of indices, nonparallel radials are
+dense. -/
+theorem dense_compl_parallelBadSet {n : ℕ}
+    (i j : Fin n) (hij : i ≠ j) :
+    Dense ((parallelBadSet i j hij : Set (ArrangementParameter n))ᶜ) := by
+  rw [dense_iff_inter_open]
+  intro U hU hUne
+  rcases hUne with ⟨p, hpU⟩
+  by_cases hdet :
+      detPoint ((p i).toLollipop).radial
+        ((p j).toLollipop).radial ≠ 0
+  · refine ⟨p, hpU, ?_⟩
+    change detPoint ((p i).toLollipop).radial
+      ((p j).toLollipop).radial ≠ 0
+    exact hdet
+  · have hparallel : detPoint (p i).1.2 (p j).1.2 = 0 := by
+      change detPoint ((p i).toLollipop).radial
+        ((p j).toLollipop).radial = 0
+      exact not_not.mp hdet
+    let γ : ℝ → ArrangementParameter n :=
+      fun t => perturbRadialAtOfParallel p i j hparallel t
+    have hγcont : Continuous γ :=
+      continuous_perturbRadialAtOfParallel p i j hparallel
+    have hpreOpen : IsOpen (γ ⁻¹' U) := hU.preimage hγcont
+    have hzero_mem : (0 : ℝ) ∈ γ ⁻¹' U := by
+      change γ 0 ∈ U
+      have hγ0 : γ 0 = p := by
+        simpa [γ] using
+          perturbRadialAtOfParallel_zero_time p i j hparallel
+      simpa [hγ0] using hpU
+    have hnhds : γ ⁻¹' U ∈ 𝓝 (0 : ℝ) :=
+      hpreOpen.mem_nhds hzero_mem
+    rcases Metric.mem_nhds_iff.mp hnhds with ⟨ε, hεpos, hεsub⟩
+    let t : ℝ := ε / 2
+    have htpos : 0 < t := by
+      dsimp [t]
+      linarith
+    have htne : t ≠ 0 := ne_of_gt htpos
+    have htball : t ∈ Metric.ball (0 : ℝ) ε := by
+      rw [Metric.mem_ball, Real.dist_eq]
+      have htlt : t < ε := by
+        dsimp [t]
+        linarith
+      rw [sub_zero, abs_of_pos htpos]
+      exact htlt
+    refine ⟨γ t, hεsub htball, ?_⟩
+    change detPoint ((γ t i).toLollipop).radial
+      ((γ t j).toLollipop).radial ≠ 0
+    exact detPoint_perturbRadialAtOfParallel_ne_zero p hij hparallel htne
+
+/-- The complement of the parallel-stem bad locus is dense for every finite
+arrangement size. -/
+theorem dense_compl_parallelBadUnion {n : ℕ} :
+    Dense ((parallelBadUnion : Set (ArrangementParameter n))ᶜ) := by
+  classical
+  let Good : {ij : Fin n × Fin n // ij.1 ≠ ij.2} →
+      Set (ArrangementParameter n) :=
+    fun ij => (parallelBadSet ij.1.1 ij.1.2 ij.2)ᶜ
+  have hgood : Dense (⋂ ij, Good ij) :=
+    dense_iInter_fintype_of_open_dense Good
+      (by
+        intro ij
+        exact isOpen_compl_parallelBadSet ij.1.1 ij.1.2 ij.2)
+      (by
+        intro ij
+        exact dense_compl_parallelBadSet ij.1.1 ij.1.2 ij.2)
+  have hEq :
+      (⋂ ij, Good ij) =
+        ((parallelBadUnion : Set (ArrangementParameter n))ᶜ) := by
+    ext p
+    constructor
+    · intro hp
+      change p ∉ (parallelBadUnion : Set (ArrangementParameter n))
+      intro hbad
+      rw [parallelBadUnion] at hbad
+      rcases Set.mem_iUnion.mp hbad with ⟨i, hbad⟩
+      rcases Set.mem_iUnion.mp hbad with ⟨j, hbad⟩
+      rcases Set.mem_iUnion.mp hbad with ⟨hij, hbad⟩
+      have hpij : p ∈ Good ⟨(i, j), hij⟩ :=
+        Set.mem_iInter.mp hp ⟨(i, j), hij⟩
+      exact hpij hbad
+    · intro hp
+      rw [Set.mem_iInter]
+      intro ij
+      change p ∉ parallelBadSet ij.1.1 ij.1.2 ij.2
+      intro hbad
+      exact hp (Set.mem_iUnion.mpr ⟨ij.1.1,
+        Set.mem_iUnion.mpr ⟨ij.1.2,
+          Set.mem_iUnion.mpr ⟨ij.2, hbad⟩⟩⟩)
+  rwa [← hEq]
+
+/-- Chamber genericity now only needs the triple-contact open/dense facts; the
+parallel-stem density is proved above. -/
+theorem chamberGenericityAvoidance_of_triple_open_dense {n : ℕ}
+    (htripleOpen : IsOpen ((tripleBadUnion : Set (ArrangementParameter n))ᶜ))
+    (htripleDense : Dense ((tripleBadUnion : Set (ArrangementParameter n))ᶜ)) :
+    ChamberGenericityAvoidance n :=
+  ChamberGenericityAvoidancePieces.toChamberGenericityAvoidance
+    { triple_open := htripleOpen
+      triple_dense := htripleDense
+      parallel_dense := dense_compl_parallelBadUnion }
+
 theorem not_mem_allBad_of_subsingleton {n : ℕ} [Subsingleton (Fin n)]
     (p : ArrangementParameter n) :
     p ∉ (allBad : Set (ArrangementParameter n)) := by
