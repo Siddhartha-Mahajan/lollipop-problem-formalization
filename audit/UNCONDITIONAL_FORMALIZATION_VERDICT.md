@@ -51,6 +51,13 @@ recommends:
 * The reduced chamber-genericity input is now assembled by
   `Lower.GenericityPort.ChamberGenericityAvoidancePieces.toChamberGenericityAvoidance`
   from the triple-contact and parallel-stem pieces.
+* On June 24, 2026, the parallel-stem density piece was proved for all
+  arrangement sizes by `Lower.GenericityPort.dense_compl_parallelBadUnion`.
+  The reduced chamber-genericity handoff can therefore be obtained from just
+  the triple-contact open/dense facts via
+  `Lower.GenericityPort.chamberGenericityAvoidance_of_triple_open_dense`.
+  The two-lollipop reduced chamber case is also proved outright as
+  `Lower.GenericityPort.chamberGenericityAvoidance_two`.
 * On June 23, 2026, the quotient-level component-fibre bookkeeping for the
   planar insertion proof was added as
   `Lollipop.Concrete.EndToEnd.ComponentFibers`: one-component split data now

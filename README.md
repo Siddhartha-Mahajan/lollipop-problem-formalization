@@ -84,14 +84,17 @@ the remaining concrete theorem targets.  The current port boundary is:
 - `ChamberGenericityAvoidance`: density of the complement of the reduced
   strict-chamber bad locus.  Once a strict pair chamber is fixed, Lean now
   proves pair finiteness, primitive transversality, and anchor avoidance from
-  the chamber itself via `Lower.GenericityPort.good_is_generic_in_pair_chamber`;
-  the lower construction therefore only asks genericity to avoid triple
-  contacts and parallel stems.  The narrow remaining handoff is
-  `Lower.GenericityPort.ChamberGenericityAvoidancePieces.toChamberGenericityAvoidance`.
+  the chamber itself via `Lower.GenericityPort.good_is_generic_in_pair_chamber`.
+  Parallel-stem density is now proved for all `n` by
+  `Lower.GenericityPort.dense_compl_parallelBadUnion`, so the reduced
+  lower-genericity handoff is down to the triple-contact open/dense facts,
+  packaged by
+  `Lower.GenericityPort.chamberGenericityAvoidance_of_triple_open_dense`.
+  The cases `n = 0, 1, 2` are proved outright.
   The older stronger `GenericityAvoidance` route remains available, with
   `GenericityAvoidancePieces.toGenericityAvoidance` decomposing the full bad
-  locus; the parallel-stem open-complement theorem and the `n = 0, 1`
-  avoidance proofs are still recorded there.
+  locus; the parallel-stem open/dense theorems and the `n = 0, 1`
+  full-avoidance proofs are still recorded there.
 - `PlanarTopologyPorts`: arbitrary-arrangement region inequality and generic
   Euler equation.  The `n = 0` instances of component finiteness, the upper
   inequality, and the generic Euler equation are proved in
@@ -230,6 +233,5 @@ compiling mathlib dependencies.  After the local `.lake/` cache existed, a
 no-op `lake build Lollipop` took 3.83 seconds.
 
 The concrete endpoint build `lake build Lollipop.Concrete.EndToEnd` completed
-successfully on June 23, 2026 with 3334 jobs after proving the concrete
-five-circle forcing theorem and the remaining pair-geometry savings, removing
-pair geometry from `UpperPorts`.
+successfully on June 24, 2026 with 3340 jobs after proving the all-`n`
+parallel-stem density theorem for the reduced chamber-genericity port.
