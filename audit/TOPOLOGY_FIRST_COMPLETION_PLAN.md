@@ -190,9 +190,9 @@ They are not part of the checked endpoint until they build cleanly and are
 imported by the main Lake target.
 
 Update: the local `JordanCurveTheorem/` source now builds as a Lake target, and
-`Lollipop.Concrete.Actual.JordanAdapter` builds as a narrow component-count
-adapter.  The larger `Lollipop/Concrete/Actual/` topology draft tree is still
-stale and must not be imported wholesale.  See
+`Lollipop.Concrete.EndToEnd.JordanBridge` builds as the narrow endpoint
+component-count/simple-arc bridge.  The larger `Lollipop/Concrete/Actual/`
+topology draft tree is still stale and must not be imported wholesale.  See
 `audit/TOPOLOGY_JORDAN_STATUS.md`.
 
 ## Topology-First Work Order

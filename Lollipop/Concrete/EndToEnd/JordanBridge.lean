@@ -1,45 +1,48 @@
-import Lollipop.Concrete.Basic
+import Lollipop.Concrete.EndToEnd.ComponentLifting
 import JordanCurveTheorem.JordanCurveTheoremStatement
 import Mathlib.Topology.Connected.Clopen
 import Mathlib.Tactic
 
 /-!
-# A component-count form of the Jordan curve theorem
+# Jordan-curve bridge for the concrete endpoint
 
-The bundled Jordan-curve development states separation by two disjoint open
-connected sets.  The concrete lollipop development counts regions with
-`ConnectedComponents`.  This file proves the exact bridge between those two
-interfaces: the complement subtype of a simple closed curve has exactly two
-connected components.
+This file imports the checked local Jordan-curve development and exposes only
+the small facts needed by the lollipop topology route:
 
-There are no geometric certificates in this bridge.  The two sides are
-constructed from `JordanCurveTheorem.jordan_curve_theorem`, proved clopen in
-the complement, and passed to Mathlib's
-`ConnectedComponents.equivOfIsClopenOfIsConnected`.
+* a simple closed curve has two complement components;
+* a closed-set complement component is equivalently witnessed by an avoiding
+  simple arc;
+* avoiding simple arcs give equality in Mathlib's `ConnectedComponents`
+  quotient.
+
+The larger stale `Lollipop.Concrete.Actual` topology draft is intentionally
+not imported here.
 -/
 
 noncomputable section
 
 namespace Lollipop
 namespace Concrete
-namespace Actual
-namespace JordanAdapter
+namespace EndToEnd
+namespace JordanBridge
 
 open Set Function Topology
 open JordanCurveTheorem
 
 /-- The complement of a planar carrier, as a subtype. -/
-abbrev Complement (C : Set Point) := {x : Point // x ∉ C}
+abbrev Complement (C : Set Point) := (Cᶜ : Set Point)
 
 /-- The two Jordan sides, regarded as subsets of the complement subtype. -/
 def side (C A B : Set Point) : Bool → Set (Complement C)
   | false => Subtype.val ⁻¹' A
   | true  => Subtype.val ⁻¹' B
 
-@[simp] theorem mem_side_false {C A B : Set Point} (x : Complement C) :
+@[simp] theorem mem_side_false {C A B : Set Point}
+    (x : Complement C) :
     x ∈ side C A B false ↔ x.1 ∈ A := Iff.rfl
 
-@[simp] theorem mem_side_true {C A B : Set Point} (x : Complement C) :
+@[simp] theorem mem_side_true {C A B : Set Point}
+    (x : Complement C) :
     x ∈ side C A B true ↔ x.1 ∈ B := Iff.rfl
 
 /-- A point outside the Jordan curve lies in one of the two sides. -/
@@ -192,8 +195,7 @@ theorem iUnion_side
   · exact ⟨false, hxA⟩
   · exact ⟨true, hxB⟩
 
-/-- The connected components of a Jordan complement are canonically indexed
-by `Bool`. -/
+/-- The connected components of a Jordan complement are indexed by `Bool`. -/
 noncomputable def componentsEquivBool
     {C A B : Set Point}
     (hAopen : IsOpen A) (hBopen : IsOpen B)
@@ -223,31 +225,82 @@ theorem componentCount_complement_eq_two_of_sides
           hAB hAC hBC hcover)
     _ = 2 := by norm_num
 
-/-- A simple closed curve has exactly two complementary connected
-components, expressed in the concrete project's `ConnectedComponents` model. -/
+/-- A simple closed curve has exactly two complementary connected components,
+expressed in the concrete endpoint's component-count model. -/
 theorem jordan_complement_componentCount_eq_two
     {C : Set Point} (hC : IsSimpleClosedCurve C) :
-    Nat.card (ConnectedComponents (Complement C)) = 2 := by
+    componentCount (Cᶜ) = 2 := by
   rcases JordanCurveTheorem.jordan_curve_theorem hC with
     ⟨A, B, hAopen, hBopen, hAconn, hBconn,
       hAB, hAC, hBC, hcover⟩
-  exact componentCount_complement_eq_two_of_sides
-    hAopen hBopen hAconn hBconn hAB hAC hBC hcover
+  simpa [componentCount, Complement] using
+    componentCount_complement_eq_two_of_sides
+      hAopen hBopen hAconn hBconn hAB hAC hBC hcover
 
 /-- The Jordan complement component type is finite. -/
 theorem finite_components_jordan_complement
     {C : Set Point} (hC : IsSimpleClosedCurve C) :
-    Finite (ConnectedComponents (Complement C)) := by
+    Finite (ConnectedComponents (Cᶜ : Set Point)) := by
   rcases JordanCurveTheorem.jordan_curve_theorem hC with
     ⟨A, B, hAopen, hBopen, hAconn, hBconn,
       hAB, hAC, hBC, hcover⟩
-  exact Finite.of_injective
-    (componentsEquivBool hAopen hBopen hAconn hBconn
-      hAB hAC hBC hcover)
-    (componentsEquivBool hAopen hBopen hAconn hBconn
-      hAB hAC hBC hcover).injective
+  simpa [Complement] using
+    Finite.of_injective
+      (componentsEquivBool hAopen hBopen hAconn hBconn
+        hAB hAC hBC hcover)
+      (componentsEquivBool hAopen hBopen hAconn hBconn
+        hAB hAC hBC hcover).injective
 
-end JordanAdapter
-end Actual
+/-- Closed-set complement membership in a connected component is equivalent
+to an avoiding simple arc. -/
+theorem mem_connectedComponentIn_iff_exists_simpleArcEnd_disjoint
+    {G : Set Point} {x y : Point}
+    (hG : IsClosed G) (hxy : x ≠ y) :
+    y ∈ connectedComponentIn Gᶜ x ↔
+      ∃ C : Set Point, IsSimpleArcEnd C x y ∧ Disjoint C G := by
+  simpa using
+    JordanCurveTheorem.component_simple_arc_ver2
+      (G := G) (x := x) (y := y) hG hxy
+
+/-- A simple arc disjoint from a carrier proves equality in the connected-
+component quotient of the carrier complement. -/
+theorem connectedComponents_mk_eq_of_simpleArcEnd_disjoint
+    {K P : Set Point} {x y : Point}
+    (hP : IsSimpleArcEnd P x y) (hPK : Disjoint P K) :
+    ConnectedComponents.mk
+        (⟨x, fun hxK => Set.disjoint_left.mp hPK
+          (isSimpleArcEnd_mem_left hP) hxK⟩ : (Kᶜ : Set Point)) =
+      ConnectedComponents.mk
+        (⟨y, fun hyK => Set.disjoint_left.mp hPK
+          (isSimpleArcEnd_mem_right hP) hyK⟩ : (Kᶜ : Set Point)) := by
+  have hPsub : P ⊆ Kᶜ := by
+    intro z hzP hzK
+    exact Set.disjoint_left.mp hPK hzP hzK
+  exact ComponentLifting.connectedComponents_mk_eq_of_isConnected_subset
+    (isSimpleArc_isConnected (isSimpleArcEnd_isSimpleArc hP)) hPsub
+    (isSimpleArcEnd_mem_left hP) (isSimpleArcEnd_mem_right hP)
+
+/-- Extensional form of the previous theorem for already-typed complement
+points. -/
+theorem connectedComponents_mk_eq_of_simpleArcLifting
+    {K P : Set Point} (x y : (Kᶜ : Set Point))
+    (hP : IsSimpleArcEnd P x.1 y.1) (hPK : Disjoint P K) :
+    ConnectedComponents.mk x = ConnectedComponents.mk y := by
+  have h := connectedComponents_mk_eq_of_simpleArcEnd_disjoint hP hPK
+  simpa only [Subtype.coe_eta] using h
+
+/-- In the complement of a closed planar carrier, quotient equality of two
+distinct points is witnessed by an actual simple arc avoiding the carrier. -/
+theorem exists_simpleArcEnd_disjoint_of_connectedComponents_mk_eq
+    {C : Set Point} (hC : IsClosed C) (x y : (Cᶜ : Set Point))
+    (hxy : ConnectedComponents.mk x = ConnectedComponents.mk y)
+    (hne : x.1 ≠ y.1) :
+    ∃ P : Set Point, IsSimpleArcEnd P x.1 y.1 ∧ Disjoint P C := by
+  exact (mem_connectedComponentIn_iff_exists_simpleArcEnd_disjoint hC hne).mp
+    (ComponentLifting.mem_connectedComponentIn_of_connectedComponents_mk_eq
+      x y hxy)
+
+end JordanBridge
+end EndToEnd
 end Concrete
 end Lollipop

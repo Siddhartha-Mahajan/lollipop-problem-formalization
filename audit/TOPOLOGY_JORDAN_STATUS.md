@@ -20,11 +20,11 @@ The standalone Jordan statement builds:
 lake build JordanCurveTheorem.JordanCurveTheoremStatement
 ```
 
-The lollipop-facing adapter from Jordan side data to connected-component
-cardinality also builds:
+The lollipop-facing bridge from Jordan side data to connected-component
+cardinality also builds in the current endpoint namespace:
 
 ```sh
-lake build Lollipop.Concrete.Actual.JordanAdapter
+lake build Lollipop.Concrete.EndToEnd.JordanBridge
 ```
 
 The existing concrete endpoint still builds and does not yet import this
@@ -58,9 +58,10 @@ The Jordan dependency makes the topology route more realistic.  In particular:
   criterion: for a closed planar set, two complement points are in the same
   connected component exactly when they can be joined by a simple arc avoiding
   the set.
-- `Lollipop.Concrete.Actual.JordanAdapter` proves that the complement of a
-  simple closed curve has exactly two connected components in the project's
-  `ConnectedComponents` model.
+- `Lollipop.Concrete.EndToEnd.JordanBridge` proves that the complement of a
+  simple closed curve has exactly two connected components in the endpoint's
+  `componentCount` model, and exposes avoiding-simple-arc lemmas for
+  `ConnectedComponents` quotients.
 
 This directly supports the planned local arc-splitting theorem: form a simple
 closed curve from an inserted edge plus an old avoiding arc, classify the two
@@ -83,15 +84,12 @@ such as `Coordinates.lean` and `JordanConsequences.lean`; those modules assume
 old names and an older geometry bridge.  They should not be imported into the
 trusted endpoint as-is.
 
-The useful path is to port only the small, checked pieces into a clean
+The useful path is now to build on the small, checked
 `EndToEnd` topology bridge:
 
-1. import the checked Jordan theorem source;
-2. recreate the small component-cardinality adapter in the `EndToEnd`
-   namespace;
-3. prove the local arc-split theorem for one inserted edge;
-4. use that theorem to construct localized insertion filtrations;
-5. compile those filtrations through `LocalizedTopology` into
+1. prove the local arc-split theorem for one inserted edge;
+2. use that theorem to construct localized insertion filtrations;
+3. compile those filtrations through `LocalizedTopology` into
    `InsertionFan.FanTopologyPorts`.
 
 ## Current Decision
@@ -101,7 +99,6 @@ topology tool, not as an untrusted script.  It is now kernel-checked after
 small API repairs.
 
 However, the final endpoint should not import the stale `Actual` topology
-tree.  The next implementation step should be a fresh, minimal
-`Lollipop/Concrete/EndToEnd/Topology/JordanBridge.lean` or equivalent module
-that depends only on the checked Jordan theorem and the current `EndToEnd`
-component-split API.
+tree.  The next implementation step should use
+`Lollipop/Concrete/EndToEnd/JordanBridge.lean` to prove the local
+arc-splitting theorem against the current `EndToEnd` component-split API.
