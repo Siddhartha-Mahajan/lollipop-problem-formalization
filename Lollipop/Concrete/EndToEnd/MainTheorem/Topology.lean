@@ -78,14 +78,47 @@ theorem firstLollipopEdgeLocalized (L : Lollipop) :
 
 /-- The remaining bounded classifier for the complement of one full lollipop
 carrier. -/
+theorem firstLollipopCircle_subset_extension (L : Lollipop) :
+    L.circle ⊆
+      LocalInsertion.carrierExtension (∅ : Set Point) L.carrier := by
+  intro x hx
+  exact Or.inr (Lollipop.circle_subset_carrier L hx)
+
+/-- The first-lollipop arc-lifting theorem.
+
+This is the concrete topology statement that the outward stem does not split
+either Jordan side of the circle: if two points in the complement of the full
+lollipop carrier map to the same circle-complement component, then they can be
+joined by a simple arc avoiding the full carrier. -/
+theorem firstLollipopActiveSideArcLifting (L : Lollipop) :
+    JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension
+        (∅ : Set Point) L.carrier)
+      (firstLollipopCircle_subset_extension L)
+      (CircleJordan.isSimpleClosedCurve_circle L)
+      (firstLollipopActive L) := by
+  sorry
+
+/-- The first-lollipop side-realization theorem.
+
+This is the concrete topology statement that both Jordan sides of the circle
+are represented by points avoiding the full lollipop carrier. -/
+theorem firstLollipopActiveSideSurjective (L : Lollipop) :
+    JordanClassifier.ActiveSideSurjective
+      (LocalInsertion.old_subset_carrierExtension
+        (∅ : Set Point) L.carrier)
+      (firstLollipopCircle_subset_extension L)
+      (CircleJordan.isSimpleClosedCurve_circle L)
+      (firstLollipopActive L) := by
+  sorry
+
+/-- The bounded classifier for the complement of one full lollipop carrier. -/
 noncomputable def firstLollipopActiveClassifier (L : Lollipop) :
     LocalFiltration.ActiveClassifier (∅ : Set Point) L.carrier
       (firstLollipopActive L) :=
   fun a =>
     JordanClassifier.sideOfComponent
-      (by
-        intro x hx
-        exact Or.inr (Lollipop.circle_subset_carrier L hx))
+      (firstLollipopCircle_subset_extension L)
       (CircleJordan.isSimpleClosedCurve_circle L)
       a.1
 
@@ -93,13 +126,18 @@ noncomputable def firstLollipopActiveClassifier (L : Lollipop) :
 creates at most two complementary components. -/
 theorem firstLollipopActiveClassifier_injective (L : Lollipop) :
     Function.Injective (firstLollipopActiveClassifier L) := by
-  sorry
+  exact JordanClassifier.activeSide_injective_of_arcLifting
+    (LocalInsertion.old_subset_carrierExtension (∅ : Set Point) L.carrier)
+    (firstLollipopCircle_subset_extension L)
+    (CircleJordan.isSimpleClosedCurve_circle L)
+    (firstLollipopActive L)
+    (firstLollipopActiveSideArcLifting L)
 
 /-- The bounded classifier is surjective: a single full lollipop carrier
 really has both complementary sides. -/
 theorem firstLollipopActiveClassifier_surjective (L : Lollipop) :
     Function.Surjective (firstLollipopActiveClassifier L) := by
-  sorry
+  exact firstLollipopActiveSideSurjective L
 
 /-- The bounded one-edge topology statement for a single lollipop over the
 empty old carrier.

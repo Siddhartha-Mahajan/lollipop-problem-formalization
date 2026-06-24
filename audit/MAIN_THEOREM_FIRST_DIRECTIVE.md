@@ -23,8 +23,8 @@ The theorem spine is:
 
 The current intended `sorry` targets are:
 
-1. `MainTheorem.Topology.firstLollipopActiveClassifier_injective`
-2. `MainTheorem.Topology.firstLollipopActiveClassifier_surjective`
+1. `MainTheorem.Topology.firstLollipopActiveSideArcLifting`
+2. `MainTheorem.Topology.firstLollipopActiveSideSurjective`
 3. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
 4. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
 5. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
