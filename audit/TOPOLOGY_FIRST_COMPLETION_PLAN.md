@@ -189,6 +189,12 @@ Untracked Jordan/topology drafts in the working tree are references only.
 They are not part of the checked endpoint until they build cleanly and are
 imported by the main Lake target.
 
+Update: the local `JordanCurveTheorem/` source now builds as a Lake target, and
+`Lollipop.Concrete.Actual.JordanAdapter` builds as a narrow component-count
+adapter.  The larger `Lollipop/Concrete/Actual/` topology draft tree is still
+stale and must not be imported wholesale.  See
+`audit/TOPOLOGY_JORDAN_STATUS.md`.
+
 ## Topology-First Work Order
 
 This is the concrete order from here.  Do not return to Turan, matrix, or

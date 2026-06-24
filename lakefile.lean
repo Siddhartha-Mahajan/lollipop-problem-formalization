@@ -8,3 +8,5 @@ require mathlib from git
   "https://github.com/leanprover-community/mathlib4.git"
 
 lean_lib Lollipop where
+
+lean_lib JordanCurveTheorem where
