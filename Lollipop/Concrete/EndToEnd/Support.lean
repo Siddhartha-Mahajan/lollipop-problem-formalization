@@ -164,6 +164,32 @@ theorem finite_connectedComponents_of_finite_set
   exact Finite.of_surjective ConnectedComponents.mk
     ConnectedComponents.surjective_coe
 
+/-- A singleton has exactly one connected component. -/
+theorem componentCount_singleton
+    {X : Type*} [TopologicalSpace X] (p : X) :
+    componentCount ({p} : Set X) = 1 := by
+  haveI : Finite (ConnectedComponents ({p} : Set X)) :=
+    finite_connectedComponents_of_finite_set (finite_singleton p)
+  haveI : Subsingleton (ConnectedComponents ({p} : Set X)) := by
+    refine ⟨?_⟩
+    intro q r
+    obtain ⟨x, rfl⟩ := ConnectedComponents.surjective_coe q
+    obtain ⟨y, rfl⟩ := ConnectedComponents.surjective_coe r
+    have hxy : x = y := by
+      apply Subtype.ext
+      have hx : x.1 = p := Set.mem_singleton_iff.mp x.property
+      have hy : y.1 = p := Set.mem_singleton_iff.mp y.property
+      exact hx.trans hy.symm
+    exact congrArg ConnectedComponents.mk hxy
+  unfold componentCount
+  have hcard : Nat.card (ConnectedComponents ({p} : Set X)) ≤ 1 :=
+    (Finite.card_le_one_iff_subsingleton).2 inferInstance
+  haveI : Nonempty (ConnectedComponents ({p} : Set X)) :=
+    ConnectedComponents.nonempty_iff_nonempty.mpr ⟨⟨p, by simp⟩⟩
+  have hpos : 0 < Nat.card (ConnectedComponents ({p} : Set X)) :=
+    Nat.card_pos
+  omega
+
 theorem finite_of_forall_mem_eq_left_or_right
     {α : Type*} {s : Set α}
     (h :

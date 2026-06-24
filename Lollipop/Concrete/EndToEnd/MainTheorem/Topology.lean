@@ -18,6 +18,35 @@ namespace EndToEnd
 namespace MainTheorem
 namespace Topology
 
+/-- At the first insertion there are no previous indices. -/
+theorem previousIndices_zero_eq_empty {n : ℕ} (hk : 0 < n) :
+    InsertionFan.previousIndices (⟨0, hk⟩ : Fin n) = ∅ := by
+  ext i
+  constructor
+  · intro hi
+    have hlt : i < (⟨0, hk⟩ : Fin n) := by
+      simpa [InsertionFan.previousIndices] using hi
+    change i.1 < 0 at hlt
+    omega
+  · intro hi
+    simp at hi
+
+/-- The first insertion fan is just the distinguished point at infinity. -/
+theorem insertionFan_zero_eq_singleton_infinity
+    {n : ℕ} (A : Arrangement n) (hk : 0 < n) :
+    InsertionFan.insertionFan A 0 hk = ({infinity} : Set Sphere2) := by
+  unfold InsertionFan.insertionFan
+  rw [previousIndices_zero_eq_empty hk]
+  ext z
+  simp [InsertionFan.pairIntersectionFan, pointedFinsetUnion]
+
+/-- The first insertion fan has component count one. -/
+theorem componentCount_insertionFan_zero
+    {n : ℕ} (A : Arrangement n) (hk : 0 < n) :
+    componentCount (InsertionFan.insertionFan A 0 hk) = 1 := by
+  rw [insertionFan_zero_eq_singleton_infinity A hk]
+  exact componentCount_singleton infinity
+
 /-- Arbitrary localized filtration for one ordered insertion.
 
 This is the exact topology object required for one insertion step: subdivide
