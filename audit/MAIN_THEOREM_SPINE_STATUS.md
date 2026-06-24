@@ -3,7 +3,13 @@
 Date: 2026-06-24
 
 This is the current audit after switching to the main-theorem-first workflow.
-The final endpoint is now visible in:
+The theorem spine now has a single import target:
+
+```text
+Lollipop/Concrete/EndToEnd/MainTheorem.lean
+```
+
+The final endpoint is visible in:
 
 ```text
 Lollipop/Concrete/EndToEnd/MainTheorem/Assembly.lean
@@ -28,6 +34,12 @@ The theorem spine builds with:
 
 ```sh
 lake build Lollipop.Concrete.EndToEnd.MainTheorem.Assembly
+```
+
+or, equivalently, with the aggregate import:
+
+```sh
+lake build Lollipop.Concrete.EndToEnd.MainTheorem
 ```
 
 Lean reports the current intended `sorry`s below.

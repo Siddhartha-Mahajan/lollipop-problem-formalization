@@ -13,7 +13,13 @@ Verbatim instruction to preserve the project direction:
 From this point, new supporting lemmas should be added only when they remove
 or directly prepare removal of a named `sorry` in the main theorem spine.
 
-The theorem spine is:
+The single import target for the theorem spine is:
+
+```text
+Lollipop/Concrete/EndToEnd/MainTheorem.lean
+```
+
+The internal theorem-spine files are:
 
 1. `Lollipop/Concrete/EndToEnd/MainTheorem/Topology.lean`
 2. `Lollipop/Concrete/EndToEnd/MainTheorem/Genericity.lean`
