@@ -112,6 +112,88 @@ theorem firstLollipopCircleComponentMap_surjective (L : Lollipop) :
         · exact False.elim hxEmpty
         · exact Or.inr hxCarrier)
 
+/-- The inside of the metric circle, regarded as a subset of the circle
+complement. -/
+def circleComplementInside (L : Lollipop) :
+    Set (L.circleᶜ : Set Point) :=
+  {z | z.1 ∈ Metric.ball L.center L.radius}
+
+/-- Inside/outside is clopen in the complement of the circle. -/
+theorem circleComplementInside_isClopen (L : Lollipop) :
+    IsClopen (circleComplementInside L) := by
+  constructor
+  · rw [← isOpen_compl_iff]
+    have hcompl :
+        (circleComplementInside L)ᶜ =
+          {z : (L.circleᶜ : Set Point) | L.radius < dist z.1 L.center} := by
+      ext z
+      constructor
+      · intro hz
+        simp only [circleComplementInside, Set.mem_compl_iff,
+          Set.mem_setOf_eq, Metric.mem_ball] at hz ⊢
+        have hne : dist z.1 L.center ≠ L.radius := by
+          intro hdist
+          exact z.2 (by
+            simpa [Lollipop.circle, dist_eq_norm] using hdist)
+        exact lt_of_le_of_ne (le_of_not_gt hz) (Ne.symm hne)
+      · intro hz
+        simp only [circleComplementInside, Set.mem_compl_iff,
+          Set.mem_setOf_eq, Metric.mem_ball]
+        exact not_lt_of_ge (le_of_lt hz)
+    rw [hcompl]
+    exact isOpen_lt continuous_const
+      (continuous_subtype_val.dist continuous_const)
+  · exact Metric.isOpen_ball.preimage continuous_subtype_val
+
+/-- Equal circle-complement components have the same inside/outside status. -/
+theorem circleComponent_mem_ball_iff (L : Lollipop)
+    {x y : (L.circleᶜ : Set Point)}
+    (hxy : ConnectedComponents.mk x = ConnectedComponents.mk y) :
+    x.1 ∈ Metric.ball L.center L.radius ↔
+      y.1 ∈ Metric.ball L.center L.radius := by
+  constructor
+  · intro hx
+    have hyComponent : y ∈ connectedComponent x := by
+      have hcomp : connectedComponent x = connectedComponent y :=
+        ConnectedComponents.coe_eq_coe.mp hxy
+      rw [hcomp]
+      exact mem_connectedComponent
+    exact (circleComplementInside_isClopen L).connectedComponent_subset
+      hx hyComponent
+  · intro hy
+    have hxComponent : x ∈ connectedComponent y := by
+      have hcomp : connectedComponent y = connectedComponent x :=
+        ConnectedComponents.coe_eq_coe.mp hxy.symm
+      rw [hcomp]
+      exact mem_connectedComponent
+    exact (circleComplementInside_isClopen L).connectedComponent_subset
+      hy hxComponent
+
+/-- The open disk bounded by a lollipop circle is disjoint from the full
+lollipop carrier. -/
+theorem metricBall_disjoint_carrier (L : Lollipop) :
+    Disjoint (Metric.ball L.center L.radius) L.carrier := by
+  rw [Set.disjoint_left]
+  intro z hzBall hzCarrier
+  have hzDistLt : dist z L.center < L.radius := by
+    simpa [Metric.mem_ball] using hzBall
+  rcases hzCarrier with hzCircle | hzStem
+  · have hzDistEq : dist z L.center = L.radius := by
+      simpa [Lollipop.circle, dist_eq_norm] using hzCircle
+    linarith
+  · rcases hzStem with ⟨t, ht, rfl⟩
+    have htNonneg : 0 ≤ t := le_trans zero_le_one ht
+    have hdist :
+        dist (L.center + t • L.radial) L.center = t * L.radius := by
+      rw [dist_eq_norm]
+      have hvec :
+          L.center + t • L.radial - L.center = t • L.radial := by
+        module
+      rw [hvec, norm_smul, Real.norm_eq_abs, abs_of_nonneg htNonneg,
+        Lollipop.radius]
+    rw [hdist] at hzDistLt
+    nlinarith [L.radius_pos, ht]
+
 /-- The first-lollipop arc-lifting theorem.
 
 This is the concrete topology statement that the outward stem does not split
@@ -144,9 +226,34 @@ theorem firstLollipopActiveSideArcLifting (L : Lollipop) :
     simpa [LocalInsertion.carrierExtension] using L.isClosed_carrier
   have hcarrierComponent :
       ConnectedComponents.mk x = ConnectedComponents.mk y := by
-    -- Hard stem-slit step: the outward stem does not split either component
-    -- of the circle complement.
-    sorry
+    have hcircleMk :
+        ConnectedComponents.mk
+            (ComponentFibers.inclusion
+              (ComponentSurjectivity.complementSubset
+                (firstLollipopCircle_subset_extension L)) x) =
+          ConnectedComponents.mk
+            (ComponentFibers.inclusion
+              (ComponentSurjectivity.complementSubset
+                (firstLollipopCircle_subset_extension L)) y) := by
+      simpa using hcircleComponent
+    by_cases hxInside : x.1 ∈ Metric.ball L.center L.radius
+    · have hyInside : y.1 ∈ Metric.ball L.center L.radius :=
+        (circleComponent_mem_ball_iff L hcircleMk).1 hxInside
+      let P : Set Point := segment ℝ x.1 y.1
+      have hP : IsSimpleArcEnd P x.1 y.1 := by
+        exact segment_isSimpleArcEnd hxy
+      have hPball : P ⊆ Metric.ball L.center L.radius := by
+        exact (convex_ball L.center L.radius).segment_subset
+          hxInside hyInside
+      have hPdisj : Disjoint P
+          (LocalInsertion.carrierExtension (∅ : Set Point) L.carrier) := by
+        simpa [LocalInsertion.carrierExtension] using
+          (metricBall_disjoint_carrier L).mono_left hPball
+      exact JordanBridge.connectedComponents_mk_eq_of_simpleArcLifting
+        x y hP hPdisj
+    · -- Remaining exterior stem-slit step: the exterior of the circle minus
+      -- the outward stem is connected.
+      sorry
   exact JordanBridge.exists_simpleArcEnd_disjoint_of_connectedComponents_mk_eq
     hKclosed x y hcarrierComponent hxy
 

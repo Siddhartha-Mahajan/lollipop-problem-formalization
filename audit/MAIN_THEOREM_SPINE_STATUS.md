@@ -97,10 +97,12 @@ It follows from the existing component-map surjectivity theorem applied to
 the inclusion of the full lollipop complement into the circle complement.
 
 The first-lollipop side arc-lifting theorem now performs the Lean-obvious
-reduction from equal Jordan side to equal circle-complement component.  Its
-remaining internal hole is exactly the stem-slit theorem: two points in the
-full lollipop complement that lie in the same circle-complement component
-must already lie in the same full-carrier complement component.
+reduction from equal Jordan side to equal circle-complement component.  It
+also proves the interior case: if both points lie inside the metric circle,
+the straight segment between them stays inside the open disk and is disjoint
+from the full lollipop carrier.  Its remaining internal hole is exactly the
+exterior stem-slit theorem: the exterior of the circle remains connected
+after deleting the outward stem.
 
 ## Removal Order
 
