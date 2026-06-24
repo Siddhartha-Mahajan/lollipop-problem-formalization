@@ -58,6 +58,12 @@ builds:
 lake build Lollipop.Concrete.EndToEnd.PrimitiveArcs
 ```
 
+The empty-carrier circle insertion lifting lemma also builds:
+
+```sh
+lake build Lollipop.Concrete.EndToEnd.CircleInsertion
+```
+
 The local crosscut packaging layer also builds:
 
 ```sh
@@ -116,6 +122,10 @@ The Jordan dependency makes the topology route more realistic.  In particular:
   subsegments and proper one-turn circular subarcs are simple arcs, lie in
   the concrete carrier under the expected parameter hypotheses, and have
   connected complements.
+- `Lollipop.Concrete.EndToEnd.CircleInsertion` proves the base
+  active-side lifting lemma for inserting a Jordan curve over the empty
+  carrier: equal Jordan side yields an avoiding simple arc in the enlarged
+  complement.
 - `Lollipop.Concrete.EndToEnd.LocalCrosscut` packages the same data into
   `LocalizedEdgeStep`, `LocalizedExactEdgeStep`, and one-step localized
   filtrations.  It also exposes convenience constructors for the common case

@@ -5,6 +5,7 @@ import Lollipop.Concrete.EndToEnd.JordanBridge
 import Lollipop.Concrete.EndToEnd.CircleJordan
 import Lollipop.Concrete.EndToEnd.SimpleArcComplement
 import Lollipop.Concrete.EndToEnd.PrimitiveArcs
+import Lollipop.Concrete.EndToEnd.CircleInsertion
 import Lollipop.Concrete.EndToEnd.ComponentSurjectivity
 import Lollipop.Concrete.EndToEnd.OccupiedTopology
 import Lollipop.Concrete.EndToEnd.LocalInsertion
@@ -16,6 +17,7 @@ import Lollipop.Concrete.EndToEnd.InsertionFiltration
 import Lollipop.Concrete.EndToEnd.LocalizedTopology
 import Lollipop.Concrete.EndToEnd.TranslationGenericity
 import Lollipop.Concrete.EndToEnd.Final
+import Lollipop.Concrete.EndToEnd.MainTheorem.Assembly
 
 /-!
 Import this module for the concrete, certificate-free endpoint.
