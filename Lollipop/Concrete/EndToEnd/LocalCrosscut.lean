@@ -1,3 +1,4 @@
+import Lollipop.Concrete.EndToEnd.ArcClosedCurve
 import Lollipop.Concrete.EndToEnd.JordanClassifier
 import Lollipop.Concrete.EndToEnd.LocalFiltration
 
@@ -68,6 +69,57 @@ def localizedExactEdgeStepOfJordanCrosscut
     JordanClassifier.activeSide_injective_of_arcLifting
       (LocalInsertion.old_subset_carrierExtension C E) hJK hJ active hlift
   active_surjective := hside
+
+/-- Bounded localized edge-step data when the Jordan curve is supplied as the
+union of two simple arcs in the one-edge extension. -/
+def localizedEdgeStepOfTwoArcCrosscut
+    {C E A B : Set Point} {x z : Point}
+    (hAext : A ⊆ LocalInsertion.carrierExtension C E)
+    (hBext : B ⊆ LocalInsertion.carrierExtension C E)
+    (hA : IsSimpleArcEnd A x z) (hB : IsSimpleArcEnd B x z)
+    (hxz : x ≠ z) (hinter : A ∩ B ⊆ {x, z})
+    (active : ConnectedComponents (Cᶜ : Set Point))
+    (hloc : LocalInsertion.EdgeLocalized C E active)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C E)
+      (union_subset hAext hBext)
+      (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs
+        hA hB hxz hinter)
+      active) :
+    LocalFiltration.LocalizedEdgeStep C E :=
+  localizedEdgeStepOfJordanCrosscut
+    (union_subset hAext hBext)
+    (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs hA hB hxz hinter)
+    active hloc hlift
+
+/-- Exact localized edge-step data when the Jordan curve is supplied as the
+union of two simple arcs in the one-edge extension. -/
+def localizedExactEdgeStepOfTwoArcCrosscut
+    {C E A B : Set Point} {x z : Point} (hCclosed : IsClosed C)
+    (L : Lollipop) (hE : E ⊆ L.carrier)
+    (hAext : A ⊆ LocalInsertion.carrierExtension C E)
+    (hBext : B ⊆ LocalInsertion.carrierExtension C E)
+    (hA : IsSimpleArcEnd A x z) (hB : IsSimpleArcEnd B x z)
+    (hxz : x ≠ z) (hinter : A ∩ B ⊆ {x, z})
+    (active : ConnectedComponents (Cᶜ : Set Point))
+    (hloc : LocalInsertion.EdgeLocalized C E active)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C E)
+      (union_subset hAext hBext)
+      (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs
+        hA hB hxz hinter)
+      active)
+    (hside : JordanClassifier.ActiveSideSurjective
+      (LocalInsertion.old_subset_carrierExtension C E)
+      (union_subset hAext hBext)
+      (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs
+        hA hB hxz hinter)
+      active) :
+    LocalFiltration.LocalizedExactEdgeStep L C E :=
+  localizedExactEdgeStepOfJordanCrosscut hCclosed L hE
+    (union_subset hAext hBext)
+    (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs hA hB hxz hinter)
+    active hloc hlift hside
 
 /-- One-step bounded localized filtration from Jordan crosscut data. -/
 def localizedEdgeFiltrationOfJordanCrosscut

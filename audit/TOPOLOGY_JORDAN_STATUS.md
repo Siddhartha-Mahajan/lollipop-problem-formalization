@@ -33,6 +33,12 @@ The Jordan-side classifier for localized one-edge insertions also builds:
 lake build Lollipop.Concrete.EndToEnd.JordanClassifier
 ```
 
+The two-arc-to-Jordan-curve helper also builds:
+
+```sh
+lake build Lollipop.Concrete.EndToEnd.ArcClosedCurve
+```
+
 The local crosscut packaging layer also builds:
 
 ```sh
@@ -77,10 +83,14 @@ The Jordan dependency makes the topology route more realistic.  In particular:
 - `Lollipop.Concrete.EndToEnd.JordanClassifier` turns Jordan-side equality
   plus an avoiding-arc lifting obligation into the `OneComponentSplitData` and
   `ExactOneComponentSplitData` expected by the localized insertion API.
+- `Lollipop.Concrete.EndToEnd.ArcClosedCurve` proves that two simple arcs
+  with the same distinct endpoints and no additional intersection form a
+  simple closed curve, and therefore have a two-component complement by the
+  Jordan bridge.
 - `Lollipop.Concrete.EndToEnd.LocalCrosscut` packages the same data into
   `LocalizedEdgeStep`, `LocalizedExactEdgeStep`, and one-step localized
-  filtrations, which are the objects consumed by the insertion-filtration
-  pipeline.
+  filtrations.  It also exposes convenience constructors for the common case
+  where the Jordan curve is supplied as the union of two simple arcs.
 
 This directly supports the planned local arc-splitting theorem: form a simple
 closed curve from an inserted edge plus an old avoiding arc, classify the two
@@ -104,11 +114,13 @@ old names and an older geometry bridge.  They should not be imported into the
 trusted endpoint as-is.
 
 The useful path is now to build on the small, checked `EndToEnd` topology
-bridge, classifier, and crosscut packaging layer:
+bridge, two-arc closure theorem, classifier, and crosscut packaging layer:
 
-1. prove the geometric local arc-lifting and side-surjectivity facts for one
-   inserted edge;
-2. use that theorem to construct localized insertion filtrations;
+1. prove the geometric local arc-lifting and side-surjectivity facts for a
+   two-arc crosscut formed by one inserted effective edge and one old
+   avoiding arc;
+2. use that theorem to construct localized insertion filtrations for carrier
+   subdivisions;
 3. compile those filtrations through `LocalizedTopology` into
    `InsertionFan.FanTopologyPorts`.
 
@@ -121,6 +133,8 @@ small API repairs.
 However, the final endpoint should not import the stale `Actual` topology
 tree.  The next implementation step should use
 `Lollipop/Concrete/EndToEnd/JordanBridge.lean` and
-`Lollipop/Concrete/EndToEnd/JordanClassifier.lean`, packaged through
+`Lollipop/Concrete/EndToEnd/JordanClassifier.lean`, with
+`Lollipop/Concrete/EndToEnd/ArcClosedCurve.lean` and
 `Lollipop/Concrete/EndToEnd/LocalCrosscut.lean`, to prove the local
-arc-lifting theorem against the current `EndToEnd` component-split API.
+two-arc crosscut lifting theorem against the current `EndToEnd`
+component-split API.
