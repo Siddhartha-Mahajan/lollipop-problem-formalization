@@ -194,6 +194,20 @@ theorem metricBall_disjoint_carrier (L : Lollipop) :
     rw [hdist] at hzDistLt
     nlinarith [L.radius_pos, ht]
 
+/-- The remaining first-lollipop exterior slit theorem.
+
+Both points are in the complement of the full lollipop carrier and strictly
+outside the metric circle.  The missing geometric content is that the exterior
+of the circle remains connected after deleting the outward stem. -/
+theorem firstLollipopExteriorStemSlit_component_eq (L : Lollipop)
+    (x y :
+      ((LocalInsertion.carrierExtension (∅ : Set Point) L.carrier)ᶜ :
+        Set Point))
+    (hxExterior : L.radius < dist x.1 L.center)
+    (hyExterior : L.radius < dist y.1 L.center) :
+    ConnectedComponents.mk x = ConnectedComponents.mk y := by
+  sorry
+
 /-- The first-lollipop arc-lifting theorem.
 
 This is the concrete topology statement that the outward stem does not split
@@ -274,7 +288,8 @@ theorem firstLollipopActiveSideArcLifting (L : Lollipop) :
             exact Or.inr (Or.inl (by
               simpa [Lollipop.circle, dist_eq_norm] using hdist)))
         exact lt_of_le_of_ne (le_of_not_gt hyOutsideBall) (Ne.symm hne)
-      sorry
+      exact firstLollipopExteriorStemSlit_component_eq
+        L x y hxExterior hyExterior
   exact JordanBridge.exists_simpleArcEnd_disjoint_of_connectedComponents_mk_eq
     hKclosed x y hcarrierComponent hxy
 

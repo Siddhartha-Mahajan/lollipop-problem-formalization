@@ -29,7 +29,7 @@ The internal theorem-spine files are:
 
 The current intended `sorry` targets are:
 
-1. `MainTheorem.Topology.firstLollipopActiveSideArcLifting`
+1. `MainTheorem.Topology.firstLollipopExteriorStemSlit_component_eq`
 2. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
 3. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
 4. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`

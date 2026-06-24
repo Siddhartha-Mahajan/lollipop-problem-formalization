@@ -46,7 +46,7 @@ Lean reports the current intended `sorry`s below.
 
 ## Current Intended `sorry` Targets
 
-1. `MainTheorem.Topology.firstLollipopActiveSideArcLifting`
+1. `MainTheorem.Topology.firstLollipopExteriorStemSlit_component_eq`
 2. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
 3. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
 4. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
@@ -104,6 +104,10 @@ from the full lollipop carrier.  Its remaining internal hole is exactly the
 exterior stem-slit theorem: the exterior of the circle remains connected
 after deleting the outward stem.
 
+The broad first-lollipop side arc-lifting theorem is therefore no longer a
+`sorry`; it calls the named exterior slit theorem above for its only
+remaining case.
+
 ## Removal Order
 
 ### 1. Arbitrary topology
@@ -111,7 +115,7 @@ after deleting the outward stem.
 Remove:
 
 ```lean
-MainTheorem.Topology.firstLollipopActiveSideArcLifting
+MainTheorem.Topology.firstLollipopExteriorStemSlit_component_eq
 MainTheorem.Topology.localizedInsertionFiltration_bound_positive
 ```
 
@@ -148,5 +152,5 @@ the parameter space when `3 ≤ n`.
 ## Non-Drift Rule
 
 New supporting lemmas should be added only if they directly discharge one of
-the three targets above, or a named subtarget created inside one of those
-files to remove one of them.
+the four theorem-body targets above, or a named subtarget created inside one
+of those files to remove one of them.
