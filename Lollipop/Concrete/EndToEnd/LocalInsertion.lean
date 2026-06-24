@@ -61,6 +61,27 @@ theorem newPartLocalized_of_edgeLocalized
   · exact False.elim (hzC hzOld)
   · exact hloc z hzE hzC
 
+/-- Bounded split data for a localized one-edge carrier extension, assuming
+the active two-side classifier has been built and proved injective. -/
+def oneComponentSplitDataOfLocalizedEdge
+    {C E : Set Point}
+    (active : ConnectedComponents (Cᶜ : Set Point))
+    (hloc : EdgeLocalized C E active)
+    (activeClassifier :
+      ComponentFibers.Fiber
+        (ComponentFibers.inclusionMap
+          (ComponentSurjectivity.complementSubset
+            (old_subset_carrierExtension C E))) active →
+          Fin 2)
+    (active_injective : Injective activeClassifier) :
+    ComponentFibers.OneComponentSplitData
+      (ComponentSurjectivity.complementSubset
+        (old_subset_carrierExtension C E)) :=
+  ComponentSurjectivity.oneComponentSplitDataOfLocalizedConnectedLifting
+    (old_subset_carrierExtension C E) active
+    (newPartLocalized_of_edgeLocalized hloc)
+    activeClassifier active_injective
+
 /-- Exact split data for a localized one-edge carrier extension, assuming the
 active two-side classifier has already been built and proved bijective. -/
 def exactOneComponentSplitDataOfLocalizedEdge
@@ -108,6 +129,27 @@ def exactChainOfLocalizedEdge
       (old_subset_carrierExtension C E))
     (exactOneComponentSplitDataOfLocalizedEdge hCclosed L hE active hloc
       activeClassifier active_injective active_surjective)
+
+/-- A localized edge split gives a one-step bounded split chain.  This is the
+upper-bound version; it only needs injectivity of the active classifier. -/
+def boundedChainOfLocalizedEdge
+    {C E : Set Point}
+    (active : ConnectedComponents (Cᶜ : Set Point))
+    (hloc : EdgeLocalized C E active)
+    (activeClassifier :
+      ComponentFibers.Fiber
+        (ComponentFibers.inclusionMap
+          (ComponentSurjectivity.complementSubset
+            (old_subset_carrierExtension C E))) active →
+          Fin 2)
+    (active_injective : Injective activeClassifier) :
+    ComponentSplitChain.Chain 1
+      ((carrierExtension C E)ᶜ) (Cᶜ) :=
+  ComponentSplitChain.Chain.singleton
+    (ComponentSurjectivity.complementSubset
+      (old_subset_carrierExtension C E))
+    (oneComponentSplitDataOfLocalizedEdge active hloc activeClassifier
+      active_injective)
 
 /-- Forget exactness from a localized one-edge split chain. -/
 def chainOfLocalizedEdge

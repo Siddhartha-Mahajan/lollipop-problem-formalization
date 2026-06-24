@@ -156,6 +156,23 @@ def exactOneComponentSplitDataOfConnectedLifting
       hCK hCclosed L hKsub
   activeSide_surjective := active_surjective
 
+/-- One-component split data with inactive fibres discharged from localization
+of the new part.  Unlike the exact version, this only needs an injective
+active classifier; it does not require both active sides to occur. -/
+def oneComponentSplitDataOfLocalizedConnectedLifting
+    {C K : Set Point} (hCK : C ⊆ K)
+    (active : ConnectedComponents (Cᶜ : Set Point))
+    (hloc : NewPartLocalized hCK active)
+    (activeClassifier :
+      ComponentFibers.Fiber
+        (ComponentFibers.inclusionMap (complementSubset hCK)) active →
+          Fin 2)
+    (active_injective : Injective activeClassifier) :
+    ComponentFibers.OneComponentSplitData (complementSubset hCK) :=
+  ComponentLifting.oneComponentSplitDataOfConnectedLifting
+    (complementSubset hCK) active activeClassifier active_injective
+    (inactiveConnectedLifting_of_newPartLocalized hCK hloc)
+
 /-- Exact split data with the inactive fibres discharged from localization of
 the new part.  The only remaining genuinely planar input is the active
 two-side classifier and its bijectivity. -/
