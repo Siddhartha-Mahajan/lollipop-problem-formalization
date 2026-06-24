@@ -39,6 +39,12 @@ The two-arc-to-Jordan-curve helper also builds:
 lake build Lollipop.Concrete.EndToEnd.ArcClosedCurve
 ```
 
+The concrete lollipop-circle bridge also builds:
+
+```sh
+lake build Lollipop.Concrete.EndToEnd.CircleJordan
+```
+
 The local crosscut packaging layer also builds:
 
 ```sh
@@ -87,6 +93,9 @@ The Jordan dependency makes the topology route more realistic.  In particular:
   with the same distinct endpoints and no additional intersection form a
   simple closed curve, and therefore have a two-component complement by the
   Jordan bridge.
+- `Lollipop.Concrete.EndToEnd.CircleJordan` proves that an actual concrete
+  lollipop circle is a simple closed curve in the same Jordan API, and that
+  its complement has exactly two connected components.
 - `Lollipop.Concrete.EndToEnd.LocalCrosscut` packages the same data into
   `LocalizedEdgeStep`, `LocalizedExactEdgeStep`, and one-step localized
   filtrations.  It also exposes convenience constructors for the common case
