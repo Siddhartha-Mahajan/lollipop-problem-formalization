@@ -78,6 +78,32 @@ theorem componentMap_surjective_of_closed_of_subset_union_carrier
   rw [ComponentFibers.inclusionMap_mk]
   simpa [x, zOld, ComponentFibers.inclusion] using hzy
 
+/-- Exact split data from the non-Jordan insertion ingredients already
+available here, plus the still-hard active two-side classifier.  This is the
+local target shape for each effective inserted carrier edge. -/
+def exactOneComponentSplitDataOfConnectedLifting
+    {C K : Set Point} (hCK : C ⊆ K) (hCclosed : IsClosed C)
+    (L : Lollipop) (hKsub : K ⊆ C ∪ L.carrier)
+    (active : ConnectedComponents (Cᶜ : Set Point))
+    (activeClassifier :
+      ComponentFibers.Fiber
+        (ComponentFibers.inclusionMap (complementSubset hCK)) active →
+          Fin 2)
+    (active_injective : Injective activeClassifier)
+    (hinactive :
+      ComponentLifting.InactiveConnectedLifting
+        (complementSubset hCK) active)
+    (active_surjective : Surjective activeClassifier) :
+    ComponentFibers.ExactOneComponentSplitData (complementSubset hCK) where
+  toOneComponentSplitData :=
+    ComponentLifting.oneComponentSplitDataOfConnectedLifting
+      (complementSubset hCK) active activeClassifier active_injective
+      hinactive
+  componentMap_surjective :=
+    componentMap_surjective_of_closed_of_subset_union_carrier
+      hCK hCclosed L hKsub
+  activeSide_surjective := active_surjective
+
 end ComponentSurjectivity
 end EndToEnd
 end Concrete
