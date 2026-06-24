@@ -125,7 +125,30 @@ theorem firstLollipopActiveSideArcLifting (L : Lollipop) :
       (firstLollipopCircle_subset_extension L)
       (CircleJordan.isSimpleClosedCurve_circle L)
       (firstLollipopActive L) := by
-  sorry
+  intro x y _hxold _hyold hside hxy
+  have hcircleComponent :
+      ComponentFibers.inclusionMap
+          (ComponentSurjectivity.complementSubset
+            (firstLollipopCircle_subset_extension L))
+          (ConnectedComponents.mk x) =
+        ComponentFibers.inclusionMap
+          (ComponentSurjectivity.complementSubset
+            (firstLollipopCircle_subset_extension L))
+          (ConnectedComponents.mk y) := by
+    apply (JordanClassifier.jordanComplementComponentsEquivBool
+      (CircleJordan.isSimpleClosedCurve_circle L)).injective
+    apply JordanClassifier.boolToFin2_injective
+    simpa [JordanClassifier.sideOfComponent] using hside
+  have hKclosed :
+      IsClosed (LocalInsertion.carrierExtension (∅ : Set Point) L.carrier) := by
+    simpa [LocalInsertion.carrierExtension] using L.isClosed_carrier
+  have hcarrierComponent :
+      ConnectedComponents.mk x = ConnectedComponents.mk y := by
+    -- Hard stem-slit step: the outward stem does not split either component
+    -- of the circle complement.
+    sorry
+  exact JordanBridge.exists_simpleArcEnd_disjoint_of_connectedComponents_mk_eq
+    hKclosed x y hcarrierComponent hxy
 
 /-- The first-lollipop side-realization theorem.
 
