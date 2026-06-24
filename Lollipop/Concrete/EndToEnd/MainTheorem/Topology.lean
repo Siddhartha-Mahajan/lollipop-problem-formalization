@@ -1,3 +1,4 @@
+import Lollipop.Concrete.EndToEnd.CircleInsertion
 import Lollipop.Concrete.EndToEnd.CircleJordan
 import Lollipop.Concrete.EndToEnd.JordanClassifier
 import Lollipop.Concrete.EndToEnd.LocalizedTopology
@@ -84,6 +85,33 @@ theorem firstLollipopCircle_subset_extension (L : Lollipop) :
   intro x hx
   exact Or.inr (Lollipop.circle_subset_carrier L hx)
 
+/-- The Boolean Jordan-side labels cover `Fin 2`. -/
+theorem boolToFin2_surjective :
+    Function.Surjective JordanClassifier.boolToFin2 := by
+  intro b
+  fin_cases b
+  · exact ⟨false, by simp [JordanClassifier.boolToFin2]⟩
+  · exact ⟨true, by simp [JordanClassifier.boolToFin2]⟩
+
+/-- Passing from the full first-lollipop complement to the circle complement
+does not lose either circle-complement component. -/
+theorem firstLollipopCircleComponentMap_surjective (L : Lollipop) :
+    Function.Surjective
+      (ComponentFibers.inclusionMap
+        (ComponentSurjectivity.complementSubset
+          (firstLollipopCircle_subset_extension L))) := by
+  exact
+    ComponentSurjectivity.componentMap_surjective_of_closed_of_subset_union_carrier
+      (firstLollipopCircle_subset_extension L)
+      (CircleInsertion.isClosed_of_isSimpleClosedCurve
+        (CircleJordan.isSimpleClosedCurve_circle L))
+      L
+      (by
+        intro x hx
+        rcases hx with hxEmpty | hxCarrier
+        · exact False.elim hxEmpty
+        · exact Or.inr hxCarrier)
+
 /-- The first-lollipop arc-lifting theorem.
 
 This is the concrete topology statement that the outward stem does not split
@@ -110,7 +138,31 @@ theorem firstLollipopActiveSideSurjective (L : Lollipop) :
       (firstLollipopCircle_subset_extension L)
       (CircleJordan.isSimpleClosedCurve_circle L)
       (firstLollipopActive L) := by
-  sorry
+  intro target
+  rcases boolToFin2_surjective target with ⟨side, hside⟩
+  let circleComponent : ConnectedComponents (L.circleᶜ : Set Point) :=
+    (JordanClassifier.jordanComplementComponentsEquivBool
+      (CircleJordan.isSimpleClosedCurve_circle L)).symm side
+  obtain ⟨carrierComponent, hcarrierComponent⟩ :=
+    firstLollipopCircleComponentMap_surjective L circleComponent
+  have hactive :
+      ComponentFibers.inclusionMap
+          (ComponentSurjectivity.complementSubset
+            (LocalInsertion.old_subset_carrierExtension
+              (∅ : Set Point) L.carrier))
+          carrierComponent =
+        firstLollipopActive L := by
+    obtain ⟨x, rfl⟩ := ConnectedComponents.surjective_coe carrierComponent
+    rw [ComponentFibers.inclusionMap_mk]
+    exact connectedComponents_empty_compl_eq
+      (ComponentFibers.inclusion
+        (ComponentSurjectivity.complementSubset
+          (LocalInsertion.old_subset_carrierExtension
+            (∅ : Set Point) L.carrier)) x)
+      (⟨L.center, by simp⟩ : (((∅ : Set Point)ᶜ) : Set Point))
+  refine ⟨⟨carrierComponent, hactive⟩, ?_⟩
+  simp [JordanClassifier.sideOfComponent, circleComponent,
+    hcarrierComponent, hside]
 
 /-- The bounded classifier for the complement of one full lollipop carrier. -/
 noncomputable def firstLollipopActiveClassifier (L : Lollipop) :

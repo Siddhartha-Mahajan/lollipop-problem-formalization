@@ -35,10 +35,9 @@ Lean reports the current intended `sorry`s below.
 ## Current Intended `sorry` Targets
 
 1. `MainTheorem.Topology.firstLollipopActiveSideArcLifting`
-2. `MainTheorem.Topology.firstLollipopActiveSideSurjective`
-3. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
-4. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
-5. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
+2. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
+3. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
+4. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
 
 Everything else in `MainTheorem.Assembly` is ordinary wiring from those named
 targets into the existing concrete upper and lower endpoint.
@@ -60,7 +59,6 @@ The previous broad topology placeholders are also no longer direct
 positive-insertion filtration targets:
 
 * first-lollipop side arc-lifting;
-* first-lollipop side realization;
 * arbitrary bounded localized filtration for non-first insertions;
 * exact localized filtration for non-first generic insertions.
 
@@ -75,8 +73,16 @@ the two first-lollipop edge-step targets.
 
 The two first-lollipop edge-step targets are now ordinary constructor wiring
 from the active classifier.  The classifier injectivity and surjectivity
-theorems are also wiring from the two sharper first-lollipop topology targets
-listed above.
+theorems are also wiring from sharper first-lollipop topology targets.
+
+The first-lollipop side-realization theorem is now proved:
+
+```lean
+MainTheorem.Topology.firstLollipopActiveSideSurjective
+```
+
+It follows from the existing component-map surjectivity theorem applied to
+the inclusion of the full lollipop complement into the circle complement.
 
 ## Removal Order
 
@@ -101,12 +107,12 @@ This requires the topology-first plan:
 Remove:
 
 ```lean
-MainTheorem.Topology.firstLollipopActiveSideSurjective
 MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive
 ```
 
 This uses the same subdivision as the arbitrary theorem, plus generic
-two-sided splitting and exact fan counts.
+two-sided splitting and exact fan counts.  The first-lollipop exact
+side-realization input is already proved.
 
 ### 3. Lower genericity
 
