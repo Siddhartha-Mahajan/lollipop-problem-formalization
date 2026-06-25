@@ -253,6 +253,350 @@ theorem standardLollipop_radius :
   rw [Lollipop.radius]
   exact (sq_eq_sq₀ (norm_nonneg _) zero_le_one).1 hsq'
 
+/-- Displayed coordinates as the project's concrete `Point` type. -/
+def coordPoint (a b : ℝ) : Point :=
+  R2.toPoint (fun i : Fin 2 => if i = 0 then a else b)
+
+@[simp] theorem coordPoint_zero (a b : ℝ) : coordPoint a b 0 = a := by
+  simp [coordPoint]
+
+@[simp] theorem coordPoint_one (a b : ℝ) : coordPoint a b 1 = b := by
+  simp [coordPoint]
+
+/-- The local coordinate constructor agrees with the imported displayed
+`point` notation. -/
+theorem coordPoint_eq_point (a b : ℝ) : coordPoint a b = point (a, b) := by
+  ext i
+  fin_cases i <;> simp [coordPoint, point_coord_zero, point_coord_one]
+
+/-- Eta rule for displayed coordinates in the Euclidean plane. -/
+theorem point_eta (p : Point) : point (p 0, p 1) = p :=
+  (point_surjective p).symm
+
+/-- Vertical coordinate interval. -/
+def verticalSegment (a u v : ℝ) : Set Point :=
+  (fun t : ℝ => coordPoint a t) '' Set.Icc u v
+
+/-- Horizontal coordinate interval. -/
+def horizontalSegment (b u v : ℝ) : Set Point :=
+  (fun t : ℝ => coordPoint t b) '' Set.Icc u v
+
+theorem continuous_coordPoint_vertical (a : ℝ) :
+    Continuous (fun t : ℝ => coordPoint a t) := by
+  unfold coordPoint R2.toPoint
+    TheoremOneManuscript.PrimitiveGeometry.toEuclideanR2
+  exact (PiLp.continuous_toLp (p := 2)
+      (β := fun _ : Fin 2 => ℝ)).comp
+    (continuous_pi (by
+      intro i
+      fin_cases i <;> simp <;> fun_prop))
+
+theorem continuous_coordPoint_horizontal (b : ℝ) :
+    Continuous (fun t : ℝ => coordPoint t b) := by
+  unfold coordPoint R2.toPoint
+    TheoremOneManuscript.PrimitiveGeometry.toEuclideanR2
+  exact (PiLp.continuous_toLp (p := 2)
+      (β := fun _ : Fin 2 => ℝ)).comp
+    (continuous_pi (by
+      intro i
+      fin_cases i <;> simp <;> fun_prop))
+
+theorem verticalSegment_isConnected {a u v : ℝ} (huv : u ≤ v) :
+    IsConnected (verticalSegment a u v) :=
+  (isConnected_Icc huv).image _
+    ((continuous_coordPoint_vertical a).continuousOn)
+
+theorem horizontalSegment_isConnected {b u v : ℝ} (huv : u ≤ v) :
+    IsConnected (horizontalSegment b u v) :=
+  (isConnected_Icc huv).image _
+    ((continuous_coordPoint_horizontal b).continuousOn)
+
+/-- Squared norm of a displayed point. -/
+theorem standardPoint_norm_sq (a b : ℝ) :
+    ‖point (a, b)‖ ^ 2 = a ^ 2 + b ^ 2 := by
+  rw [Lower.point_norm_sq_eq]
+  norm_num [point_coord_zero, point_coord_one]
+
+/-- Coordinate form of the standard lollipop stem. -/
+theorem standardPoint_mem_stem_iff (a b : ℝ) :
+    point (a, b) ∈ Lower.standardLollipop.stem ↔
+      1 ≤ a ∧ b = 0 := by
+  constructor
+  · rintro ⟨t, ht, h⟩
+    have h0 := congrArg (fun p : Point => p 0) h
+    have h1 := congrArg (fun p : Point => p 1) h
+    simp [Lower.standardLollipop, R2.toPoint, point_coord_zero,
+      point_coord_one] at h0 h1
+    constructor <;> nlinarith
+  · rintro ⟨ha, hb⟩
+    refine ⟨a, ha, ?_⟩
+    ext i
+    fin_cases i <;>
+      simp [Lower.standardLollipop, R2.toPoint, point_coord_zero,
+        point_coord_one, hb]
+
+/-- Coordinate form of the standard lollipop circle. -/
+theorem standardPoint_mem_circle_iff (a b : ℝ) :
+    point (a, b) ∈ Lower.standardLollipop.circle ↔
+      a ^ 2 + b ^ 2 = 1 := by
+  constructor
+  · intro h
+    have hs :
+        ‖point (a, b) - Lower.standardLollipop.center‖ ^ 2 =
+          Lower.standardLollipop.radius ^ 2 := by
+      rw [show ‖point (a, b) - Lower.standardLollipop.center‖ =
+          Lower.standardLollipop.radius by
+        simpa [Lollipop.circle] using h]
+    rw [standardLollipop_radius] at hs
+    have hs' : ‖point (a, b)‖ ^ 2 = 1 := by
+      simpa [Lower.standardLollipop] using hs
+    exact (standardPoint_norm_sq a b).symm.trans hs'
+  · intro h
+    have hs :
+        ‖point (a, b) - Lower.standardLollipop.center‖ ^ 2 =
+          Lower.standardLollipop.radius ^ 2 := by
+      rw [standardLollipop_radius]
+      simpa [Lower.standardLollipop, standardPoint_norm_sq] using h
+    have hn :
+        ‖point (a, b) - Lower.standardLollipop.center‖ =
+          Lower.standardLollipop.radius :=
+      (sq_eq_sq₀ (norm_nonneg _)
+        (le_of_lt Lower.standardLollipop.radius_pos)).1 hs
+    simpa [Lollipop.circle] using hn
+
+/-- Coordinate form of the standard lollipop carrier. -/
+theorem standardPoint_mem_carrier_iff (a b : ℝ) :
+    point (a, b) ∈ Lower.standardLollipop.carrier ↔
+      a ^ 2 + b ^ 2 = 1 ∨ (1 ≤ a ∧ b = 0) := by
+  change point (a, b) ∈
+      Lower.standardLollipop.circle ∪ Lower.standardLollipop.stem ↔
+    a ^ 2 + b ^ 2 = 1 ∨ (1 ≤ a ∧ b = 0)
+  rw [Set.mem_union, standardPoint_mem_circle_iff,
+    standardPoint_mem_stem_iff]
+
+theorem standardCoordPoint_mem_carrier_iff (a b : ℝ) :
+    coordPoint a b ∈ Lower.standardLollipop.carrier ↔
+      a ^ 2 + b ^ 2 = 1 ∨ (1 ≤ a ∧ b = 0) := by
+  simpa [coordPoint_eq_point] using standardPoint_mem_carrier_iff a b
+
+/-- Metric exterior of the standard circle in coordinate form. -/
+theorem standardExterior_sq_gt_one {p : Point}
+    (h : Lower.standardLollipop.radius <
+      dist p Lower.standardLollipop.center) :
+    1 < p 0 ^ 2 + p 1 ^ 2 := by
+  have hnorm : 1 < ‖p‖ := by
+    rw [standardLollipop_radius] at h
+    simpa [Lower.standardLollipop, dist_eq_norm] using h
+  have hs : 1 < ‖p‖ ^ 2 := by
+    nlinarith [sq_nonneg (‖p‖ - 1)]
+  simpa [Lower.point_norm_sq_eq] using hs
+
+theorem coordPoint_mem_standardCarrierComplement
+    {a b : ℝ} (hout : 1 < a ^ 2 + b ^ 2)
+    (hstem : ¬ (1 ≤ a ∧ b = 0)) :
+    coordPoint a b ∈
+      ((LocalInsertion.carrierExtension (∅ : Set Point)
+        Lower.standardLollipop.carrier)ᶜ : Set Point) := by
+  rw [Set.mem_compl_iff]
+  intro hmem
+  rcases hmem with hEmpty | hCarrier
+  · exact hEmpty
+  · rw [standardCoordPoint_mem_carrier_iff] at hCarrier
+    exact hCarrier.elim (fun hcircle => by linarith) hstem
+
+theorem verticalSegment_subset_standardComplement_upper
+    {a b H : ℝ} (hb : 0 ≤ b)
+    (hout : 1 < a ^ 2 + b ^ 2)
+    (hstem : ¬ (1 ≤ a ∧ b = 0)) :
+    verticalSegment a b H ⊆
+      ((LocalInsertion.carrierExtension (∅ : Set Point)
+        Lower.standardLollipop.carrier)ᶜ : Set Point) := by
+  intro z hz
+  rcases hz with ⟨t, ht, rfl⟩
+  rcases ht with ⟨hbt, _htH⟩
+  apply coordPoint_mem_standardCarrierComplement
+  · have hsq : b ^ 2 ≤ t ^ 2 := by
+      nlinarith [sq_nonneg (t - b)]
+    nlinarith
+  · intro hs
+    rcases hs with ⟨ha, ht0⟩
+    have hb0 : b = 0 := by nlinarith
+    exact hstem ⟨ha, hb0⟩
+
+theorem verticalSegment_subset_standardComplement_lower
+    {a b H : ℝ} (hb : b < 0)
+    (hout : 1 < a ^ 2 + b ^ 2) :
+    verticalSegment a (-H) b ⊆
+      ((LocalInsertion.carrierExtension (∅ : Set Point)
+        Lower.standardLollipop.carrier)ᶜ : Set Point) := by
+  intro z hz
+  rcases hz with ⟨t, ht, rfl⟩
+  rcases ht with ⟨_hHt, htb⟩
+  apply coordPoint_mem_standardCarrierComplement
+  · have hsq : b ^ 2 ≤ t ^ 2 := by
+      nlinarith [sq_nonneg (t - b), sq_nonneg (t + b)]
+    nlinarith
+  · intro hs
+    rcases hs with ⟨_ha, ht0⟩
+    nlinarith
+
+theorem horizontalSegment_subset_standardComplement_pos
+    {u v H : ℝ} (hH : 1 < H) :
+    horizontalSegment H u v ⊆
+      ((LocalInsertion.carrierExtension (∅ : Set Point)
+        Lower.standardLollipop.carrier)ᶜ : Set Point) := by
+  intro z hz
+  rcases hz with ⟨t, _ht, rfl⟩
+  apply coordPoint_mem_standardCarrierComplement
+  · nlinarith [sq_nonneg t, sq_nonneg (H - 1)]
+  · intro hs
+    rcases hs with ⟨_ha, hH0⟩
+    nlinarith
+
+theorem horizontalSegment_subset_standardComplement_neg
+    {u v H : ℝ} (hH : 1 < H) :
+    horizontalSegment (-H) u v ⊆
+      ((LocalInsertion.carrierExtension (∅ : Set Point)
+        Lower.standardLollipop.carrier)ᶜ : Set Point) := by
+  intro z hz
+  rcases hz with ⟨t, _ht, rfl⟩
+  apply coordPoint_mem_standardCarrierComplement
+  · nlinarith [sq_nonneg t, sq_nonneg (H - 1)]
+  · intro hs
+    rcases hs with ⟨_ha, hH0⟩
+    nlinarith
+
+theorem leftVerticalSegment_subset_standardComplement
+    {H : ℝ} (hH : 1 < H) :
+    verticalSegment (-H) (-H) H ⊆
+      ((LocalInsertion.carrierExtension (∅ : Set Point)
+        Lower.standardLollipop.carrier)ᶜ : Set Point) := by
+  intro z hz
+  rcases hz with ⟨t, _ht, rfl⟩
+  apply coordPoint_mem_standardCarrierComplement
+  · nlinarith [sq_nonneg t, sq_nonneg (H - 1)]
+  · intro hs
+    rcases hs with ⟨ha, _ht0⟩
+    nlinarith
+
+/-- Any standard exterior point can be connected in the standard lollipop
+complement to a common high-left basepoint. -/
+theorem standardExteriorStemSlit_to_base
+    (z : ((LocalInsertion.carrierExtension (∅ : Set Point)
+      Lower.standardLollipop.carrier)ᶜ : Set Point))
+    {H : ℝ} (hH : 1 < H)
+    (hzExterior : Lower.standardLollipop.radius <
+      dist z.1 Lower.standardLollipop.center)
+    (haLeft : -H ≤ z.1 0) (hbUpper : z.1 1 ≤ H)
+    (hbLower : -H ≤ z.1 1) :
+    ConnectedComponents.mk z =
+      ConnectedComponents.mk
+        (⟨coordPoint (-H) H,
+          by
+            apply coordPoint_mem_standardCarrierComplement
+            · nlinarith [sq_nonneg H, sq_nonneg (H - 1)]
+            · intro hs
+              rcases hs with ⟨ha, _hb⟩
+              nlinarith⟩ :
+          ((LocalInsertion.carrierExtension (∅ : Set Point)
+            Lower.standardLollipop.carrier)ᶜ : Set Point)) := by
+  let a := z.1 0
+  let b := z.1 1
+  let S := ((LocalInsertion.carrierExtension (∅ : Set Point)
+    Lower.standardLollipop.carrier)ᶜ : Set Point)
+  let basePoint : Point := coordPoint (-H) H
+  have hnegHleH : -H ≤ H := by nlinarith
+  have hzcoord : coordPoint a b = z.1 := by
+    dsimp [a, b]
+    rw [coordPoint_eq_point, point_eta]
+  have hzsq : 1 < a ^ 2 + b ^ 2 := by
+    dsimp [a, b]
+    exact standardExterior_sq_gt_one hzExterior
+  have hznotstem : ¬ (1 ≤ a ∧ b = 0) := by
+    intro hs
+    have hcarrier : coordPoint a b ∈ Lower.standardLollipop.carrier := by
+      rw [standardCoordPoint_mem_carrier_iff]
+      exact Or.inr hs
+    apply z.2
+    rw [← hzcoord]
+    change coordPoint a b ∈
+      (∅ : Set Point) ∪ Lower.standardLollipop.carrier
+    exact Or.inr hcarrier
+  by_cases hbnonneg : 0 ≤ b
+  · let V := verticalSegment a b H
+    let U := horizontalSegment H (-H) a
+    let P : Set Point := V ∪ U
+    have hVconn : IsConnected V := verticalSegment_isConnected hbUpper
+    have hUconn : IsConnected U := horizontalSegment_isConnected haLeft
+    have hmeet : (V ∩ U).Nonempty := by
+      refine ⟨coordPoint a H, ?_⟩
+      constructor
+      · exact ⟨H, ⟨hbUpper, le_rfl⟩, rfl⟩
+      · exact ⟨a, ⟨haLeft, le_rfl⟩, rfl⟩
+    have hPconn : IsConnected P :=
+      IsConnected.union hmeet hVconn hUconn
+    have hPsub : P ⊆ S := by
+      intro w hw
+      rcases hw with hwV | hwU
+      · exact verticalSegment_subset_standardComplement_upper
+          hbnonneg hzsq hznotstem hwV
+      · exact horizontalSegment_subset_standardComplement_pos hH hwU
+    have hzP : z.1 ∈ P := by
+      left
+      rw [← hzcoord]
+      exact ⟨b, ⟨le_rfl, hbUpper⟩, rfl⟩
+    have hbaseP : basePoint ∈ P := by
+      right
+      exact ⟨-H, ⟨le_rfl, haLeft⟩, rfl⟩
+    have hmk :=
+      ComponentLifting.connectedComponents_mk_eq_of_isConnected_subset
+        hPconn hPsub hzP hbaseP
+    simpa [S, basePoint] using hmk
+  · have hbneg : b < 0 := lt_of_not_ge hbnonneg
+    let V := verticalSegment a (-H) b
+    let U := horizontalSegment (-H) (-H) a
+    let W := verticalSegment (-H) (-H) H
+    let P1 : Set Point := V ∪ U
+    let P : Set Point := P1 ∪ W
+    have hVconn : IsConnected V := verticalSegment_isConnected hbLower
+    have hUconn : IsConnected U := horizontalSegment_isConnected haLeft
+    have hWconn : IsConnected W := verticalSegment_isConnected hnegHleH
+    have hmeetVU : (V ∩ U).Nonempty := by
+      refine ⟨coordPoint a (-H), ?_⟩
+      constructor
+      · exact ⟨-H, ⟨le_rfl, hbLower⟩, rfl⟩
+      · exact ⟨a, ⟨haLeft, le_rfl⟩, rfl⟩
+    have hP1conn : IsConnected P1 :=
+      IsConnected.union hmeetVU hVconn hUconn
+    have hmeetP1W : (P1 ∩ W).Nonempty := by
+      refine ⟨coordPoint (-H) (-H), ?_⟩
+      constructor
+      · right
+        exact ⟨-H, ⟨le_rfl, haLeft⟩, rfl⟩
+      · exact ⟨-H, ⟨le_rfl, hnegHleH⟩, rfl⟩
+    have hPconn : IsConnected P :=
+      IsConnected.union hmeetP1W hP1conn hWconn
+    have hPsub : P ⊆ S := by
+      intro w hw
+      rcases hw with hwP1 | hwW
+      · rcases hwP1 with hwV | hwU
+        · exact verticalSegment_subset_standardComplement_lower
+            hbneg hzsq hwV
+        · exact horizontalSegment_subset_standardComplement_neg hH hwU
+      · exact leftVerticalSegment_subset_standardComplement hH hwW
+    have hzP : z.1 ∈ P := by
+      left
+      left
+      rw [← hzcoord]
+      exact ⟨b, ⟨hbLower, le_rfl⟩, rfl⟩
+    have hbaseP : basePoint ∈ P := by
+      right
+      exact ⟨H, ⟨hnegHleH, le_rfl⟩, rfl⟩
+    have hmk :=
+      ComponentLifting.connectedComponents_mk_eq_of_isConnected_subset
+        hPconn hPsub hzP hbaseP
+    simpa [S, basePoint] using hmk
+
 /-- The remaining standard-coordinate first-lollipop exterior slit theorem.
 
 Both points are in the complement of the standard full lollipop carrier and
@@ -270,7 +614,42 @@ theorem standardExteriorStemSlit_component_eq
       Lower.standardLollipop.radius <
         dist y.1 Lower.standardLollipop.center) :
     ConnectedComponents.mk x = ConnectedComponents.mk y := by
-  sorry
+  let H : ℝ := |x.1 0| + |x.1 1| + |y.1 0| + |y.1 1| + 2
+  have hH : 1 < H := by
+    dsimp [H]
+    nlinarith [abs_nonneg (x.1 0), abs_nonneg (x.1 1),
+      abs_nonneg (y.1 0), abs_nonneg (y.1 1)]
+  have hxLeft : -H ≤ x.1 0 := by
+    dsimp [H]
+    nlinarith [neg_abs_le (x.1 0), abs_nonneg (x.1 1),
+      abs_nonneg (y.1 0), abs_nonneg (y.1 1)]
+  have hxUpper : x.1 1 ≤ H := by
+    dsimp [H]
+    nlinarith [le_abs_self (x.1 1), abs_nonneg (x.1 0),
+      abs_nonneg (y.1 0), abs_nonneg (y.1 1)]
+  have hxLower : -H ≤ x.1 1 := by
+    dsimp [H]
+    nlinarith [neg_abs_le (x.1 1), abs_nonneg (x.1 0),
+      abs_nonneg (y.1 0), abs_nonneg (y.1 1)]
+  have hyLeft : -H ≤ y.1 0 := by
+    dsimp [H]
+    nlinarith [neg_abs_le (y.1 0), abs_nonneg (x.1 0),
+      abs_nonneg (x.1 1), abs_nonneg (y.1 1)]
+  have hyUpper : y.1 1 ≤ H := by
+    dsimp [H]
+    nlinarith [le_abs_self (y.1 1), abs_nonneg (x.1 0),
+      abs_nonneg (x.1 1), abs_nonneg (y.1 0)]
+  have hyLower : -H ≤ y.1 1 := by
+    dsimp [H]
+    nlinarith [neg_abs_le (y.1 1), abs_nonneg (x.1 0),
+      abs_nonneg (x.1 1), abs_nonneg (y.1 0)]
+  have hxBase :=
+    standardExteriorStemSlit_to_base x hH hxExterior
+      hxLeft hxUpper hxLower
+  have hyBase :=
+    standardExteriorStemSlit_to_base y hH hyExterior
+      hyLeft hyUpper hyLower
+  exact hxBase.trans hyBase.symm
 
 /-- The remaining first-lollipop exterior slit theorem.
 
