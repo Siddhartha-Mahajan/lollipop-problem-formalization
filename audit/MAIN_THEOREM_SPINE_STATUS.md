@@ -46,7 +46,7 @@ Lean reports the current intended `sorry`s below.
 
 ## Current Intended `sorry` Targets
 
-1. `MainTheorem.Topology.firstLollipopExteriorStemSlit_component_eq`
+1. `MainTheorem.Topology.standardExteriorStemSlit_component_eq`
 2. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
 3. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
 4. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
@@ -108,6 +108,12 @@ The broad first-lollipop side arc-lifting theorem is therefore no longer a
 `sorry`; it calls the named exterior slit theorem above for its only
 remaining case.
 
+The arbitrary first-lollipop exterior slit theorem is also no longer a
+`sorry`.  It is reduced by the existing positive-similarity infrastructure
+to the standard unit lollipop, so the remaining first-insertion slit target
+is now the coordinate-specific theorem
+`MainTheorem.Topology.standardExteriorStemSlit_component_eq`.
+
 ## Removal Order
 
 ### 1. Arbitrary topology
@@ -115,7 +121,7 @@ remaining case.
 Remove:
 
 ```lean
-MainTheorem.Topology.firstLollipopExteriorStemSlit_component_eq
+MainTheorem.Topology.standardExteriorStemSlit_component_eq
 MainTheorem.Topology.localizedInsertionFiltration_bound_positive
 ```
 

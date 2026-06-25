@@ -2,6 +2,7 @@ import Lollipop.Concrete.EndToEnd.CircleInsertion
 import Lollipop.Concrete.EndToEnd.CircleJordan
 import Lollipop.Concrete.EndToEnd.JordanClassifier
 import Lollipop.Concrete.EndToEnd.LocalizedTopology
+import Lollipop.Concrete.EndToEnd.Lower.Similarity
 
 /-!
 # Main theorem spine: topology
@@ -194,6 +195,83 @@ theorem metricBall_disjoint_carrier (L : Lollipop) :
     rw [hdist] at hzDistLt
     nlinarith [L.radius_pos, ht]
 
+/-- A positive plane similarity identifies the complement of the first-carrier
+extension with the complement of the image first-carrier extension. -/
+def firstCarrierComplementHomeomorph
+    (S : Lower.PlaneSimilarity) (L : Lollipop) :
+    ((LocalInsertion.carrierExtension (∅ : Set Point) L.carrier)ᶜ :
+      Set Point) ≃ₜ
+    (((LocalInsertion.carrierExtension (∅ : Set Point)
+      (S.mapLollipop L).carrier)ᶜ : Set Point)) :=
+  (S.homeomorph.image
+      ((LocalInsertion.carrierExtension (∅ : Set Point) L.carrier)ᶜ :
+        Set Point)).trans
+    (Homeomorph.setCongr (by
+      calc
+        S.toFun ''
+            ((LocalInsertion.carrierExtension (∅ : Set Point) L.carrier)ᶜ :
+              Set Point) =
+            (S.toFun ''
+              LocalInsertion.carrierExtension (∅ : Set Point) L.carrier)ᶜ :=
+          Set.image_compl_eq (f := S.toFun) S.homeomorph.bijective
+        _ =
+            (((LocalInsertion.carrierExtension (∅ : Set Point)
+              (S.mapLollipop L).carrier)ᶜ : Set Point)) := by
+          simp [LocalInsertion.carrierExtension, S.image_carrier L]))
+
+/-- The canonical similarity from the standard lollipop to `L` induces a
+homeomorphism between the corresponding first-carrier complements. -/
+def similarityToStandardComplementHomeomorph (L : Lollipop) :
+    ((LocalInsertion.carrierExtension (∅ : Set Point)
+      Lower.standardLollipop.carrier)ᶜ : Set Point) ≃ₜ
+    ((LocalInsertion.carrierExtension (∅ : Set Point) L.carrier)ᶜ :
+      Set Point) :=
+  (firstCarrierComplementHomeomorph
+    (Lower.similarityTo L) Lower.standardLollipop).trans
+    (Homeomorph.setCongr (by
+      simp [Lower.similarityTo_standard]))
+
+/-- Component equality is preserved by the canonical similarity from the
+standard first-carrier complement to the first-carrier complement of `L`. -/
+theorem similarityToStandardComplementHomeomorph_mk_eq (L : Lollipop)
+    {x y : ((LocalInsertion.carrierExtension (∅ : Set Point)
+      Lower.standardLollipop.carrier)ᶜ : Set Point)}
+    (h : ConnectedComponents.mk x = ConnectedComponents.mk y) :
+    ConnectedComponents.mk (similarityToStandardComplementHomeomorph L x) =
+      ConnectedComponents.mk (similarityToStandardComplementHomeomorph L y) := by
+  exact congrArg (connectedComponentsEquivOfHomeomorph
+    (similarityToStandardComplementHomeomorph L)) h
+
+/-- The standard lollipop has unit radius. -/
+theorem standardLollipop_radius :
+    Lower.standardLollipop.radius = 1 := by
+  have hsq : ‖Lower.standardLollipop.radial‖ ^ 2 = 1 := by
+    rw [Lower.point_norm_sq_eq]
+    norm_num [Lower.standardLollipop, R2.toPoint]
+  have hsq' : ‖Lower.standardLollipop.radial‖ ^ 2 = (1 : ℝ) ^ 2 := by
+    simpa using hsq
+  rw [Lollipop.radius]
+  exact (sq_eq_sq₀ (norm_nonneg _) zero_le_one).1 hsq'
+
+/-- The remaining standard-coordinate first-lollipop exterior slit theorem.
+
+Both points are in the complement of the standard full lollipop carrier and
+strictly outside the unit circle.  The missing geometric content is now the
+coordinate-specific fact that the exterior of the unit circle remains
+connected after deleting the positive horizontal stem. -/
+theorem standardExteriorStemSlit_component_eq
+    (x y :
+      ((LocalInsertion.carrierExtension (∅ : Set Point)
+        Lower.standardLollipop.carrier)ᶜ : Set Point))
+    (hxExterior :
+      Lower.standardLollipop.radius <
+        dist x.1 Lower.standardLollipop.center)
+    (hyExterior :
+      Lower.standardLollipop.radius <
+        dist y.1 Lower.standardLollipop.center) :
+    ConnectedComponents.mk x = ConnectedComponents.mk y := by
+  sorry
+
 /-- The remaining first-lollipop exterior slit theorem.
 
 Both points are in the complement of the full lollipop carrier and strictly
@@ -206,7 +284,49 @@ theorem firstLollipopExteriorStemSlit_component_eq (L : Lollipop)
     (hxExterior : L.radius < dist x.1 L.center)
     (hyExterior : L.radius < dist y.1 L.center) :
     ConnectedComponents.mk x = ConnectedComponents.mk y := by
-  sorry
+  let e := similarityToStandardComplementHomeomorph L
+  let xStd := e.symm x
+  let yStd := e.symm y
+  have hxmap : (Lower.similarityTo L).toFun xStd.1 = x.1 := by
+    change (e xStd).1 = x.1
+    simp [xStd, e]
+  have hymap : (Lower.similarityTo L).toFun yStd.1 = y.1 := by
+    change (e yStd).1 = y.1
+    simp [yStd, e]
+  have hcenter :
+      (Lower.similarityTo L).toFun Lower.standardLollipop.center =
+        L.center := by
+    have h := congrArg Lollipop.center (Lower.similarityTo_standard L)
+    simpa [Lower.PlaneSimilarity.mapLollipop] using h
+  have hxStdExterior :
+      Lower.standardLollipop.radius <
+        dist xStd.1 Lower.standardLollipop.center := by
+    have hdist :=
+      (Lower.similarityTo L).dist_toFun
+        xStd.1 Lower.standardLollipop.center
+    rw [hxmap, hcenter] at hdist
+    rw [standardLollipop_radius]
+    have hscale : (Lower.similarityTo L).scale = L.radius := rfl
+    rw [hscale] at hdist
+    have hpos := L.radius_pos
+    nlinarith
+  have hyStdExterior :
+      Lower.standardLollipop.radius <
+        dist yStd.1 Lower.standardLollipop.center := by
+    have hdist :=
+      (Lower.similarityTo L).dist_toFun
+        yStd.1 Lower.standardLollipop.center
+    rw [hymap, hcenter] at hdist
+    rw [standardLollipop_radius]
+    have hscale : (Lower.similarityTo L).scale = L.radius := rfl
+    rw [hscale] at hdist
+    have hpos := L.radius_pos
+    nlinarith
+  have hstd :=
+    standardExteriorStemSlit_component_eq
+      xStd yStd hxStdExterior hyStdExterior
+  have hmap := similarityToStandardComplementHomeomorph_mk_eq L hstd
+  simpa [xStd, yStd, e] using hmap
 
 /-- The first-lollipop arc-lifting theorem.
 
