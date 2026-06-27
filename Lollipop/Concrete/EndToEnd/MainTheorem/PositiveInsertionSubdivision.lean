@@ -595,6 +595,48 @@ noncomputable def positiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscu
         (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
       (A ⟨k, hk⟩) hLC hJK hJ hlift)
 
+/-- A one-piece effective carrier gives a one-edge bounded subdivision.
+
+This is the non-disjoint analogue of
+`positiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut`: old/new
+overlap is allowed, but the genuinely new carrier part must be connected in
+the old complement. -/
+noncomputable def
+    positiveInsertionSubdivision_of_connectedNewPart_carrier_jordanCrosscut
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) {p : Point}
+    {J : Set Point}
+    (hpL : p ∈ (A ⟨k, hk⟩).carrier)
+    (hpOld :
+      p ∉
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+    (hnew :
+      IsConnected
+        ((A ⟨k, hk⟩).carrier ∩
+          (occupied
+            (PlanarInsertion.prefixArrangement A k
+              (Nat.le_of_lt hk)))ᶜ))
+    (hJK : J ⊆
+      LocalInsertion.carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+      hJK hJ
+      (connectedNewPartActiveComponent
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier p hpL hpOld)) :
+    PositiveInsertionSubdivision A k hk :=
+  positiveInsertionSubdivision_of_singleEdgeStep A k hk
+    (localizedEdgeStepOfConnectedNewPartJordanCrosscut
+      hnew hpL hpOld hJK hJ hlift)
+
 /-- One exact localized whole-carrier edge gives exact subdivision data when
 the insertion fan has component count one. -/
 noncomputable def exactPositiveInsertionSubdivision_of_singleExactEdgeStep
@@ -667,6 +709,57 @@ noncomputable def exactPositiveInsertionSubdivision_of_disjoint_carrier_jordanCr
         (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
       (A ⟨k, hk⟩)
       (isClosed_occupied_prefix A k hk) hLC hJK hJ hlift hside)
+
+/-- A one-piece effective carrier gives a one-edge exact subdivision when the
+insertion fan also has component count one. -/
+noncomputable def
+    exactPositiveInsertionSubdivision_of_connectedNewPart_carrier_jordanCrosscut
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (hfan : componentCount (InsertionFan.insertionFan A k hk) = 1)
+    {p : Point} {J : Set Point}
+    (hpL : p ∈ (A ⟨k, hk⟩).carrier)
+    (hpOld :
+      p ∉
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+    (hnew :
+      IsConnected
+        ((A ⟨k, hk⟩).carrier ∩
+          (occupied
+            (PlanarInsertion.prefixArrangement A k
+              (Nat.le_of_lt hk)))ᶜ))
+    (hJK : J ⊆
+      LocalInsertion.carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+      hJK hJ
+      (connectedNewPartActiveComponent
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier p hpL hpOld))
+    (hside : JordanClassifier.ActiveSideSurjective
+      (LocalInsertion.old_subset_carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+      hJK hJ
+      (connectedNewPartActiveComponent
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier p hpL hpOld)) :
+    ExactPositiveInsertionSubdivision A k hk :=
+  exactPositiveInsertionSubdivision_of_singleExactEdgeStep A k hk hfan
+    (localizedExactEdgeStepOfConnectedNewPartJordanCrosscut
+      (isClosed_occupied_prefix A k hk) (A ⟨k, hk⟩)
+      (subset_rfl : (A ⟨k, hk⟩).carrier ⊆ (A ⟨k, hk⟩).carrier)
+      hnew hpL hpOld hJK hJ hlift hside)
 
 /-- If the inserted carrier is already contained in the old carrier, no
 localized edge insertion is needed for the bounded upper-bound direction. -/

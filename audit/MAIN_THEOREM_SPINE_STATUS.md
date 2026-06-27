@@ -136,6 +136,19 @@ This is the form needed for the real carrier-subdivision theorem: effective
 subdivision arcs may have endpoints on the old carrier, but their genuinely
 new part must lie in one old complement component.
 
+The one-piece effective-carrier subcase now has bounded and exact
+constructors:
+
+```lean
+MainTheorem.positiveInsertionSubdivision_of_connectedNewPart_carrier_jordanCrosscut
+MainTheorem.exactPositiveInsertionSubdivision_of_connectedNewPart_carrier_jordanCrosscut
+```
+
+These handle insertions where the whole genuinely new carrier part is
+connected.  The remaining full theorem must cut the carrier at all old-new
+fan components and apply the same connected-new-part constructor to each
+effective piece.
+
 The insertion-fan budget for the first insertion is proved:
 
 ```lean
