@@ -616,6 +616,22 @@ theorem localizedExactInsertionFiltration_of_exactPositiveSubdivision
       m = componentCount (InsertionFan.insertionFan A k hk) :=
   ⟨d.edgeCount, d.filtration, d.edgeCount_eq_fan⟩
 
+/-- Remaining effective-carrier exact subdivision theorem in generic
+position.
+
+The impossible full-overlap case is removed by
+`not_carrier_subset_old_of_isGeneric`; this is the precise exact topology
+construction still needed for genuinely new carrier pieces. -/
+theorem exactPositiveInsertionSubdivision_exists_of_generic_effective_carrier
+    {n : ℕ} {A : Arrangement n} (hA : IsGeneric A)
+    (k : ℕ) (hk : k < n) (_hkpos : 0 < k)
+    (_heffective :
+      ¬ (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))) :
+    Nonempty (ExactPositiveInsertionSubdivision A k hk) := by
+  sorry
+
 /-- Remaining bounded positive-insertion subdivision theorem.
 
 This is the concrete planar-topology construction still required for the
@@ -643,7 +659,9 @@ theorem exactPositiveInsertionSubdivision_exists
     {n : ℕ} {A : Arrangement n} (_hA : IsGeneric A)
     (k : ℕ) (hk : k < n) (_hkpos : 0 < k) :
     Nonempty (ExactPositiveInsertionSubdivision A k hk) := by
-  sorry
+  exact exactPositiveInsertionSubdivision_exists_of_generic_effective_carrier
+    _hA k hk _hkpos
+    (not_carrier_subset_old_of_isGeneric _hA k hk _hkpos)
 
 end MainTheorem
 end EndToEnd

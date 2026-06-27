@@ -48,7 +48,7 @@ Lean reports the current intended `sorry`s below.
 ## Current Intended `sorry` Targets
 
 1. `MainTheorem.positiveInsertionSubdivision_exists_of_effective_carrier`
-2. `MainTheorem.exactPositiveInsertionSubdivision_exists`
+2. `MainTheorem.exactPositiveInsertionSubdivision_exists_of_generic_effective_carrier`
 3. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
 
 Everything else in `MainTheorem.Assembly` is ordinary wiring from those named
@@ -141,7 +141,7 @@ targets in
 
 ```lean
 MainTheorem.positiveInsertionSubdivision_exists_of_effective_carrier
-MainTheorem.exactPositiveInsertionSubdivision_exists
+MainTheorem.exactPositiveInsertionSubdivision_exists_of_generic_effective_carrier
 ```
 
 ## Removal Order
@@ -166,7 +166,7 @@ This requires the topology-first plan:
 Remove:
 
 ```lean
-MainTheorem.exactPositiveInsertionSubdivision_exists
+MainTheorem.exactPositiveInsertionSubdivision_exists_of_generic_effective_carrier
 ```
 
 This uses the same subdivision as the arbitrary theorem, plus generic
