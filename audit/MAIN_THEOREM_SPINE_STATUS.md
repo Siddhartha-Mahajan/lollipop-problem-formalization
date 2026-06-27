@@ -49,7 +49,6 @@ Lean reports the current intended `sorry`s below.
 
 1. `MainTheorem.positiveInsertionSubdivision_exists_of_effective_carrier`
 2. `MainTheorem.exactPositiveInsertionSubdivision_exists_of_generic_effective_carrier`
-3. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
 
 Everything else in `MainTheorem.Assembly` is ordinary wiring from those named
 targets into the existing concrete upper and lower endpoint.
@@ -59,15 +58,17 @@ targets into the existing concrete upper and lower endpoint.
 The previous broad genericity placeholder
 `chamberGenericityAvoidance_all` is no longer a `sorry`.
 
-It is now assembled from:
+It is now assembled from checked Lean proofs of:
 
-* the existing proof that the nonparallel-stem locus is open dense;
-* the new proof that triple contacts are impossible for `n < 3`;
-* the remaining theorem
-  `dense_compl_tripleBadUnion_ge_three`.
+* the nonparallel-stem bad-locus complement is open dense;
+* triple contacts are impossible for `n < 3`;
+* `dense_compl_tripleBadUnion_ge_three`, proved by a sequential finite
+  prefix-genericization argument;
+* the chamber-bad complement is the intersection of the nonparallel and
+  no-triple complements.
 
-The `n >= 3` triple-contact target has now also been reduced to a checked
-finite-index statement.  The file
+The `n >= 3` triple-contact target was closed without assuming openness of
+every fixed triple-good locus.  The file
 `Lollipop/Concrete/EndToEnd/MainTheorem/Genericity.lean` defines
 
 ```lean
@@ -77,13 +78,11 @@ MainTheorem.Genericity.compl_tripleBadUnion_eq_iInter_orderedTripleGood
 MainTheorem.Genericity.dense_compl_tripleBadUnion_of_orderedTriple_open_dense
 ```
 
-Thus the remaining nontrivial genericity work is no longer about unpacking
-the finite union in `tripleBadUnion`; it is the analytic/geometric proof that
-each fixed ordered-triple good locus is dense, with enough openness or
-finite-avoidance structure to intersect the finitely many loci.
+Those fixed-triple reductions are still present as useful checked facts, but
+the final proof now uses an insertion-order construction instead of relying on
+finite intersections of open dense triple-good sets.
 
-The tracked translation-avoidance route is now connected to that target.  The
-main theorem genericity file proves:
+The checked genericity route proves:
 
 ```lean
 MainTheorem.Genericity.translateParameterAt
@@ -108,36 +107,19 @@ MainTheorem.Genericity.dense_orderedTripleGood
 MainTheorem.Genericity.dense_compl_tripleBadUnion_of_orderedTriple_open
 MainTheorem.Genericity.not_mem_tripleBadUnion_iff_noTripleCarrierPoints
 MainTheorem.Genericity.not_mem_tripleBadUnion_of_noTripleCarrierPoints
+MainTheorem.Genericity.pairContactsFinite_prefix_translate_of_mem_allPairCenterRegularGood
+MainTheorem.Genericity.prefix_translateParameterAt_succ_eq_snoc
+MainTheorem.Genericity.exists_translateParameterAt_step_prefix_noTriple
+MainTheorem.Genericity.exists_mem_open_allPairCenterRegularGood_prefix_noTriple
+MainTheorem.Genericity.exists_mem_open_allPairCenterRegularGood_noTriple
+MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three
+MainTheorem.Genericity.dense_compl_tripleBadUnion
+MainTheorem.Genericity.dense_compl_chamberBadUnion
+MainTheorem.Genericity.chamberGenericityAvoidance_all
 ```
 
-The last theorem says that for one ordered triple, if the first two selected
-carriers already have finite contact, then translating the third lollipop
-inside any open parameter neighborhood avoids that triple-contact locus.  The
-remaining global triple-density proof must still supply or construct the
-finite-contact base condition in every relevant neighborhood, then iterate
-this local move over all ordered triples.
-
-The genericity `sorry` has therefore been reduced further: for each fixed
-ordered triple, density of the ordered-triple good locus follows from density
-of `pairFiniteGood` for the first selected pair.  The next concrete target is
-to prove that fixed pair-finite locus is dense.  A still stronger checked
-reduction is now available: unequal selected circles plus nonparallel selected
-stems imply finite carrier contact.  Thus one viable next target is density of
-`pairRegularGood i j`, the locus where those two elementary conditions hold.
-
-That next target has now also been proved.  The file proves that
-`pairRegularGood i j` is dense for every ordered distinct pair by first moving
-into the nonparallel-stem locus and then translating the second center inside
-that same open neighborhood.  Consequently every fixed ordered-triple good
-locus is dense.
-
-The remaining `dense_compl_tripleBadUnion_ge_three` work is now specifically
-the finite simultaneous-avoidance step: either prove enough openness of the
-fixed ordered-triple good loci to use the existing finite open-dense
-intersection theorem, or replace that route with a sequential finite
-avoidance proof that preserves previously removed triple contacts.
-
-The sequential route now has a checked open dense starting locus:
+The sequential proof starts from the checked open dense all-pairs regular
+locus:
 
 ```lean
 MainTheorem.Genericity.allPairCenterRegularGood
@@ -151,11 +133,11 @@ every ordered pair, hence the concrete `TranslationGenericity.PairFiniteArrangem
 invariant needed before the first triple-removing insertion step.  The small
 translation neighborhood theorem proves that translating one selected center
 can be kept inside any prescribed open subset of this all-pairs locus.
-The new triple-bad-union bridge identifies the terminal invariant from the
-insertion-order construction with the actual target complement of
+The triple-bad-union bridge identifies the terminal no-triple invariant from
+the insertion-order construction with the actual target complement of
 `Lower.GenericityPort.tripleBadUnion`.
 
-The sequential route now has checked append bookkeeping in
+The append bookkeeping lives in
 `Lollipop/Concrete/EndToEnd/TranslationGenericity.lean`:
 
 ```lean
@@ -172,14 +154,8 @@ TranslationGenericity.exists_norm_lt_pairFinite_noTriple_snoc_translate
 TranslationGenericity.exists_norm_lt_preservePairProfiles_pairFinite_noTriple_snoc_translate
 ```
 
-This proves the core one-step statement: once an old prefix has pairwise
-finite contacts and no triple carrier points, a sufficiently small translation
-of the next lollipop can be chosen to avoid all old double points; if old/new
-pair contacts remain finite throughout the small ball, the appended prefix is
-again pairwise finite and no-triple.  The remaining work for this route is the
-finite induction over prefixes plus checked local neighborhoods that preserve
-finite old/new contacts and the required old/new `pairExcess` values during
-the translated insertion.
+Together these now prove the genericity side of the main theorem spine.  No
+genericity theorem-body `sorry` remains in `MainTheorem/Genericity.lean`.
 
 The previous broad topology placeholders are also no longer direct
 `intro; sorry` proofs.  They now assemble from first-insertion and
@@ -358,19 +334,8 @@ This uses the same subdivision as the arbitrary theorem, plus generic
 two-sided splitting and exact fan counts.  The first-lollipop exact
 side-realization input is already proved.
 
-### 3. Lower genericity
-
-Remove:
-
-```lean
-MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three
-```
-
-This is a finite algebraic avoidance theorem for triple carrier contacts in
-the parameter space when `3 ≤ n`.
-
 ## Non-Drift Rule
 
 New supporting lemmas should be added only if they directly discharge one of
-the three theorem-body targets above, or a named subtarget created inside one
+the two theorem-body targets above, or a named subtarget created inside one
 of those files to remove one of them.

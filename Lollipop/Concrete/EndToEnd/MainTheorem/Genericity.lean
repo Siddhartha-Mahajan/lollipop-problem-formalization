@@ -388,6 +388,189 @@ theorem exists_norm_ball_translateParameterAt_subset_open_allPairCenterRegularGo
   intro v hv
   exact hεsub (by simpa [Metric.mem_ball, dist_eq_norm] using hv)
 
+/-- If a translated full parameter remains in the all-pairs center-regular
+locus, then every old member of the `k`-prefix has finite contact with the
+translated `k`th lollipop. -/
+theorem pairContactsFinite_prefix_translate_of_mem_allPairCenterRegularGood
+    {n k : ℕ} {p : Lower.ArrangementParameter n} (hk : k < n)
+    {v : Point}
+    (hp :
+      translateParameterAt p ⟨k, hk⟩ v ∈
+        allPairCenterRegularGood (n := n)) :
+    TranslationGenericity.PairContactsFinite
+      (PlanarInsertion.prefixArrangement p.toArrangement k (Nat.le_of_lt hk))
+      (TranslationGenericity.translate (p.toArrangement ⟨k, hk⟩) v) := by
+  intro i
+  let q : Lower.ArrangementParameter n := translateParameterAt p ⟨k, hk⟩ v
+  have hqfinite :
+      TranslationGenericity.PairFiniteArrangement q.toArrangement :=
+    pairFiniteArrangement_of_mem_allPairCenterRegularGood hp
+  let ii : Fin n := ⟨i.1, lt_trans i.2 hk⟩
+  let kk : Fin n := ⟨k, hk⟩
+  have hik : ii ≠ kk := by
+    intro h
+    have hv := congrArg (fun x : Fin n => x.1) h
+    dsimp [ii, kk] at hv
+    omega
+  have hqi : q.toArrangement ii = p.toArrangement ii := by
+    simpa [q, ii, kk] using
+      translateParameterAt_apply_ne p (a := ii) (k := kk) v hik
+  have hqk :
+      q.toArrangement kk =
+        TranslationGenericity.translate (p.toArrangement kk) v := by
+    simpa [q, kk] using translateParameterAt_apply_self p kk v
+  have hfin := hqfinite ii kk hik
+  simpa [PlanarInsertion.prefixArrangement, ii, kk, hqi, hqk] using hfin
+
+/-- Updating the `k`th center and then taking the `(k+1)`-prefix is the same
+as appending the translated `k`th lollipop to the old `k`-prefix. -/
+theorem prefix_translateParameterAt_succ_eq_snoc
+    {n k : ℕ} (p : Lower.ArrangementParameter n) (hk : k < n)
+    (v : Point) :
+    PlanarInsertion.prefixArrangement
+        (translateParameterAt p ⟨k, hk⟩ v).toArrangement
+        (k + 1) (Nat.succ_le_of_lt hk) =
+      Insertion.snocArrangement
+        (PlanarInsertion.prefixArrangement p.toArrangement k
+          (Nat.le_of_lt hk))
+        (TranslationGenericity.translate (p.toArrangement ⟨k, hk⟩) v) := by
+  funext i
+  by_cases hik : i.1 < k
+  · let ii : Fin n := ⟨i.1, i.2.trans_le (Nat.succ_le_of_lt hk)⟩
+    let iiOld : Fin n := ⟨i.1, lt_trans hik hk⟩
+    let kk : Fin n := ⟨k, hk⟩
+    have hii : ii = iiOld := by
+      exact Fin.ext rfl
+    have hine : ii ≠ kk := by
+      intro h
+      have hv := congrArg (fun x : Fin n => x.1) h
+      dsimp [ii, kk] at hv
+      omega
+    have happly :
+        (translateParameterAt p kk v).toArrangement ii =
+          p.toArrangement ii := by
+      simpa [kk] using
+        translateParameterAt_apply_ne p (a := ii) (k := kk) v hine
+    simp [PlanarInsertion.prefixArrangement, Insertion.snocArrangement,
+      hik, happly, hii, ii, iiOld, kk]
+  · have hi : i = Fin.last k := Insertion.fin_eq_last_of_not_lt hik
+    subst i
+    let kk : Fin n := ⟨k, hk⟩
+    have happly :
+        (translateParameterAt p kk v).toArrangement kk =
+          TranslationGenericity.translate (p.toArrangement kk) v := by
+      simpa [kk] using translateParameterAt_apply_self p kk v
+    simp [PlanarInsertion.prefixArrangement, Insertion.snocArrangement,
+      happly, kk]
+
+/-- One step of the finite prefix genericization: translate the `k`th
+lollipop while staying in the prescribed open all-pairs regular locus, and
+extend no-triple position from the `k`-prefix to the `(k+1)`-prefix. -/
+theorem exists_translateParameterAt_step_prefix_noTriple
+    {n k : ℕ} {p : Lower.ArrangementParameter n} (hk : k < n)
+    {U : Set (Lower.ArrangementParameter n)}
+    (hU : IsOpen U) (hpU : p ∈ U)
+    (hpPair : p ∈ allPairCenterRegularGood (n := n))
+    (htriple :
+      TranslationGenericity.NoTripleCarrierPoints
+        (PlanarInsertion.prefixArrangement p.toArrangement k
+          (Nat.le_of_lt hk))) :
+    ∃ q : Lower.ArrangementParameter n,
+      q ∈ U ∧
+        q ∈ allPairCenterRegularGood (n := n) ∧
+        TranslationGenericity.NoTripleCarrierPoints
+          (PlanarInsertion.prefixArrangement q.toArrangement (k + 1)
+            (Nat.succ_le_of_lt hk)) ∧
+        ∃ v : Point, q = translateParameterAt p ⟨k, hk⟩ v := by
+  obtain ⟨ε, hεpos, hball⟩ :=
+    exists_norm_ball_translateParameterAt_subset_open_allPairCenterRegularGood
+      ⟨k, hk⟩ hU hpU hpPair
+  let Aold : Arrangement k :=
+    PlanarInsertion.prefixArrangement p.toArrangement k (Nat.le_of_lt hk)
+  let Lnew : Lollipop := p.toArrangement ⟨k, hk⟩
+  have hfinite : TranslationGenericity.PairFiniteArrangement Aold := by
+    exact TranslationGenericity.pairFiniteArrangement_prefix
+      p.toArrangement (Nat.le_of_lt hk)
+      (pairFiniteArrangement_of_mem_allPairCenterRegularGood hpPair)
+  have hcontacts :
+      ∀ v : Point, ‖v‖ < ε →
+        TranslationGenericity.PairContactsFinite Aold
+          (TranslationGenericity.translate Lnew v) := by
+    intro v hv
+    have hpvPair :
+        translateParameterAt p ⟨k, hk⟩ v ∈
+          allPairCenterRegularGood (n := n) := (hball v hv).2
+    simpa [Aold, Lnew] using
+      pairContactsFinite_prefix_translate_of_mem_allPairCenterRegularGood
+        (p := p) hk hpvPair
+  obtain ⟨v, hv, _hpair, htri⟩ :=
+    TranslationGenericity.exists_norm_lt_pairFinite_noTriple_snoc_translate
+      Aold Lnew hfinite htriple hεpos hcontacts
+  let q : Lower.ArrangementParameter n := translateParameterAt p ⟨k, hk⟩ v
+  have hqOpenPair :
+      q ∈ U ∩ allPairCenterRegularGood (n := n) := hball v hv
+  refine ⟨q, hqOpenPair.1, hqOpenPair.2, ?_, ⟨v, rfl⟩⟩
+  change
+    TranslationGenericity.NoTripleCarrierPoints
+      (PlanarInsertion.prefixArrangement
+        (translateParameterAt p ⟨k, hk⟩ v).toArrangement
+        (k + 1) (Nat.succ_le_of_lt hk))
+  rw [prefix_translateParameterAt_succ_eq_snoc p hk v]
+  simpa [Aold, Lnew] using htri
+
+/-- Finite prefix induction for the concrete triple-genericity construction.
+
+Starting from any point in an open all-pairs center-regular locus, repeatedly
+translate the next indexed lollipop by a sufficiently small vector.  The
+construction stays in the same open set and extends no-triple position from
+the current prefix to the next prefix at each step. -/
+theorem exists_mem_open_allPairCenterRegularGood_prefix_noTriple
+    {n : ℕ} {U : Set (Lower.ArrangementParameter n)}
+    (hU : IsOpen U) {p : Lower.ArrangementParameter n}
+    (hpU : p ∈ U) (hpPair : p ∈ allPairCenterRegularGood (n := n)) :
+    ∀ k : ℕ, ∀ hk : k ≤ n,
+      ∃ q : Lower.ArrangementParameter n,
+        q ∈ U ∧
+          q ∈ allPairCenterRegularGood (n := n) ∧
+          TranslationGenericity.NoTripleCarrierPoints
+            (PlanarInsertion.prefixArrangement q.toArrangement k hk) := by
+  intro k
+  induction k with
+  | zero =>
+      intro hk
+      refine ⟨p, hpU, hpPair, ?_⟩
+      exact TranslationGenericity.noTripleCarrierPoints_empty
+        (PlanarInsertion.prefixArrangement p.toArrangement 0 hk)
+  | succ k ih =>
+      intro hkSucc
+      have hklt : k < n := Nat.lt_of_succ_le hkSucc
+      have hk : k ≤ n := Nat.le_of_lt hklt
+      rcases ih hk with ⟨p', hp'U, hp'Pair, hp'Triple⟩
+      rcases
+        exists_translateParameterAt_step_prefix_noTriple
+          (p := p') hklt hU hp'U hp'Pair hp'Triple with
+        ⟨q, hqU, hqPair, hqTriple, _hv⟩
+      refine ⟨q, hqU, hqPair, ?_⟩
+      simpa [Nat.succ_eq_add_one] using hqTriple
+
+/-- Every open set meeting the all-pairs center-regular locus also contains a
+point whose full concrete arrangement has no triple carrier point. -/
+theorem exists_mem_open_allPairCenterRegularGood_noTriple
+    {n : ℕ} {U : Set (Lower.ArrangementParameter n)}
+    (hU : IsOpen U) {p : Lower.ArrangementParameter n}
+    (hpU : p ∈ U) (hpPair : p ∈ allPairCenterRegularGood (n := n)) :
+    ∃ q : Lower.ArrangementParameter n,
+      q ∈ U ∧
+        q ∈ allPairCenterRegularGood (n := n) ∧
+        TranslationGenericity.NoTripleCarrierPoints q.toArrangement := by
+  rcases
+    exists_mem_open_allPairCenterRegularGood_prefix_noTriple
+      hU hpU hpPair n le_rfl with
+    ⟨q, hqU, hqPair, hqTriple⟩
+  refine ⟨q, hqU, hqPair, ?_⟩
+  rw [PlanarInsertion.prefix_full q.toArrangement] at hqTriple
+  exact hqTriple
+
 /-- The elementary pair-regular locus is dense for every ordered distinct
 pair.  The proof first enters the already-proved nonparallel-stem locus, then
 translates only the second center inside that open set.  Radials are unchanged,
@@ -701,11 +884,19 @@ theorem dense_compl_tripleBadUnion_of_orderedTriple_open {n : ℕ}
 
 /-- Remaining triple-contact avoidance theorem for the only nontrivial range
 `3 ≤ n`. -/
-theorem dense_compl_tripleBadUnion_ge_three (n : ℕ) (hn : 3 ≤ n) :
+theorem dense_compl_tripleBadUnion_ge_three (n : ℕ) (_hn : 3 ≤ n) :
     Dense
       ((Lower.GenericityPort.tripleBadUnion :
         Set (Lower.ArrangementParameter n))ᶜ) := by
-  sorry
+  rw [dense_iff_inter_open]
+  intro U hU hUne
+  rcases dense_allPairCenterRegularGood.exists_mem_open hU hUne with
+    ⟨p, hpPair, hpU⟩
+  rcases
+    exists_mem_open_allPairCenterRegularGood_noTriple
+      hU hpU hpPair with
+    ⟨q, hqU, _hqPair, hqTriple⟩
+  exact ⟨q, hqU, not_mem_tripleBadUnion_of_noTripleCarrierPoints hqTriple⟩
 
 /-- The complement of the triple-contact bad locus is dense in every finite
 arrangement parameter space.
