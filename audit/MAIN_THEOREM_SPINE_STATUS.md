@@ -1,6 +1,6 @@
 # Main Theorem Spine Status
 
-Date: 2026-06-24
+Date: 2026-06-26
 
 This is the current audit after switching to the main-theorem-first workflow.
 The theorem spine now has a single import target:
@@ -18,6 +18,7 @@ Lollipop/Concrete/EndToEnd/MainTheorem/Assembly.lean
 The main theorem path is split into:
 
 ```text
+Lollipop/Concrete/EndToEnd/MainTheorem/PositiveInsertionSubdivision.lean
 Lollipop/Concrete/EndToEnd/MainTheorem/Topology.lean
 Lollipop/Concrete/EndToEnd/MainTheorem/Genericity.lean
 Lollipop/Concrete/EndToEnd/MainTheorem/Upper.lean
@@ -46,10 +47,9 @@ Lean reports the current intended `sorry`s below.
 
 ## Current Intended `sorry` Targets
 
-1. `MainTheorem.Topology.standardExteriorStemSlit_component_eq`
-2. `MainTheorem.Topology.localizedInsertionFiltration_bound_positive`
-3. `MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive`
-4. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
+1. `MainTheorem.positiveInsertionSubdivision_exists`
+2. `MainTheorem.exactPositiveInsertionSubdivision_exists`
+3. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
 
 Everything else in `MainTheorem.Assembly` is ordinary wiring from those named
 targets into the existing concrete upper and lower endpoint.
@@ -96,23 +96,27 @@ MainTheorem.Topology.firstLollipopActiveSideSurjective
 It follows from the existing component-map surjectivity theorem applied to
 the inclusion of the full lollipop complement into the circle complement.
 
-The first-lollipop side arc-lifting theorem now performs the Lean-obvious
+The first-lollipop side arc-lifting theorem performs the Lean-obvious
 reduction from equal Jordan side to equal circle-complement component.  It
 also proves the interior case: if both points lie inside the metric circle,
 the straight segment between them stays inside the open disk and is disjoint
-from the full lollipop carrier.  Its remaining internal hole is exactly the
-exterior stem-slit theorem: the exterior of the circle remains connected
-after deleting the outward stem.
+from the full lollipop carrier.
 
-The broad first-lollipop side arc-lifting theorem is therefore no longer a
-`sorry`; it calls the named exterior slit theorem above for its only
-remaining case.
+The exterior stem-slit theorem is now proved.  It first reduces by the
+existing positive-similarity infrastructure to the standard unit lollipop, and
+the standard case connects arbitrary exterior points to a common far
+upper-left point by vertical and horizontal segments that avoid the unit
+circle and positive real stem.
 
-The arbitrary first-lollipop exterior slit theorem is also no longer a
-`sorry`.  It is reduced by the existing positive-similarity infrastructure
-to the standard unit lollipop, so the remaining first-insertion slit target
-is now the coordinate-specific theorem
-`MainTheorem.Topology.standardExteriorStemSlit_component_eq`.
+The old positive-insertion theorem-body holes in `Topology.lean` are also no
+longer direct `sorry`s.  They are proved from the explicit construction
+targets in
+`Lollipop/Concrete/EndToEnd/MainTheorem/PositiveInsertionSubdivision.lean`:
+
+```lean
+MainTheorem.positiveInsertionSubdivision_exists
+MainTheorem.exactPositiveInsertionSubdivision_exists
+```
 
 ## Removal Order
 
@@ -121,8 +125,7 @@ is now the coordinate-specific theorem
 Remove:
 
 ```lean
-MainTheorem.Topology.standardExteriorStemSlit_component_eq
-MainTheorem.Topology.localizedInsertionFiltration_bound_positive
+MainTheorem.positiveInsertionSubdivision_exists
 ```
 
 This requires the topology-first plan:
@@ -137,7 +140,7 @@ This requires the topology-first plan:
 Remove:
 
 ```lean
-MainTheorem.Topology.localizedExactInsertionFiltration_of_generic_positive
+MainTheorem.exactPositiveInsertionSubdivision_exists
 ```
 
 This uses the same subdivision as the arbitrary theorem, plus generic
@@ -158,5 +161,5 @@ the parameter space when `3 ≤ n`.
 ## Non-Drift Rule
 
 New supporting lemmas should be added only if they directly discharge one of
-the four theorem-body targets above, or a named subtarget created inside one
+the three theorem-body targets above, or a named subtarget created inside one
 of those files to remove one of them.

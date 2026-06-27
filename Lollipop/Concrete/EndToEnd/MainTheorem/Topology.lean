@@ -3,6 +3,7 @@ import Lollipop.Concrete.EndToEnd.CircleJordan
 import Lollipop.Concrete.EndToEnd.JordanClassifier
 import Lollipop.Concrete.EndToEnd.LocalizedTopology
 import Lollipop.Concrete.EndToEnd.Lower.Similarity
+import Lollipop.Concrete.EndToEnd.MainTheorem.PositiveInsertionSubdivision
 
 /-!
 # Main theorem spine: topology
@@ -958,7 +959,8 @@ theorem localizedInsertionFiltration_bound_positive
         (A ⟨k, hk⟩) m,
       (m : ℚ) ≤
         (componentCount (InsertionFan.insertionFan A k hk) : ℚ) := by
-  sorry
+  rcases positiveInsertionSubdivision_exists A k hk hkpos with ⟨d⟩
+  exact localizedInsertionFiltration_bound_positive_of_subdivision d
 
 /-- Arbitrary localized filtration for one ordered insertion.
 
@@ -988,7 +990,8 @@ theorem localizedExactInsertionFiltration_of_generic_positive
         (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
         (A ⟨k, hk⟩) m,
       m = componentCount (InsertionFan.insertionFan A k hk) := by
-  sorry
+  rcases exactPositiveInsertionSubdivision_exists hA k hk hkpos with ⟨d⟩
+  exact localizedExactInsertionFiltration_of_exactPositiveSubdivision d
 
 /-- Arbitrary-arrangement localized insertion topology.
 
