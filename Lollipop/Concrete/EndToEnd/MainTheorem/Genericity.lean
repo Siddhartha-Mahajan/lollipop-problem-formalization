@@ -1,4 +1,5 @@
 import Lollipop.Concrete.EndToEnd.Lower.Genericity
+import Lollipop.Concrete.EndToEnd.TranslationGenericity
 
 /-!
 # Main theorem spine: lower genericity
@@ -52,6 +53,137 @@ def orderedTripleGood {n : ℕ} (t : OrderedTripleIndex n) :
     Set (Lower.ArrangementParameter n) :=
   (Lower.GenericityPort.tripleBadSet
     t.1.1 t.1.2.1 t.1.2.2 t.2.1 t.2.2.1 t.2.2.2)ᶜ
+
+/-- Translate one parameter in an arrangement parameter vector. -/
+def translateParameterAt {n : ℕ}
+    (p : Lower.ArrangementParameter n) (k : Fin n) (v : Point) :
+    Lower.ArrangementParameter n :=
+  fun a =>
+    if _h : a = k then
+      ⟨((p a).1.1 + v, (p a).1.2), (p a).2⟩
+    else p a
+
+@[simp] theorem translateParameterAt_zero {n : ℕ}
+    (p : Lower.ArrangementParameter n) (k : Fin n) :
+    translateParameterAt p k 0 = p := by
+  funext a
+  by_cases ha : a = k
+  · simp [translateParameterAt, ha]
+  · simp [translateParameterAt, ha]
+
+theorem translateParameterAt_apply_self {n : ℕ}
+    (p : Lower.ArrangementParameter n) (k : Fin n) (v : Point) :
+    (translateParameterAt p k v).toArrangement k =
+      TranslationGenericity.translate (p.toArrangement k) v := by
+  ext <;>
+    simp [translateParameterAt, Lower.ArrangementParameter.toArrangement,
+      Lower.LollipopParameter.toLollipop, TranslationGenericity.translate]
+
+theorem translateParameterAt_apply_ne {n : ℕ}
+    (p : Lower.ArrangementParameter n) {a k : Fin n} (v : Point)
+    (hak : a ≠ k) :
+    (translateParameterAt p k v).toArrangement a =
+      p.toArrangement a := by
+  simp [translateParameterAt, Lower.ArrangementParameter.toArrangement, hak]
+
+/-- The one-parameter translation path is continuous in the raw center/radial
+parameter space. -/
+theorem continuous_translateParameterAt {n : ℕ}
+    (p : Lower.ArrangementParameter n) (k : Fin n) :
+    Continuous (fun v : Point => translateParameterAt p k v) := by
+  apply continuous_pi
+  intro a
+  by_cases ha : a = k
+  · rw [continuous_induced_rng]
+    change Continuous (fun v : Point => (translateParameterAt p k v a).1)
+    simp [translateParameterAt, ha]
+    constructor <;> fun_prop
+  · rw [show (fun v : Point => translateParameterAt p k v a) =
+        fun _v : Point => p a by
+      funext v
+      simp [translateParameterAt, ha]]
+    exact continuous_const
+
+/-- Two-lollipop arrangement used to feed the translation-avoidance theorem
+for a fixed old pair. -/
+def twoArrangement (L M : Lollipop) : Arrangement 2 :=
+  fun a => if a = (0 : Fin 2) then L else M
+
+@[simp] theorem twoArrangement_zero (L M : Lollipop) :
+    twoArrangement L M (0 : Fin 2) = L := by
+  simp [twoArrangement]
+
+@[simp] theorem twoArrangement_one (L M : Lollipop) :
+    twoArrangement L M (1 : Fin 2) = M := by
+  simp [twoArrangement]
+
+theorem pairFinite_twoArrangement_of_finite {L M : Lollipop}
+    (hfinite : (L.carrier ∩ M.carrier).Finite) :
+    TranslationGenericity.PairFiniteArrangement (twoArrangement L M) := by
+  intro a b hab
+  fin_cases a <;> fin_cases b
+  · exact False.elim (hab rfl)
+  · simpa using hfinite
+  · simpa [Set.inter_comm] using hfinite
+  · exact False.elim (hab rfl)
+
+/-- Local triple-contact avoidance for one ordered triple.
+
+If the first two carriers already have finite contact, then translating the
+third lollipop inside any open parameter neighborhood avoids common points of
+the three selected carriers.  This is the bridge from the tracked
+`TranslationGenericity` module to the remaining finite-avoidance theorem. -/
+theorem exists_mem_open_not_tripleBadSet_of_pairFinite_at {n : ℕ}
+    {p : Lower.ArrangementParameter n} {i j k : Fin n}
+    (hij : i ≠ j) (hik : i ≠ k) (hjk : j ≠ k)
+    (hfinite :
+      ((p.toArrangement i).carrier ∩
+        (p.toArrangement j).carrier).Finite)
+    {U : Set (Lower.ArrangementParameter n)} (hU : IsOpen U)
+    (hpU : p ∈ U) :
+    ∃ q : Lower.ArrangementParameter n,
+      q ∈ U ∧
+        q ∉ Lower.GenericityPort.tripleBadSet i j k hij hik hjk := by
+  classical
+  let Aij : Arrangement 2 :=
+    twoArrangement (p.toArrangement i) (p.toArrangement j)
+  have hAijFinite : TranslationGenericity.PairFiniteArrangement Aij := by
+    simpa [Aij] using pairFinite_twoArrangement_of_finite hfinite
+  let γ : Point → Lower.ArrangementParameter n :=
+    fun v => translateParameterAt p k v
+  have hγcont : Continuous γ :=
+    continuous_translateParameterAt p k
+  have hpreOpen : IsOpen (γ ⁻¹' U) := hU.preimage hγcont
+  have hzero : (0 : Point) ∈ γ ⁻¹' U := by
+    change γ 0 ∈ U
+    simpa [γ] using hpU
+  obtain ⟨v, hvU, havoid⟩ :=
+    TranslationGenericity.exists_mem_open_noTripleContactWithInserted_translate
+      Aij (p.toArrangement k) hAijFinite hpreOpen hzero
+  refine ⟨γ v, hvU, ?_⟩
+  intro hbad
+  rcases hbad with ⟨x, hx⟩
+  rcases hx with ⟨hxij, hxk⟩
+  rcases hxij with ⟨hxi, hxj⟩
+  have hxiOld : x ∈ (p.toArrangement i).carrier := by
+    simpa [γ, Lower.ArrangementParameter.toArrangement, translateParameterAt,
+      hik] using hxi
+  have hxjOld : x ∈ (p.toArrangement j).carrier := by
+    simpa [γ, Lower.ArrangementParameter.toArrangement, translateParameterAt,
+      hjk] using hxj
+  have hxkNew :
+      x ∈ (TranslationGenericity.translate (p.toArrangement k) v).carrier := by
+    simpa [γ, Lower.ArrangementParameter.toArrangement, translateParameterAt,
+      Lower.LollipopParameter.toLollipop, TranslationGenericity.translate]
+      using hxk
+  have hdisj := havoid (i := (0 : Fin 2)) (j := (1 : Fin 2)) (by decide)
+  exact Set.disjoint_left.mp hdisj
+    (by simpa [Aij] using (show x ∈ (Aij (0 : Fin 2)).carrier ∩
+        (TranslationGenericity.translate (p.toArrangement k) v).carrier from
+        ⟨hxiOld, hxkNew⟩))
+    (by simpa [Aij] using (show x ∈ (Aij (1 : Fin 2)).carrier ∩
+        (TranslationGenericity.translate (p.toArrangement k) v).carrier from
+        ⟨hxjOld, hxkNew⟩))
 
 /-- The complement of the triple bad union is exactly the finite intersection
 of the fixed ordered-triple good loci. -/

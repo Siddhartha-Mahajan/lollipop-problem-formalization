@@ -82,6 +82,22 @@ the finite union in `tripleBadUnion`; it is the analytic/geometric proof that
 each fixed ordered-triple good locus is dense, with enough openness or
 finite-avoidance structure to intersect the finitely many loci.
 
+The tracked translation-avoidance route is now connected to that target.  The
+main theorem genericity file proves:
+
+```lean
+MainTheorem.Genericity.translateParameterAt
+MainTheorem.Genericity.continuous_translateParameterAt
+MainTheorem.Genericity.exists_mem_open_not_tripleBadSet_of_pairFinite_at
+```
+
+The last theorem says that for one ordered triple, if the first two selected
+carriers already have finite contact, then translating the third lollipop
+inside any open parameter neighborhood avoids that triple-contact locus.  The
+remaining global triple-density proof must still supply or construct the
+finite-contact base condition in every relevant neighborhood, then iterate
+this local move over all ordered triples.
+
 The previous broad topology placeholders are also no longer direct
 `intro; sorry` proofs.  They now assemble from first-insertion and
 positive-insertion filtration targets:
