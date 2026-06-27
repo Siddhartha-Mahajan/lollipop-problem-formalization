@@ -39,6 +39,71 @@ theorem dense_compl_tripleBadUnion_of_lt_three {n : ℕ} (hn : n < 3) :
     (no_three_distinct_fin_of_lt_three hn)]
   simp
 
+/-- Ordered triples of pairwise-distinct indices.  This packages the index
+and proof arguments in `Lower.GenericityPort.tripleBadUnion` into one finite
+type, so the remaining density theorem can be reduced to finitely many fixed
+triple-incidence loci. -/
+abbrev OrderedTripleIndex (n : ℕ) :=
+  {ijk : Fin n × Fin n × Fin n //
+    ijk.1 ≠ ijk.2.1 ∧ ijk.1 ≠ ijk.2.2 ∧ ijk.2.1 ≠ ijk.2.2}
+
+/-- The good locus for one ordered triple of pairwise-distinct indices. -/
+def orderedTripleGood {n : ℕ} (t : OrderedTripleIndex n) :
+    Set (Lower.ArrangementParameter n) :=
+  (Lower.GenericityPort.tripleBadSet
+    t.1.1 t.1.2.1 t.1.2.2 t.2.1 t.2.2.1 t.2.2.2)ᶜ
+
+/-- The complement of the triple bad union is exactly the finite intersection
+of the fixed ordered-triple good loci. -/
+theorem compl_tripleBadUnion_eq_iInter_orderedTripleGood {n : ℕ} :
+    ((Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n))ᶜ) =
+      ⋂ t : OrderedTripleIndex n, orderedTripleGood t := by
+  ext p
+  constructor
+  · intro hp
+    rw [Set.mem_iInter]
+    intro t
+    change p ∉
+      Lower.GenericityPort.tripleBadSet
+        t.1.1 t.1.2.1 t.1.2.2 t.2.1 t.2.2.1 t.2.2.2
+    intro hbad
+    apply hp
+    unfold Lower.GenericityPort.tripleBadUnion
+    exact Set.mem_iUnion.mpr ⟨t.1.1,
+      Set.mem_iUnion.mpr ⟨t.1.2.1,
+        Set.mem_iUnion.mpr ⟨t.1.2.2,
+          Set.mem_iUnion.mpr ⟨t.2.1,
+            Set.mem_iUnion.mpr ⟨t.2.2.1,
+              Set.mem_iUnion.mpr ⟨t.2.2.2, hbad⟩⟩⟩⟩⟩⟩
+  · intro hp hbad
+    unfold Lower.GenericityPort.tripleBadUnion at hbad
+    rcases Set.mem_iUnion.mp hbad with ⟨i, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨j, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨k, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hij, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hik, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hjk, hbad⟩
+    let t : OrderedTripleIndex n := ⟨(i, j, k), ⟨hij, hik, hjk⟩⟩
+    have hgood : p ∈ orderedTripleGood t := Set.mem_iInter.mp hp t
+    change p ∉ Lower.GenericityPort.tripleBadSet i j k hij hik hjk at hgood
+    exact hgood hbad
+
+/-- Finite-index reduction for the triple-contact density theorem.  It is
+enough to prove that every fixed ordered-triple good locus is open dense. -/
+theorem dense_compl_tripleBadUnion_of_orderedTriple_open_dense {n : ℕ}
+    (hopen : ∀ t : OrderedTripleIndex n, IsOpen (orderedTripleGood t))
+    (hdense : ∀ t : OrderedTripleIndex n, Dense (orderedTripleGood t)) :
+    Dense
+      ((Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n))ᶜ) := by
+  classical
+  have hfinite :
+      Dense (⋂ t : OrderedTripleIndex n, orderedTripleGood t) :=
+    Lower.GenericityPort.dense_iInter_fintype_of_open_dense
+      (orderedTripleGood (n := n)) hopen hdense
+  rwa [compl_tripleBadUnion_eq_iInter_orderedTripleGood]
+
 /-- Remaining triple-contact avoidance theorem for the only nontrivial range
 `3 ≤ n`. -/
 theorem dense_compl_tripleBadUnion_ge_three (n : ℕ) (hn : 3 ≤ n) :

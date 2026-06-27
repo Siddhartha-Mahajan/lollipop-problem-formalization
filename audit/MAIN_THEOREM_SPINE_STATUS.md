@@ -66,6 +66,22 @@ It is now assembled from:
 * the remaining theorem
   `dense_compl_tripleBadUnion_ge_three`.
 
+The `n >= 3` triple-contact target has now also been reduced to a checked
+finite-index statement.  The file
+`Lollipop/Concrete/EndToEnd/MainTheorem/Genericity.lean` defines
+
+```lean
+MainTheorem.Genericity.OrderedTripleIndex
+MainTheorem.Genericity.orderedTripleGood
+MainTheorem.Genericity.compl_tripleBadUnion_eq_iInter_orderedTripleGood
+MainTheorem.Genericity.dense_compl_tripleBadUnion_of_orderedTriple_open_dense
+```
+
+Thus the remaining nontrivial genericity work is no longer about unpacking
+the finite union in `tripleBadUnion`; it is the analytic/geometric proof that
+each fixed ordered-triple good locus is dense, with enough openness or
+finite-avoidance structure to intersect the finitely many loci.
+
 The previous broad topology placeholders are also no longer direct
 `intro; sorry` proofs.  They now assemble from first-insertion and
 positive-insertion filtration targets:
