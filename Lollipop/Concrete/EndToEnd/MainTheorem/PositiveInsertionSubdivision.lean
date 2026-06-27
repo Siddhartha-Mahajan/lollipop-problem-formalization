@@ -1005,6 +1005,210 @@ structure EffectiveCarrierSubdivisionData
   positive : PositiveInsertionSubdivision A k hk
   exact_of_generic : IsGeneric A → ExactPositiveInsertionSubdivision A k hk
 
+/-- Constructive localized-filtration form of effective carrier subdivision.
+
+This is closer to the geometry than `EffectiveCarrierSubdivisionData`: it asks
+for the actual bounded localized edge filtration, and in generic position for
+an exact localized filtration whose length is definitionally the insertion-fan
+component count. -/
+structure EffectiveLocalizedCarrierSubdivisionData
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) where
+  edgeCount : ℕ
+  filtration :
+    InsertionFiltration.LocalizedInsertionFiltration
+      (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+      (A ⟨k, hk⟩) edgeCount
+  edgeCount_le_fan :
+    (edgeCount : ℚ) ≤
+      (componentCount (InsertionFan.insertionFan A k hk) : ℚ)
+  exactFiltration_of_generic :
+    IsGeneric A →
+      InsertionFiltration.LocalizedExactInsertionFiltration
+        (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+        (A ⟨k, hk⟩)
+        (componentCount (InsertionFan.insertionFan A k hk))
+
+/-- A constructive localized subdivision gives the bounded subdivision object
+used by the upper-bound insertion theorem. -/
+def EffectiveLocalizedCarrierSubdivisionData.toPositive
+    {n : ℕ} {A : Arrangement n} {k : ℕ} {hk : k < n}
+    (d : EffectiveLocalizedCarrierSubdivisionData A k hk) :
+    PositiveInsertionSubdivision A k hk where
+  edgeCount := d.edgeCount
+  filtration := d.filtration
+  edgeCount_le_fan := d.edgeCount_le_fan
+
+/-- A constructive localized subdivision gives the exact subdivision object in
+generic position. -/
+def EffectiveLocalizedCarrierSubdivisionData.toExact
+    {n : ℕ} {A : Arrangement n} {k : ℕ} {hk : k < n}
+    (d : EffectiveLocalizedCarrierSubdivisionData A k hk)
+    (hA : IsGeneric A) :
+    ExactPositiveInsertionSubdivision A k hk where
+  edgeCount := componentCount (InsertionFan.insertionFan A k hk)
+  filtration := d.exactFiltration_of_generic hA
+  edgeCount_eq_fan := rfl
+
+/-- One-piece constructor for the constructive effective-carrier subdivision
+target.
+
+If the whole genuinely new carrier part is connected and one Jordan crosscut
+controls it, then the localized subdivision is a single edge.  In the exact
+field we also require the fan to have one component and both Jordan sides to
+be realized. -/
+noncomputable def
+    effectiveLocalizedCarrierSubdivisionData_of_connectedNewPart_crosscut
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (hfan : componentCount (InsertionFan.insertionFan A k hk) = 1)
+    {p : Point} {J : Set Point}
+    (hpL : p ∈ (A ⟨k, hk⟩).carrier)
+    (hpOld :
+      p ∉
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+    (hnew :
+      IsConnected
+        ((A ⟨k, hk⟩).carrier ∩
+          (occupied
+            (PlanarInsertion.prefixArrangement A k
+              (Nat.le_of_lt hk)))ᶜ))
+    (hJK : J ⊆
+      LocalInsertion.carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+      hJK hJ
+      (connectedNewPartActiveComponent
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier p hpL hpOld))
+    (hside : JordanClassifier.ActiveSideSurjective
+      (LocalInsertion.old_subset_carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+      hJK hJ
+      (connectedNewPartActiveComponent
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier p hpL hpOld)) :
+    EffectiveLocalizedCarrierSubdivisionData A k hk where
+  edgeCount := 1
+  filtration := by
+    let C :=
+      occupied (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+    let L := A ⟨k, hk⟩
+    let step : LocalFiltration.LocalizedEdgeStep C L.carrier :=
+      localizedEdgeStepOfConnectedNewPartJordanCrosscut
+        (C := C) (E := L.carrier) hnew hpL hpOld hJK hJ hlift
+    let f : LocalFiltration.LocalizedEdgeFiltration 1 C
+        (LocalInsertion.carrierExtension C L.carrier) :=
+      LocalFiltration.LocalizedEdgeFiltration.snoc
+        (LocalFiltration.LocalizedEdgeFiltration.nil C)
+        L.carrier step
+    simpa [InsertionFiltration.LocalizedInsertionFiltration, C, L,
+      LocalInsertion.carrierExtension] using f
+  edgeCount_le_fan := by
+    rw [hfan]
+  exactFiltration_of_generic := by
+    intro _hA
+    let C :=
+      occupied (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+    let L := A ⟨k, hk⟩
+    let step : LocalFiltration.LocalizedExactEdgeStep L C L.carrier :=
+      localizedExactEdgeStepOfConnectedNewPartJordanCrosscut
+        (C := C) (E := L.carrier)
+        (isClosed_occupied_prefix A k hk) L
+        (subset_rfl : L.carrier ⊆ L.carrier)
+        hnew hpL hpOld hJK hJ hlift hside
+    let f : LocalFiltration.LocalizedExactEdgeFiltration L 1 C
+        (LocalInsertion.carrierExtension C L.carrier) :=
+      LocalFiltration.LocalizedExactEdgeFiltration.snoc
+        (LocalFiltration.LocalizedExactEdgeFiltration.nil (L := L) C)
+        L.carrier step
+    simpa [InsertionFiltration.LocalizedExactInsertionFiltration, C, L,
+      LocalInsertion.carrierExtension, hfan] using f
+
+/-- Effective one-piece constructor for the constructive localized
+subdivision target. -/
+theorem
+    effectiveLocalizedCarrierSubdivisionData_exists_of_effective_connectedNewPart_crosscut
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (hfan : componentCount (InsertionFan.insertionFan A k hk) = 1)
+    (heffective :
+      ¬ (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+    (hnew :
+      IsConnected
+        ((A ⟨k, hk⟩).carrier ∩
+          (occupied
+            (PlanarInsertion.prefixArrangement A k
+              (Nat.le_of_lt hk)))ᶜ))
+    (hcross :
+      ∀ {p : Point}
+        (hpL : p ∈ (A ⟨k, hk⟩).carrier)
+        (hpOld :
+          p ∉
+            occupied
+              (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))),
+        ∃ J : Set Point,
+        ∃ hJK : J ⊆
+          LocalInsertion.carrierExtension
+            (occupied
+              (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier,
+        ∃ hJ : IsSimpleClosedCurve J,
+        ∃ _hlift : JordanClassifier.ActiveSideArcLifting
+          (LocalInsertion.old_subset_carrierExtension
+            (occupied
+              (PlanarInsertion.prefixArrangement A k
+                (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier)
+          hJK hJ
+          (connectedNewPartActiveComponent
+            (occupied
+              (PlanarInsertion.prefixArrangement A k
+                (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier p hpL hpOld),
+          JordanClassifier.ActiveSideSurjective
+            (LocalInsertion.old_subset_carrierExtension
+              (occupied
+                (PlanarInsertion.prefixArrangement A k
+                  (Nat.le_of_lt hk)))
+              (A ⟨k, hk⟩).carrier)
+            hJK hJ
+            (connectedNewPartActiveComponent
+              (occupied
+                (PlanarInsertion.prefixArrangement A k
+                  (Nat.le_of_lt hk)))
+              (A ⟨k, hk⟩).carrier p hpL hpOld)) :
+    Nonempty (EffectiveLocalizedCarrierSubdivisionData A k hk) := by
+  rcases exists_new_point_of_effective_carrier A k hk heffective with
+    ⟨p, hpL, hpOld⟩
+  rcases hcross hpL hpOld with ⟨J, hJK, hJ, hlift, hside⟩
+  exact ⟨
+    effectiveLocalizedCarrierSubdivisionData_of_connectedNewPart_crosscut
+      A k hk hfan hpL hpOld hnew hJK hJ hlift hside⟩
+
+/-- Constructive localized form of the remaining effective-carrier topology
+construction.  This is the theorem a carrier-cutting proof should discharge
+directly. -/
+theorem effectiveLocalizedCarrierSubdivisionData_exists
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) (_hkpos : 0 < k)
+    (_heffective :
+      ¬ (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))) :
+    Nonempty (EffectiveLocalizedCarrierSubdivisionData A k hk) := by
+  sorry
+
 /-- Remaining effective-carrier subdivision construction.
 
 Mathematically this is the carrier-cutting theorem: split the inserted
@@ -1017,7 +1221,12 @@ theorem effectiveCarrierSubdivisionData_exists
         occupied
           (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))) :
     Nonempty (EffectiveCarrierSubdivisionData A k hk) := by
-  sorry
+  rcases effectiveLocalizedCarrierSubdivisionData_exists A k hk _hkpos
+      _heffective with
+    ⟨d⟩
+  exact ⟨{
+    positive := d.toPositive
+    exact_of_generic := d.toExact }⟩
 
 /-- A bounded subdivision gives the existential localized-filtration theorem
 used by `LocalizedTopology`. -/

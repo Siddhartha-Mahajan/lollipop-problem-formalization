@@ -47,7 +47,7 @@ Lean reports the current intended `sorry`s below.
 
 ## Current Intended `sorry` Targets
 
-1. `MainTheorem.effectiveCarrierSubdivisionData_exists`
+1. `MainTheorem.effectiveLocalizedCarrierSubdivisionData_exists`
 
 Everything else in `MainTheorem.Assembly` is ordinary wiring from that named
 target into the existing concrete upper and lower endpoint.
@@ -307,14 +307,29 @@ Those two endpoint targets are now ordinary consequences of the single
 remaining effective-carrier subdivision package:
 
 ```lean
+MainTheorem.EffectiveLocalizedCarrierSubdivisionData
+MainTheorem.effectiveLocalizedCarrierSubdivisionData_exists
 MainTheorem.EffectiveCarrierSubdivisionData
 MainTheorem.effectiveCarrierSubdivisionData_exists
 ```
 
-`EffectiveCarrierSubdivisionData` contains both the bounded subdivision and
-the exact subdivision available under an `IsGeneric A` hypothesis.  It is not
-a public certificate argument; it is the internal theorem target for the
-carrier-cutting construction.
+`EffectiveLocalizedCarrierSubdivisionData` is the constructive target.  It
+contains the actual bounded localized edge filtration and, under `IsGeneric A`,
+an exact localized edge filtration whose length is definitionally the insertion
+fan component count.  `EffectiveCarrierSubdivisionData` is now just the
+compiled subdivision object obtained from those localized filtrations.  Neither
+structure is a public certificate argument.
+
+The one-piece connected-new-part case now has a checked constructor:
+
+```lean
+MainTheorem.effectiveLocalizedCarrierSubdivisionData_of_connectedNewPart_crosscut
+MainTheorem.effectiveLocalizedCarrierSubdivisionData_exists_of_effective_connectedNewPart_crosscut
+```
+
+Thus any future proof that the effective inserted carrier has one connected
+new part, one fan component, and a realized Jordan crosscut immediately
+produces the localized data required by the main topology target.
 
 ## Removal Order
 
@@ -323,7 +338,7 @@ carrier-cutting construction.
 Remove:
 
 ```lean
-MainTheorem.effectiveCarrierSubdivisionData_exists
+MainTheorem.effectiveLocalizedCarrierSubdivisionData_exists
 ```
 
 This requires the topology-first plan:
