@@ -196,6 +196,56 @@ theorem circleArc_subset_inserted_carrier
     PrimitiveArcs.circleArc L a b ⊆ L.carrier :=
   PrimitiveArcs.circleArc_subset_carrier L a b
 
+/-- If the inserted carrier is disjoint from the old prefix carrier, its
+old-new insertion fan is exactly the compactification point. -/
+theorem insertionFan_eq_singleton_infinity_of_carrier_subset_prefix_compl
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (hLC :
+      (A ⟨k, hk⟩).carrier ⊆
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))ᶜ) :
+    InsertionFan.insertionFan A k hk = {infinity} := by
+  rw [InsertionFan.insertionFan_eq_inter_hatOccupied_prefix]
+  ext z
+  cases z using OnePoint.rec with
+  | infty =>
+      constructor
+      · intro _hz
+        simp [infinity]
+      · intro _hz
+        exact ⟨infinity_mem_hatCarrier (A ⟨k, hk⟩),
+          infinity_mem_hatOccupied
+            (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))⟩
+  | coe x =>
+      constructor
+      · intro hz
+        have hxL : x ∈ (A ⟨k, hk⟩).carrier :=
+          (finitePoint_mem_hatCarrier_iff (A ⟨k, hk⟩) x).1 hz.1
+        have hxOld :
+            x ∈
+              occupied
+                (PlanarInsertion.prefixArrangement A k
+                  (Nat.le_of_lt hk)) :=
+          (finitePoint_mem_hatOccupied_iff
+            (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+            x).1 hz.2
+        exact False.elim (hLC hxL hxOld)
+      · intro hz
+        simp [infinity] at hz
+
+/-- Component-count form of
+`insertionFan_eq_singleton_infinity_of_carrier_subset_prefix_compl`. -/
+theorem componentCount_insertionFan_eq_one_of_carrier_subset_prefix_compl
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (hLC :
+      (A ⟨k, hk⟩).carrier ⊆
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))ᶜ) :
+    componentCount (InsertionFan.insertionFan A k hk) = 1 := by
+  rw [insertionFan_eq_singleton_infinity_of_carrier_subset_prefix_compl
+    A k hk hLC]
+  exact componentCount_singleton infinity
+
 /-- Connected-edge version of the bounded Jordan-crosscut constructor.
 
 This is the local step used by a future carrier subdivision: after a
@@ -430,6 +480,53 @@ noncomputable def exactPositiveInsertionSubdivision_of_singleExactEdgeStep
     simpa [InsertionFiltration.LocalizedExactInsertionFiltration, C, L,
       LocalInsertion.carrierExtension] using f
   edgeCount_eq_fan := hfan.symm
+
+/-- A whole inserted carrier disjoint from the old carrier gives a one-edge
+exact subdivision once the local Jordan crosscut separates both active sides.
+-/
+noncomputable def exactPositiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) {J : Set Point}
+    (hLC :
+      (A ⟨k, hk⟩).carrier ⊆
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))ᶜ)
+    (hJK : J ⊆
+      LocalInsertion.carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+      hJK hJ
+      (connectedEdgeActiveComponent
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier (A ⟨k, hk⟩).anchor
+        ((A ⟨k, hk⟩).anchor_mem_carrier) hLC))
+    (hside : JordanClassifier.ActiveSideSurjective
+      (LocalInsertion.old_subset_carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+      hJK hJ
+      (connectedEdgeActiveComponent
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier (A ⟨k, hk⟩).anchor
+        ((A ⟨k, hk⟩).anchor_mem_carrier) hLC)) :
+    ExactPositiveInsertionSubdivision A k hk :=
+  exactPositiveInsertionSubdivision_of_singleExactEdgeStep A k hk
+    (componentCount_insertionFan_eq_one_of_carrier_subset_prefix_compl
+      A k hk hLC)
+    (localizedExactEdgeStepOfCarrierJordanCrosscut
+      (occupied
+        (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+      (A ⟨k, hk⟩)
+      (isClosed_occupied_prefix A k hk) hLC hJK hJ hlift hside)
 
 /-- If the inserted carrier is already contained in the old carrier, no
 localized edge insertion is needed for the bounded upper-bound direction. -/

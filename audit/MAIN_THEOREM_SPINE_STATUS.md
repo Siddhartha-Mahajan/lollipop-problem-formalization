@@ -88,7 +88,10 @@ The disjoint whole-carrier one-edge case is also reduced to the local
 Jordan-crosscut side-lifting input:
 
 ```lean
+MainTheorem.insertionFan_eq_singleton_infinity_of_carrier_subset_prefix_compl
+MainTheorem.componentCount_insertionFan_eq_one_of_carrier_subset_prefix_compl
 MainTheorem.positiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
+MainTheorem.exactPositiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
 ```
 
 The insertion-fan budget for the first insertion is proved:
