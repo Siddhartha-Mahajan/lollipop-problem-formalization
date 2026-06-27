@@ -323,10 +323,15 @@ structure is a public certificate argument.
 The one-piece connected-new-part case now has a checked constructor:
 
 ```lean
+MainTheorem.effectiveLocalizedCarrierSubdivisionData_of_disjoint_carrier_crosscut
+MainTheorem.effectiveLocalizedCarrierSubdivisionData_exists_of_disjoint_carrier_crosscut
 MainTheorem.effectiveLocalizedCarrierSubdivisionData_of_connectedNewPart_crosscut
 MainTheorem.effectiveLocalizedCarrierSubdivisionData_exists_of_effective_connectedNewPart_crosscut
 ```
 
+The first two handle the no-overlap branch where the inserted carrier avoids
+the old prefix carrier; the insertion fan is `{∞}` and the whole carrier is a
+single localized edge.  The latter two handle the one-piece overlap branch.
 Thus any future proof that the effective inserted carrier has one connected
 new part, one fan component, and a realized Jordan crosscut immediately
 produces the localized data required by the main topology target.
