@@ -158,6 +158,120 @@ def NoTripleContactWithInserted {n : ℕ}
     Disjoint ((A i).carrier ∩ L.carrier)
       ((A j).carrier ∩ L.carrier)
 
+/-- Contact finiteness between every old carrier and one inserted carrier. -/
+def PairContactsFinite {n : ℕ} (A : Arrangement n) (L : Lollipop) : Prop :=
+  ∀ i : Fin n, ((A i).carrier ∩ L.carrier).Finite
+
+/-- No point lies on three pairwise-distinct carriers.  This unordered form is
+the invariant used by the insertion-order genericization route. -/
+def NoTripleCarrierPoints {n : ℕ} (A : Arrangement n) : Prop :=
+  ∀ i j k : Fin n,
+    i ≠ j → i ≠ k → j ≠ k →
+      Disjoint
+        ((A i).carrier ∩ (A k).carrier)
+        ((A j).carrier ∩ (A k).carrier)
+
+/-- Pairwise finiteness is preserved when the appended lollipop has finite
+contact with every old carrier. -/
+theorem pairFiniteArrangement_snoc
+    {n : ℕ} {A : Arrangement n} {L : Lollipop}
+    (hA : PairFiniteArrangement A)
+    (hL : PairContactsFinite A L) :
+    PairFiniteArrangement (Insertion.snocArrangement A L) := by
+  intro i j hij
+  by_cases hi : i.1 < n
+  · by_cases hj : j.1 < n
+    · have hijOld : (⟨i.1, hi⟩ : Fin n) ≠ ⟨j.1, hj⟩ := by
+        intro h
+        apply hij
+        exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+      simpa [Insertion.snocArrangement, hi, hj] using
+        hA ⟨i.1, hi⟩ ⟨j.1, hj⟩ hijOld
+    · simpa [Insertion.snocArrangement, hi, hj] using hL ⟨i.1, hi⟩
+  · by_cases hj : j.1 < n
+    · simpa [Insertion.snocArrangement, hi, hj, inter_comm] using
+        hL ⟨j.1, hj⟩
+    · have hieq := Insertion.fin_eq_last_of_not_lt hi
+      have hjeq := Insertion.fin_eq_last_of_not_lt hj
+      exact (hij (hieq.trans hjeq.symm)).elim
+
+/-- Global no-triple position is preserved by appending a lollipop satisfying
+the old/new no-triple contact condition. -/
+theorem noTripleCarrierPoints_snoc
+    {n : ℕ} {A : Arrangement n} {L : Lollipop}
+    (hA : NoTripleCarrierPoints A)
+    (hL : NoTripleContactWithInserted A L) :
+    NoTripleCarrierPoints (Insertion.snocArrangement A L) := by
+  intro i j k hij hik hjk
+  rw [Set.disjoint_left]
+  intro x hxi hxj
+  by_cases hkOld : k.1 < n
+  · by_cases hiOld : i.1 < n
+    · by_cases hjOld : j.1 < n
+      · have hijOld : (⟨i.1, hiOld⟩ : Fin n) ≠ ⟨j.1, hjOld⟩ := by
+          intro h
+          apply hij
+          exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+        have hikOld : (⟨i.1, hiOld⟩ : Fin n) ≠ ⟨k.1, hkOld⟩ := by
+          intro h
+          apply hik
+          exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+        have hjkOld : (⟨j.1, hjOld⟩ : Fin n) ≠ ⟨k.1, hkOld⟩ := by
+          intro h
+          apply hjk
+          exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+        have hd := hA ⟨i.1, hiOld⟩ ⟨j.1, hjOld⟩
+          ⟨k.1, hkOld⟩ hijOld hikOld hjkOld
+        exact Set.disjoint_left.mp hd
+          ⟨by simpa [Insertion.snocArrangement, hiOld] using hxi.1,
+            by simpa [Insertion.snocArrangement, hkOld] using hxi.2⟩
+          ⟨by simpa [Insertion.snocArrangement, hjOld] using hxj.1,
+            by simpa [Insertion.snocArrangement, hkOld] using hxj.2⟩
+      · have hikOld : (⟨i.1, hiOld⟩ : Fin n) ≠ ⟨k.1, hkOld⟩ := by
+          intro h
+          apply hik
+          exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+        have hd := hL hikOld
+        exact Set.disjoint_left.mp hd
+          ⟨by simpa [Insertion.snocArrangement, hiOld] using hxi.1,
+            by simpa [Insertion.snocArrangement, hjOld] using hxj.1⟩
+          ⟨by simpa [Insertion.snocArrangement, hkOld] using hxi.2,
+            by simpa [Insertion.snocArrangement, hjOld] using hxj.1⟩
+    · have hiLast := Insertion.fin_eq_last_of_not_lt hiOld
+      have hjOld : j.1 < n := by
+        by_contra hjNotOld
+        have hjLast := Insertion.fin_eq_last_of_not_lt hjNotOld
+        exact hij (hiLast.trans hjLast.symm)
+      have hjkOld : (⟨j.1, hjOld⟩ : Fin n) ≠ ⟨k.1, hkOld⟩ := by
+        intro h
+        apply hjk
+        exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+      have hd := hL hjkOld
+      exact Set.disjoint_left.mp hd
+        ⟨by simpa [Insertion.snocArrangement, hjOld] using hxj.1,
+          by simpa [Insertion.snocArrangement, hiOld] using hxi.1⟩
+        ⟨by simpa [Insertion.snocArrangement, hkOld] using hxi.2,
+          by simpa [Insertion.snocArrangement, hiOld] using hxi.1⟩
+  · have hkLast := Insertion.fin_eq_last_of_not_lt hkOld
+    have hiOld : i.1 < n := by
+      by_contra hiNotOld
+      have hiLast := Insertion.fin_eq_last_of_not_lt hiNotOld
+      exact hik (hiLast.trans hkLast.symm)
+    have hjOld : j.1 < n := by
+      by_contra hjNotOld
+      have hjLast := Insertion.fin_eq_last_of_not_lt hjNotOld
+      exact hjk (hjLast.trans hkLast.symm)
+    have hijOld : (⟨i.1, hiOld⟩ : Fin n) ≠ ⟨j.1, hjOld⟩ := by
+      intro h
+      apply hij
+      exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+    have hd := hL hijOld
+    exact Set.disjoint_left.mp hd
+      ⟨by simpa [Insertion.snocArrangement, hiOld] using hxi.1,
+        by simpa [Insertion.snocArrangement, hkOld] using hxi.2⟩
+      ⟨by simpa [Insertion.snocArrangement, hjOld] using hxj.1,
+        by simpa [Insertion.snocArrangement, hkOld] using hxj.2⟩
+
 /-- Union of old pair-contact sets over a finite collection of index pairs. -/
 def oldPairContactUnionOn {n : ℕ} (A : Arrangement n)
     (s : Finset (Fin n × Fin n)) : Set Point :=
@@ -247,6 +361,27 @@ theorem exists_norm_lt_noTripleContactWithInserted_translate
       A L hfinite Metric.isOpen_ball hzero
   refine ⟨v, ?_, htriple⟩
   simpa [Metric.mem_ball, dist_eq_norm] using hv
+
+/-- One insertion-order genericization step.
+
+If all sufficiently small translations retain finite contact with every old
+carrier, then one can choose such a translation which simultaneously preserves
+pairwise finiteness and extends global no-triple position. -/
+theorem exists_norm_lt_pairFinite_noTriple_snoc_translate
+    {n : ℕ} (A : Arrangement n) (L : Lollipop)
+    (hfinite : PairFiniteArrangement A)
+    (htriple : NoTripleCarrierPoints A)
+    {ε : ℝ} (hε : 0 < ε)
+    (hcontacts : ∀ v : Point, ‖v‖ < ε →
+      PairContactsFinite A (translate L v)) :
+    ∃ v : Point, ‖v‖ < ε ∧
+      PairFiniteArrangement (Insertion.snocArrangement A (translate L v)) ∧
+      NoTripleCarrierPoints (Insertion.snocArrangement A (translate L v)) := by
+  obtain ⟨v, hv, hnewTriple⟩ :=
+    exists_norm_lt_noTripleContactWithInserted_translate A L hfinite hε
+  exact ⟨v, hv,
+    pairFiniteArrangement_snoc hfinite (hcontacts v hv),
+    noTripleCarrierPoints_snoc htriple hnewTriple⟩
 
 end TranslationGenericity
 end EndToEnd

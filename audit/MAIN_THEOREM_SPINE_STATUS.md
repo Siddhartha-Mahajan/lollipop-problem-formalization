@@ -127,6 +127,25 @@ fixed ordered-triple good loci to use the existing finite open-dense
 intersection theorem, or replace that route with a sequential finite
 avoidance proof that preserves previously removed triple contacts.
 
+The sequential route now has checked append bookkeeping in
+`Lollipop/Concrete/EndToEnd/TranslationGenericity.lean`:
+
+```lean
+TranslationGenericity.PairContactsFinite
+TranslationGenericity.NoTripleCarrierPoints
+TranslationGenericity.pairFiniteArrangement_snoc
+TranslationGenericity.noTripleCarrierPoints_snoc
+TranslationGenericity.exists_norm_lt_pairFinite_noTriple_snoc_translate
+```
+
+This proves the core one-step statement: once an old prefix has pairwise
+finite contacts and no triple carrier points, a sufficiently small translation
+of the next lollipop can be chosen to avoid all old double points; if old/new
+pair contacts remain finite throughout the small ball, the appended prefix is
+again pairwise finite and no-triple.  The remaining work for this route is the
+finite induction over prefixes plus a checked local contact-finiteness
+neighborhood for the translated inserted lollipop.
+
 The previous broad topology placeholders are also no longer direct
 `intro; sorry` proofs.  They now assemble from first-insertion and
 positive-insertion filtration targets:
