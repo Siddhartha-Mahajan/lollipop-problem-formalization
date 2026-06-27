@@ -1,4 +1,5 @@
 import Lollipop.Concrete.EndToEnd.LocalizedTopology
+import Lollipop.Concrete.EndToEnd.OccupiedTopology
 import Lollipop.Concrete.EndToEnd.PrimitiveArcs
 import Mathlib.Tactic
 
@@ -172,6 +173,27 @@ theorem circleArc_edgeLocalized_of_subset_compl
     (PrimitiveArcs.circleArc_isConnected L ha hab hb)
     (by exact ⟨a, ⟨le_rfl, le_of_lt hab⟩, rfl⟩)
     hEC
+
+/-- The old occupied carrier at an ordered insertion prefix is closed. -/
+theorem isClosed_occupied_prefix
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) :
+    IsClosed
+      (occupied (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))) :=
+  OccupiedTopology.isClosed_occupied
+    (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+
+/-- A finite stem subsegment whose endpoints are on the outward stem is an
+edge of the inserted lollipop carrier. -/
+theorem stemSegment_subset_inserted_carrier
+    (L : Lollipop) {a b : ℝ} (ha : 1 ≤ a) (hb : 1 ≤ b) :
+    PrimitiveArcs.stemSegment L a b ⊆ L.carrier :=
+  PrimitiveArcs.stemSegment_subset_carrier L ha hb
+
+/-- A proper circle subarc is an edge of the inserted lollipop carrier. -/
+theorem circleArc_subset_inserted_carrier
+    (L : Lollipop) (a b : ℝ) :
+    PrimitiveArcs.circleArc L a b ⊆ L.carrier :=
+  PrimitiveArcs.circleArc_subset_carrier L a b
 
 /-- Bounded subdivision data for one positive ordered insertion.
 
