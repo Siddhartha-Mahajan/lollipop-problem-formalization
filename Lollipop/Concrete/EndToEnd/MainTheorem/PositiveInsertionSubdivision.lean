@@ -994,6 +994,31 @@ noncomputable def positiveInsertionSubdivision_of_carrier_subset_old
     exact_mod_cast
       (Nat.zero_le (componentCount (InsertionFan.insertionFan A k hk)))
 
+/-- The single remaining effective-carrier subdivision package.
+
+This is not a public certificate argument.  It is the internal theorem target
+for the planar subdivision construction: once the inserted carrier has a
+genuinely new point, produce the bounded localized subdivision; if the whole
+arrangement is generic, produce the exact fan-sized subdivision as well. -/
+structure EffectiveCarrierSubdivisionData
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) where
+  positive : PositiveInsertionSubdivision A k hk
+  exact_of_generic : IsGeneric A → ExactPositiveInsertionSubdivision A k hk
+
+/-- Remaining effective-carrier subdivision construction.
+
+Mathematically this is the carrier-cutting theorem: split the inserted
+lollipop along its finite old-new fan, build one localized crosscut step for
+each effective piece, and concatenate the resulting filtrations. -/
+theorem effectiveCarrierSubdivisionData_exists
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) (_hkpos : 0 < k)
+    (_heffective :
+      ¬ (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))) :
+    Nonempty (EffectiveCarrierSubdivisionData A k hk) := by
+  sorry
+
 /-- A bounded subdivision gives the existential localized-filtration theorem
 used by `LocalizedTopology`. -/
 theorem localizedInsertionFiltration_bound_positive_of_subdivision
@@ -1019,7 +1044,9 @@ theorem positiveInsertionSubdivision_exists_of_effective_carrier
         occupied
           (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))) :
     Nonempty (PositiveInsertionSubdivision A k hk) := by
-  sorry
+  rcases effectiveCarrierSubdivisionData_exists A k hk _hkpos _heffective
+    with ⟨d⟩
+  exact ⟨d.positive⟩
 
 /-- An exact subdivision gives the existential exact localized-filtration
 theorem used by `LocalizedTopology`. -/
@@ -1061,7 +1088,9 @@ theorem exactPositiveInsertionSubdivision_exists_of_generic_effective_carrier
         occupied
           (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))) :
     Nonempty (ExactPositiveInsertionSubdivision A k hk) := by
-  sorry
+  rcases effectiveCarrierSubdivisionData_exists A k hk _hkpos _heffective
+    with ⟨d⟩
+  exact ⟨d.exact_of_generic hA⟩
 
 /-- Remaining bounded positive-insertion subdivision theorem.
 

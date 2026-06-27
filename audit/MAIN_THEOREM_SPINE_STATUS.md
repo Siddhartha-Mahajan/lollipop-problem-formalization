@@ -47,11 +47,10 @@ Lean reports the current intended `sorry`s below.
 
 ## Current Intended `sorry` Targets
 
-1. `MainTheorem.positiveInsertionSubdivision_exists_of_effective_carrier`
-2. `MainTheorem.exactPositiveInsertionSubdivision_exists_of_generic_effective_carrier`
+1. `MainTheorem.effectiveCarrierSubdivisionData_exists`
 
-Everything else in `MainTheorem.Assembly` is ordinary wiring from those named
-targets into the existing concrete upper and lower endpoint.
+Everything else in `MainTheorem.Assembly` is ordinary wiring from that named
+target into the existing concrete upper and lower endpoint.
 
 ## What Has Been Narrowed
 
@@ -295,9 +294,8 @@ the standard case connects arbitrary exterior points to a common far
 upper-left point by vertical and horizontal segments that avoid the unit
 circle and positive real stem.
 
-The old positive-insertion theorem-body holes in `Topology.lean` are also no
-longer direct `sorry`s.  They are proved from the explicit construction
-targets in
+The old positive-insertion theorem-body holes in `Topology.lean` are not
+direct `sorry`s.  They are proved from the explicit construction targets in
 `Lollipop/Concrete/EndToEnd/MainTheorem/PositiveInsertionSubdivision.lean`:
 
 ```lean
@@ -305,14 +303,27 @@ MainTheorem.positiveInsertionSubdivision_exists_of_effective_carrier
 MainTheorem.exactPositiveInsertionSubdivision_exists_of_generic_effective_carrier
 ```
 
+Those two endpoint targets are now ordinary consequences of the single
+remaining effective-carrier subdivision package:
+
+```lean
+MainTheorem.EffectiveCarrierSubdivisionData
+MainTheorem.effectiveCarrierSubdivisionData_exists
+```
+
+`EffectiveCarrierSubdivisionData` contains both the bounded subdivision and
+the exact subdivision available under an `IsGeneric A` hypothesis.  It is not
+a public certificate argument; it is the internal theorem target for the
+carrier-cutting construction.
+
 ## Removal Order
 
-### 1. Arbitrary topology
+### 1. Effective carrier subdivision
 
 Remove:
 
 ```lean
-MainTheorem.positiveInsertionSubdivision_exists_of_effective_carrier
+MainTheorem.effectiveCarrierSubdivisionData_exists
 ```
 
 This requires the topology-first plan:
@@ -321,21 +332,10 @@ This requires the topology-first plan:
 * carrier subdivision relative to the old-new insertion fan;
 * remaining degenerate cases treated as zero-cost fan overlap pieces;
 * finite localized edge filtration length bounded by fan component count.
-
-### 2. Generic exact topology
-
-Remove:
-
-```lean
-MainTheorem.exactPositiveInsertionSubdivision_exists_of_generic_effective_carrier
-```
-
-This uses the same subdivision as the arbitrary theorem, plus generic
-two-sided splitting and exact fan counts.  The first-lollipop exact
-side-realization input is already proved.
+* generic two-sided splitting and exact fan counts for the exact field.
 
 ## Non-Drift Rule
 
-New supporting lemmas should be added only if they directly discharge one of
-the two theorem-body targets above, or a named subtarget created inside one
-of those files to remove one of them.
+New supporting lemmas should be added only if they directly discharge the
+theorem-body target above, or a named subtarget created inside
+`PositiveInsertionSubdivision.lean` to remove it.
