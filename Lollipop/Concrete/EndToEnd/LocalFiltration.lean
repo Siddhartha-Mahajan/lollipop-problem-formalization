@@ -147,6 +147,18 @@ inductive LocalizedExactEdgeFiltration (L : Lollipop) :
 
 namespace LocalizedExactEdgeFiltration
 
+/-- Forget exactness from every step of an exact localized edge filtration. -/
+def toLocalizedEdgeFiltration {L : Lollipop} :
+    ∀ {m : ℕ} {C D : Set Point},
+      LocalizedExactEdgeFiltration L m C D →
+        LocalizedEdgeFiltration m C D
+  | 0, C, _, .nil _ => by
+      simpa using LocalizedEdgeFiltration.nil C
+  | _m + 1, _C, _, .snoc head edge step => by
+      simpa using
+        LocalizedEdgeFiltration.snoc
+          (toLocalizedEdgeFiltration head) edge step.toLocalizedEdgeStep
+
 /-- Concatenate two exact localized edge filtrations. -/
 def append {L : Lollipop} {m n : ℕ} {C D E : Set Point}
     (head : LocalizedExactEdgeFiltration L m C D)

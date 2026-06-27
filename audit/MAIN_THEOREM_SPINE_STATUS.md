@@ -1,6 +1,6 @@
 # Main Theorem Spine Status
 
-Date: 2026-06-26
+Date: 2026-06-27
 
 This is the current audit after switching to the main-theorem-first workflow.
 The theorem spine now has a single import target:
@@ -172,6 +172,17 @@ LocalFiltration.LocalizedExactEdgeFiltration.append
 
 These are the bookkeeping operations needed after the carrier is cut into
 multiple connected-new-part pieces.
+
+The exact localized-filtration API can also now forget exactness:
+
+```lean
+LocalFiltration.LocalizedExactEdgeFiltration.toLocalizedEdgeFiltration
+MainTheorem.ExactPositiveInsertionSubdivision.toPositive
+```
+
+This keeps the bounded upper-bound insertion theorem downstream of the exact
+generic construction whenever exact subdivision data is available, while the
+arbitrary effective-carrier theorem still needs its own non-generic proof.
 
 The insertion-fan budget for the first insertion is proved:
 

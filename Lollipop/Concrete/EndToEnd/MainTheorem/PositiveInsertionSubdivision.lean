@@ -947,6 +947,20 @@ theorem localizedExactInsertionFiltration_of_exactPositiveSubdivision
       m = componentCount (InsertionFan.insertionFan A k hk) :=
   ⟨d.edgeCount, d.filtration, d.edgeCount_eq_fan⟩
 
+/-- Exact positive subdivision data can always be used as bounded positive
+subdivision data. -/
+noncomputable def ExactPositiveInsertionSubdivision.toPositive
+    {n : ℕ} {A : Arrangement n} {k : ℕ} {hk : k < n}
+    (d : ExactPositiveInsertionSubdivision A k hk) :
+    PositiveInsertionSubdivision A k hk where
+  edgeCount := d.edgeCount
+  filtration := d.filtration.toLocalizedEdgeFiltration
+  edgeCount_le_fan := by
+    have hle :
+        d.edgeCount ≤ componentCount (InsertionFan.insertionFan A k hk) :=
+      le_of_eq d.edgeCount_eq_fan
+    exact_mod_cast hle
+
 /-- Remaining effective-carrier exact subdivision theorem in generic
 position.
 
