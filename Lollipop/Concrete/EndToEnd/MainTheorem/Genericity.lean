@@ -357,6 +357,37 @@ theorem pairFiniteArrangement_of_mem_allPairCenterRegularGood {n : ℕ}
     exact Set.mem_iInter.mp hp ⟨(i, j), hij⟩
   exact (pairCenterRegularGood_subset_pairFiniteGood i j hpij)
 
+/-- Around a point in an open all-pairs center-regular neighborhood, small
+translations of one selected center remain inside that same neighborhood. -/
+theorem exists_norm_ball_translateParameterAt_subset_open_allPairCenterRegularGood
+    {n : ℕ} {p : Lower.ArrangementParameter n} (k : Fin n)
+    {U : Set (Lower.ArrangementParameter n)}
+    (hU : IsOpen U) (hpU : p ∈ U)
+    (hpPair : p ∈ allPairCenterRegularGood (n := n)) :
+    ∃ ε : ℝ, 0 < ε ∧
+      ∀ v : Point, ‖v‖ < ε →
+        translateParameterAt p k v ∈
+          U ∩ allPairCenterRegularGood (n := n) := by
+  let V : Set (Lower.ArrangementParameter n) :=
+    U ∩ allPairCenterRegularGood (n := n)
+  have hVopen : IsOpen V :=
+    hU.inter isOpen_allPairCenterRegularGood
+  have hpV : p ∈ V := ⟨hpU, hpPair⟩
+  let γ : Point → Lower.ArrangementParameter n :=
+    fun v => translateParameterAt p k v
+  have hγcont : Continuous γ :=
+    continuous_translateParameterAt p k
+  have hpreOpen : IsOpen (γ ⁻¹' V) := hVopen.preimage hγcont
+  have hzero : (0 : Point) ∈ γ ⁻¹' V := by
+    change γ 0 ∈ V
+    simpa [γ] using hpV
+  have hnhds : γ ⁻¹' V ∈ nhds (0 : Point) :=
+    hpreOpen.mem_nhds hzero
+  rcases Metric.mem_nhds_iff.mp hnhds with ⟨ε, hεpos, hεsub⟩
+  refine ⟨ε, hεpos, ?_⟩
+  intro v hv
+  exact hεsub (by simpa [Metric.mem_ball, dist_eq_norm] using hv)
+
 /-- The elementary pair-regular locus is dense for every ordered distinct
 pair.  The proof first enters the already-proved nonparallel-stem locus, then
 translates only the second center inside that open set.  Radials are unchanged,

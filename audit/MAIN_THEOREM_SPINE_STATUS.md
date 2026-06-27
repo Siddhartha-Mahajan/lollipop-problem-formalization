@@ -100,6 +100,7 @@ MainTheorem.Genericity.allPairCenterRegularGood
 MainTheorem.Genericity.isOpen_allPairCenterRegularGood
 MainTheorem.Genericity.dense_allPairCenterRegularGood
 MainTheorem.Genericity.pairFiniteArrangement_of_mem_allPairCenterRegularGood
+MainTheorem.Genericity.exists_norm_ball_translateParameterAt_subset_open_allPairCenterRegularGood
 MainTheorem.Genericity.dense_orderedTripleGood_of_pairRegularGood_dense
 MainTheorem.Genericity.circle_ne_of_center_ne
 MainTheorem.Genericity.dense_pairRegularGood
@@ -140,11 +141,14 @@ The sequential route now has a checked open dense starting locus:
 MainTheorem.Genericity.allPairCenterRegularGood
 MainTheorem.Genericity.dense_allPairCenterRegularGood
 MainTheorem.Genericity.pairFiniteArrangement_of_mem_allPairCenterRegularGood
+MainTheorem.Genericity.exists_norm_ball_translateParameterAt_subset_open_allPairCenterRegularGood
 ```
 
 Membership in this locus gives distinct centers and nonparallel stems for
 every ordered pair, hence the concrete `TranslationGenericity.PairFiniteArrangement`
-invariant needed before the first triple-removing insertion step.
+invariant needed before the first triple-removing insertion step.  The small
+translation neighborhood theorem proves that translating one selected center
+can be kept inside any prescribed open subset of this all-pairs locus.
 
 The sequential route now has checked append bookkeeping in
 `Lollipop/Concrete/EndToEnd/TranslationGenericity.lean`:
@@ -153,6 +157,8 @@ The sequential route now has checked append bookkeeping in
 TranslationGenericity.PairContactsFinite
 TranslationGenericity.NoTripleCarrierPoints
 TranslationGenericity.PairProfilesStableInBall
+TranslationGenericity.pairFiniteArrangement_empty
+TranslationGenericity.noTripleCarrierPoints_empty
 TranslationGenericity.pairFiniteArrangement_snoc
 TranslationGenericity.noTripleCarrierPoints_snoc
 TranslationGenericity.exists_norm_lt_pairFinite_noTriple_snoc_translate

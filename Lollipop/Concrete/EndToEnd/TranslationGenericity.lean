@@ -171,6 +171,18 @@ def NoTripleCarrierPoints {n : ℕ} (A : Arrangement n) : Prop :=
         ((A i).carrier ∩ (A k).carrier)
         ((A j).carrier ∩ (A k).carrier)
 
+/-- The empty arrangement is pairwise finite. -/
+theorem pairFiniteArrangement_empty (A : Arrangement 0) :
+    PairFiniteArrangement A := by
+  intro i
+  exact Fin.elim0 i
+
+/-- The empty arrangement has no triple carrier points. -/
+theorem noTripleCarrierPoints_empty (A : Arrangement 0) :
+    NoTripleCarrierPoints A := by
+  intro i
+  exact Fin.elim0 i
+
 /-- Pairwise finiteness is preserved when the appended lollipop has finite
 contact with every old carrier. -/
 theorem pairFiniteArrangement_snoc
