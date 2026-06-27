@@ -534,6 +534,21 @@ structure ExactPositiveInsertionSubdivision
   edgeCount_eq_fan :
     edgeCount = componentCount (InsertionFan.insertionFan A k hk)
 
+/-- Effective carrier means there is an actual point of the inserted carrier
+outside the old prefix carrier. -/
+theorem exists_new_point_of_effective_carrier
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (heffective :
+      ¬ (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))) :
+    ∃ p : Point,
+      p ∈ (A ⟨k, hk⟩).carrier ∧
+        p ∉
+          occupied
+            (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)) := by
+  simpa [Set.not_subset] using heffective
+
 /-- One localized whole-carrier edge gives bounded subdivision data.
 
 This is the base case for later subdivision proofs: after proving that the
@@ -760,6 +775,116 @@ noncomputable def
       (isClosed_occupied_prefix A k hk) (A ⟨k, hk⟩)
       (subset_rfl : (A ⟨k, hk⟩).carrier ⊆ (A ⟨k, hk⟩).carrier)
       hnew hpL hpOld hJK hJ hlift hside)
+
+/-- Effective one-piece carrier theorem: once a crosscut can be built around
+any genuinely new point, the bounded positive subdivision follows. -/
+theorem positiveInsertionSubdivision_exists_of_effective_connectedNewPart_crosscut
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (heffective :
+      ¬ (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+    (hnew :
+      IsConnected
+        ((A ⟨k, hk⟩).carrier ∩
+          (occupied
+            (PlanarInsertion.prefixArrangement A k
+              (Nat.le_of_lt hk)))ᶜ))
+    (hcross :
+      ∀ {p : Point}
+        (hpL : p ∈ (A ⟨k, hk⟩).carrier)
+        (hpOld :
+          p ∉
+            occupied
+              (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))),
+        ∃ J : Set Point,
+        ∃ hJK : J ⊆
+          LocalInsertion.carrierExtension
+            (occupied
+              (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier,
+        ∃ hJ : IsSimpleClosedCurve J,
+          JordanClassifier.ActiveSideArcLifting
+            (LocalInsertion.old_subset_carrierExtension
+              (occupied
+                (PlanarInsertion.prefixArrangement A k
+                  (Nat.le_of_lt hk)))
+              (A ⟨k, hk⟩).carrier)
+            hJK hJ
+            (connectedNewPartActiveComponent
+              (occupied
+                (PlanarInsertion.prefixArrangement A k
+                  (Nat.le_of_lt hk)))
+              (A ⟨k, hk⟩).carrier p hpL hpOld)) :
+    Nonempty (PositiveInsertionSubdivision A k hk) := by
+  rcases exists_new_point_of_effective_carrier A k hk heffective with
+    ⟨p, hpL, hpOld⟩
+  rcases hcross hpL hpOld with ⟨J, hJK, hJ, hlift⟩
+  exact ⟨
+    positiveInsertionSubdivision_of_connectedNewPart_carrier_jordanCrosscut
+      A k hk hpL hpOld hnew hJK hJ hlift⟩
+
+/-- Exact effective one-piece carrier theorem: with fan count one and both
+Jordan sides realized, the exact positive subdivision follows. -/
+theorem
+    exactPositiveInsertionSubdivision_exists_of_effective_connectedNewPart_crosscut
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (hfan : componentCount (InsertionFan.insertionFan A k hk) = 1)
+    (heffective :
+      ¬ (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+    (hnew :
+      IsConnected
+        ((A ⟨k, hk⟩).carrier ∩
+          (occupied
+            (PlanarInsertion.prefixArrangement A k
+              (Nat.le_of_lt hk)))ᶜ))
+    (hcross :
+      ∀ {p : Point}
+        (hpL : p ∈ (A ⟨k, hk⟩).carrier)
+        (hpOld :
+          p ∉
+            occupied
+              (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))),
+        ∃ J : Set Point,
+        ∃ hJK : J ⊆
+          LocalInsertion.carrierExtension
+            (occupied
+              (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier,
+        ∃ hJ : IsSimpleClosedCurve J,
+        ∃ _hlift : JordanClassifier.ActiveSideArcLifting
+          (LocalInsertion.old_subset_carrierExtension
+            (occupied
+              (PlanarInsertion.prefixArrangement A k
+                (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier)
+          hJK hJ
+          (connectedNewPartActiveComponent
+            (occupied
+              (PlanarInsertion.prefixArrangement A k
+                (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier p hpL hpOld),
+          JordanClassifier.ActiveSideSurjective
+            (LocalInsertion.old_subset_carrierExtension
+              (occupied
+                (PlanarInsertion.prefixArrangement A k
+                  (Nat.le_of_lt hk)))
+              (A ⟨k, hk⟩).carrier)
+            hJK hJ
+            (connectedNewPartActiveComponent
+              (occupied
+                (PlanarInsertion.prefixArrangement A k
+                  (Nat.le_of_lt hk)))
+              (A ⟨k, hk⟩).carrier p hpL hpOld)) :
+    Nonempty (ExactPositiveInsertionSubdivision A k hk) := by
+  rcases exists_new_point_of_effective_carrier A k hk heffective with
+    ⟨p, hpL, hpOld⟩
+  rcases hcross hpL hpOld with ⟨J, hJK, hJ, hlift, hside⟩
+  exact ⟨
+    exactPositiveInsertionSubdivision_of_connectedNewPart_carrier_jordanCrosscut
+      A k hk hfan hpL hpOld hnew hJK hJ hlift hside⟩
 
 /-- If the inserted carrier is already contained in the old carrier, no
 localized edge insertion is needed for the bounded upper-bound direction. -/

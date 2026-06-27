@@ -149,6 +149,20 @@ connected.  The remaining full theorem must cut the carrier at all old-new
 fan components and apply the same connected-new-part constructor to each
 effective piece.
 
+The effective-carrier hypothesis itself has also been unpacked into a checked
+new-point lemma and one-piece `Nonempty` reductions:
+
+```lean
+MainTheorem.exists_new_point_of_effective_carrier
+MainTheorem.positiveInsertionSubdivision_exists_of_effective_connectedNewPart_crosscut
+MainTheorem.exactPositiveInsertionSubdivision_exists_of_effective_connectedNewPart_crosscut
+```
+
+So the one-piece branch now has the following exact remaining input: build a
+Jordan crosscut around a genuinely new carrier point, prove same-side
+arc-lifting in the enlarged complement, and in the exact case prove both
+Jordan sides are realized.
+
 The insertion-fan budget for the first insertion is proved:
 
 ```lean
