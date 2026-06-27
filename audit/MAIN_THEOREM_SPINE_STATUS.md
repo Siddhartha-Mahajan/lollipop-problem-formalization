@@ -163,6 +163,16 @@ Jordan crosscut around a genuinely new carrier point, prove same-side
 arc-lifting in the enlarged complement, and in the exact case prove both
 Jordan sides are realized.
 
+The localized filtration API now has concatenation operations:
+
+```lean
+LocalFiltration.LocalizedEdgeFiltration.append
+LocalFiltration.LocalizedExactEdgeFiltration.append
+```
+
+These are the bookkeeping operations needed after the carrier is cut into
+multiple connected-new-part pieces.
+
 The insertion-fan budget for the first insertion is proved:
 
 ```lean

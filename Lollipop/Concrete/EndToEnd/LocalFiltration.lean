@@ -106,6 +106,18 @@ inductive LocalizedEdgeFiltration :
 
 namespace LocalizedEdgeFiltration
 
+/-- Concatenate two localized edge filtrations. -/
+def append {m n : ℕ} {C D E : Set Point}
+    (head : LocalizedEdgeFiltration m C D)
+    (tail : LocalizedEdgeFiltration n D E) :
+    LocalizedEdgeFiltration (m + n) C E := by
+  induction tail with
+  | nil _ =>
+      simpa using head
+  | snoc tail edge step ih =>
+      simpa [Nat.add_assoc] using
+        LocalizedEdgeFiltration.snoc (ih head) edge step
+
 /-- Compile a finite localized edge filtration to a bounded split chain from
 the final complement to the initial complement. -/
 def toChain :
@@ -135,6 +147,18 @@ inductive LocalizedExactEdgeFiltration (L : Lollipop) :
 
 namespace LocalizedExactEdgeFiltration
 
+/-- Concatenate two exact localized edge filtrations. -/
+def append {L : Lollipop} {m n : ℕ} {C D E : Set Point}
+    (head : LocalizedExactEdgeFiltration L m C D)
+    (tail : LocalizedExactEdgeFiltration L n D E) :
+    LocalizedExactEdgeFiltration L (m + n) C E := by
+  induction tail with
+  | nil _ =>
+      simpa using head
+  | snoc tail edge step ih =>
+      simpa [Nat.add_assoc] using
+        LocalizedExactEdgeFiltration.snoc (ih head) edge step
+
 /-- Compile an exact localized edge filtration to an exact split chain from
 the final complement to the initial complement. -/
 def toExactChain {L : Lollipop} :
@@ -162,4 +186,3 @@ end LocalFiltration
 end EndToEnd
 end Concrete
 end Lollipop
-
