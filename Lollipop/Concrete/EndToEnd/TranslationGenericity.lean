@@ -183,6 +183,51 @@ theorem noTripleCarrierPoints_empty (A : Arrangement 0) :
   intro i
   exact Fin.elim0 i
 
+/-- Pairwise finiteness restricts to every ordered prefix. -/
+theorem pairFiniteArrangement_prefix
+    {n k : ℕ} (A : Arrangement n) (hk : k ≤ n)
+    (hA : PairFiniteArrangement A) :
+    PairFiniteArrangement (PlanarInsertion.prefixArrangement A k hk) := by
+  intro i j hij
+  have hij' :
+      (⟨i.1, i.2.trans_le hk⟩ : Fin n) ≠
+        ⟨j.1, j.2.trans_le hk⟩ := by
+    intro h
+    apply hij
+    exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+  simpa [PlanarInsertion.prefixArrangement] using
+    hA ⟨i.1, i.2.trans_le hk⟩
+      ⟨j.1, j.2.trans_le hk⟩ hij'
+
+/-- Absence of triple carrier points restricts to every ordered prefix. -/
+theorem noTripleCarrierPoints_prefix
+    {n k : ℕ} (A : Arrangement n) (hk : k ≤ n)
+    (hA : NoTripleCarrierPoints A) :
+    NoTripleCarrierPoints (PlanarInsertion.prefixArrangement A k hk) := by
+  intro i j l hij hil hjl
+  have hij' :
+      (⟨i.1, i.2.trans_le hk⟩ : Fin n) ≠
+        ⟨j.1, j.2.trans_le hk⟩ := by
+    intro h
+    apply hij
+    exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+  have hil' :
+      (⟨i.1, i.2.trans_le hk⟩ : Fin n) ≠
+        ⟨l.1, l.2.trans_le hk⟩ := by
+    intro h
+    apply hil
+    exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+  have hjl' :
+      (⟨j.1, j.2.trans_le hk⟩ : Fin n) ≠
+        ⟨l.1, l.2.trans_le hk⟩ := by
+    intro h
+    apply hjl
+    exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+  simpa [PlanarInsertion.prefixArrangement] using
+    hA ⟨i.1, i.2.trans_le hk⟩
+      ⟨j.1, j.2.trans_le hk⟩
+      ⟨l.1, l.2.trans_le hk⟩ hij' hil' hjl'
+
 /-- Pairwise finiteness is preserved when the appended lollipop has finite
 contact with every old carrier. -/
 theorem pairFiniteArrangement_snoc
