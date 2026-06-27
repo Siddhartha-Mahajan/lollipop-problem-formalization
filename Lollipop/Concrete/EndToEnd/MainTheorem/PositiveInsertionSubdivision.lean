@@ -1,4 +1,5 @@
 import Lollipop.Concrete.EndToEnd.LocalizedTopology
+import Lollipop.Concrete.EndToEnd.LocalCrosscut
 import Lollipop.Concrete.EndToEnd.OccupiedTopology
 import Lollipop.Concrete.EndToEnd.PrimitiveArcs
 import Mathlib.Tactic
@@ -194,6 +195,93 @@ theorem circleArc_subset_inserted_carrier
     (L : Lollipop) (a b : ℝ) :
     PrimitiveArcs.circleArc L a b ⊆ L.carrier :=
   PrimitiveArcs.circleArc_subset_carrier L a b
+
+/-- Connected-edge version of the bounded Jordan-crosscut constructor.
+
+This is the local step used by a future carrier subdivision: after a
+subdivision edge is known to be connected and to avoid the old carrier, the
+only remaining geometric topology input is the same-side arc-lifting
+statement for the Jordan crosscut. -/
+def localizedEdgeStepOfConnectedJordanCrosscut
+    {C E J : Set Point} (hEconn : IsConnected E)
+    {p : Point} (hpE : p ∈ E) (hEC : E ⊆ Cᶜ)
+    (hJK : J ⊆ LocalInsertion.carrierExtension C E)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C E) hJK hJ
+      (connectedEdgeActiveComponent C E p hpE hEC)) :
+    LocalFiltration.LocalizedEdgeStep C E :=
+  LocalCrosscut.localizedEdgeStepOfJordanCrosscut hJK hJ
+    (connectedEdgeActiveComponent C E p hpE hEC)
+    (edgeLocalized_of_isConnected_subset_compl hEconn hpE hEC)
+    hlift
+
+/-- Connected-edge version of the exact Jordan-crosscut constructor. -/
+def localizedExactEdgeStepOfConnectedJordanCrosscut
+    {C E J : Set Point} (hCclosed : IsClosed C) (L : Lollipop)
+    (hE : E ⊆ L.carrier) (hEconn : IsConnected E)
+    {p : Point} (hpE : p ∈ E) (hEC : E ⊆ Cᶜ)
+    (hJK : J ⊆ LocalInsertion.carrierExtension C E)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C E) hJK hJ
+      (connectedEdgeActiveComponent C E p hpE hEC))
+    (hside : JordanClassifier.ActiveSideSurjective
+      (LocalInsertion.old_subset_carrierExtension C E) hJK hJ
+      (connectedEdgeActiveComponent C E p hpE hEC)) :
+    LocalFiltration.LocalizedExactEdgeStep L C E :=
+  LocalCrosscut.localizedExactEdgeStepOfJordanCrosscut hCclosed L hE
+    hJK hJ (connectedEdgeActiveComponent C E p hpE hEC)
+    (edgeLocalized_of_isConnected_subset_compl hEconn hpE hEC)
+    hlift hside
+
+/-- Connected-edge version of the bounded two-arc crosscut constructor. -/
+def localizedEdgeStepOfConnectedTwoArcCrosscut
+    {C E A B : Set Point} {x z p : Point}
+    (hEconn : IsConnected E) (hpE : p ∈ E) (hEC : E ⊆ Cᶜ)
+    (hAext : A ⊆ LocalInsertion.carrierExtension C E)
+    (hBext : B ⊆ LocalInsertion.carrierExtension C E)
+    (hA : IsSimpleArcEnd A x z) (hB : IsSimpleArcEnd B x z)
+    (hxz : x ≠ z) (hinter : A ∩ B ⊆ {x, z})
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C E)
+      (union_subset hAext hBext)
+      (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs hA hB hxz
+        hinter)
+      (connectedEdgeActiveComponent C E p hpE hEC)) :
+    LocalFiltration.LocalizedEdgeStep C E :=
+  LocalCrosscut.localizedEdgeStepOfTwoArcCrosscut hAext hBext hA hB
+    hxz hinter (connectedEdgeActiveComponent C E p hpE hEC)
+    (edgeLocalized_of_isConnected_subset_compl hEconn hpE hEC)
+    hlift
+
+/-- Connected-edge version of the exact two-arc crosscut constructor. -/
+def localizedExactEdgeStepOfConnectedTwoArcCrosscut
+    {C E A B : Set Point} {x z p : Point}
+    (hCclosed : IsClosed C) (L : Lollipop) (hE : E ⊆ L.carrier)
+    (hEconn : IsConnected E) (hpE : p ∈ E) (hEC : E ⊆ Cᶜ)
+    (hAext : A ⊆ LocalInsertion.carrierExtension C E)
+    (hBext : B ⊆ LocalInsertion.carrierExtension C E)
+    (hA : IsSimpleArcEnd A x z) (hB : IsSimpleArcEnd B x z)
+    (hxz : x ≠ z) (hinter : A ∩ B ⊆ {x, z})
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C E)
+      (union_subset hAext hBext)
+      (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs hA hB hxz
+        hinter)
+      (connectedEdgeActiveComponent C E p hpE hEC))
+    (hside : JordanClassifier.ActiveSideSurjective
+      (LocalInsertion.old_subset_carrierExtension C E)
+      (union_subset hAext hBext)
+      (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs hA hB hxz
+        hinter)
+      (connectedEdgeActiveComponent C E p hpE hEC)) :
+    LocalFiltration.LocalizedExactEdgeStep L C E :=
+  LocalCrosscut.localizedExactEdgeStepOfTwoArcCrosscut hCclosed L hE
+    hAext hBext hA hB hxz hinter
+    (connectedEdgeActiveComponent C E p hpE hEC)
+    (edgeLocalized_of_isConnected_subset_compl hEconn hpE hEC)
+    hlift hside
 
 /-- Bounded subdivision data for one positive ordered insertion.
 
