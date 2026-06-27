@@ -235,6 +235,41 @@ def localizedExactEdgeStepOfConnectedJordanCrosscut
     (edgeLocalized_of_isConnected_subset_compl hEconn hpE hEC)
     hlift hside
 
+/-- Full-carrier version of the bounded Jordan-crosscut constructor. -/
+def localizedEdgeStepOfCarrierJordanCrosscut
+    (C : Set Point) (L : Lollipop) {J : Set Point}
+    (hLC : L.carrier ⊆ Cᶜ)
+    (hJK : J ⊆ LocalInsertion.carrierExtension C L.carrier)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C L.carrier) hJK hJ
+      (connectedEdgeActiveComponent C L.carrier L.anchor
+        (L.anchor_mem_carrier) hLC)) :
+    LocalFiltration.LocalizedEdgeStep C L.carrier :=
+  localizedEdgeStepOfConnectedJordanCrosscut
+    (Lollipop.isConnected_carrier L) (L.anchor_mem_carrier) hLC
+    hJK hJ hlift
+
+/-- Full-carrier version of the exact Jordan-crosscut constructor. -/
+def localizedExactEdgeStepOfCarrierJordanCrosscut
+    (C : Set Point) (L : Lollipop) {J : Set Point}
+    (hCclosed : IsClosed C) (hLC : L.carrier ⊆ Cᶜ)
+    (hJK : J ⊆ LocalInsertion.carrierExtension C L.carrier)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C L.carrier) hJK hJ
+      (connectedEdgeActiveComponent C L.carrier L.anchor
+        (L.anchor_mem_carrier) hLC))
+    (hside : JordanClassifier.ActiveSideSurjective
+      (LocalInsertion.old_subset_carrierExtension C L.carrier) hJK hJ
+      (connectedEdgeActiveComponent C L.carrier L.anchor
+        (L.anchor_mem_carrier) hLC)) :
+    LocalFiltration.LocalizedExactEdgeStep L C L.carrier :=
+  localizedExactEdgeStepOfConnectedJordanCrosscut hCclosed L
+    (subset_rfl : L.carrier ⊆ L.carrier)
+    (Lollipop.isConnected_carrier L) (L.anchor_mem_carrier) hLC
+    hJK hJ hlift hside
+
 /-- Connected-edge version of the bounded two-arc crosscut constructor. -/
 def localizedEdgeStepOfConnectedTwoArcCrosscut
     {C E A B : Set Point} {x z p : Point}
@@ -337,6 +372,38 @@ noncomputable def positiveInsertionSubdivision_of_singleEdgeStep
       LocalInsertion.carrierExtension] using f
   edgeCount_le_fan := by
     simpa using one_le_componentCount_insertionFan_cast A k hk
+
+/-- A whole inserted carrier disjoint from the old carrier gives a one-edge
+bounded subdivision once the Jordan crosscut side-lifting input is supplied. -/
+noncomputable def positiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) {J : Set Point}
+    (hLC :
+      (A ⟨k, hk⟩).carrier ⊆
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))ᶜ)
+    (hJK : J ⊆
+      LocalInsertion.carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier)
+      hJK hJ
+      (connectedEdgeActiveComponent
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+        (A ⟨k, hk⟩).carrier (A ⟨k, hk⟩).anchor
+        ((A ⟨k, hk⟩).anchor_mem_carrier) hLC)) :
+    PositiveInsertionSubdivision A k hk :=
+  positiveInsertionSubdivision_of_singleEdgeStep A k hk
+    (localizedEdgeStepOfCarrierJordanCrosscut
+      (occupied
+        (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+      (A ⟨k, hk⟩) hLC hJK hJ hlift)
 
 /-- One exact localized whole-carrier edge gives exact subdivision data when
 the insertion fan has component count one. -/

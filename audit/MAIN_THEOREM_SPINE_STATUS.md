@@ -84,6 +84,13 @@ Consequently `MainTheorem.positiveInsertionSubdivision_exists` is now
 ordinary case-splitting between the proved zero-edge full-overlap case and
 the remaining effective-carrier subdivision theorem.
 
+The disjoint whole-carrier one-edge case is also reduced to the local
+Jordan-crosscut side-lifting input:
+
+```lean
+MainTheorem.positiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
+```
+
 The insertion-fan budget for the first insertion is proved:
 
 ```lean
