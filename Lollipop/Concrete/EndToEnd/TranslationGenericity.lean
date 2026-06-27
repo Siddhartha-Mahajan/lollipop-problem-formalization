@@ -362,6 +362,15 @@ theorem exists_norm_lt_noTripleContactWithInserted_translate
   refine ⟨v, ?_, htriple⟩
   simpa [Metric.mem_ball, dist_eq_norm] using hv
 
+/-- The old/new pair profiles are constant throughout a prescribed open ball
+of translation parameters.  This is the stability input needed when the lower
+construction removes triple contacts without changing the extremal pair
+table. -/
+def PairProfilesStableInBall {n : ℕ} (A : Arrangement n) (L : Lollipop)
+    (ε : ℝ) : Prop :=
+  ∀ v : Point, ‖v‖ < ε → ∀ i : Fin n,
+    pairExcess (A i) (translate L v) = pairExcess (A i) L
+
 /-- One insertion-order genericization step.
 
 If all sufficiently small translations retain finite contact with every old
@@ -382,6 +391,29 @@ theorem exists_norm_lt_pairFinite_noTriple_snoc_translate
   exact ⟨v, hv,
     pairFiniteArrangement_snoc hfinite (hcontacts v hv),
     noTripleCarrierPoints_snoc htriple hnewTriple⟩
+
+/-- The same one-step choice can retain every old/new pair profile.
+
+The stability hypothesis is deliberately explicit: this theorem supplies the
+finite avoidance and append bookkeeping, while the analytic proof that a
+suitable profile-stability ball exists remains a separate target. -/
+theorem exists_norm_lt_preservePairProfiles_pairFinite_noTriple_snoc_translate
+    {n : ℕ} (A : Arrangement n) (L : Lollipop)
+    (hfinite : PairFiniteArrangement A)
+    (htriple : NoTripleCarrierPoints A)
+    {ε : ℝ} (hε : 0 < ε)
+    (hcontacts : ∀ v : Point, ‖v‖ < ε →
+      PairContactsFinite A (translate L v))
+    (hprofiles : PairProfilesStableInBall A L ε) :
+    ∃ v : Point, ‖v‖ < ε ∧
+      (∀ i : Fin n,
+        pairExcess (A i) (translate L v) = pairExcess (A i) L) ∧
+      PairFiniteArrangement (Insertion.snocArrangement A (translate L v)) ∧
+      NoTripleCarrierPoints (Insertion.snocArrangement A (translate L v)) := by
+  obtain ⟨v, hv, hpair, hglobal⟩ :=
+    exists_norm_lt_pairFinite_noTriple_snoc_translate
+      A L hfinite htriple hε hcontacts
+  exact ⟨v, hv, hprofiles v hv, hpair, hglobal⟩
 
 end TranslationGenericity
 end EndToEnd

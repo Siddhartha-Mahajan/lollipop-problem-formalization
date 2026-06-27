@@ -133,9 +133,11 @@ The sequential route now has checked append bookkeeping in
 ```lean
 TranslationGenericity.PairContactsFinite
 TranslationGenericity.NoTripleCarrierPoints
+TranslationGenericity.PairProfilesStableInBall
 TranslationGenericity.pairFiniteArrangement_snoc
 TranslationGenericity.noTripleCarrierPoints_snoc
 TranslationGenericity.exists_norm_lt_pairFinite_noTriple_snoc_translate
+TranslationGenericity.exists_norm_lt_preservePairProfiles_pairFinite_noTriple_snoc_translate
 ```
 
 This proves the core one-step statement: once an old prefix has pairwise
@@ -143,8 +145,9 @@ finite contacts and no triple carrier points, a sufficiently small translation
 of the next lollipop can be chosen to avoid all old double points; if old/new
 pair contacts remain finite throughout the small ball, the appended prefix is
 again pairwise finite and no-triple.  The remaining work for this route is the
-finite induction over prefixes plus a checked local contact-finiteness
-neighborhood for the translated inserted lollipop.
+finite induction over prefixes plus checked local neighborhoods that preserve
+finite old/new contacts and the required old/new `pairExcess` values during
+the translated insertion.
 
 The previous broad topology placeholders are also no longer direct
 `intro; sorry` proofs.  They now assemble from first-insertion and
