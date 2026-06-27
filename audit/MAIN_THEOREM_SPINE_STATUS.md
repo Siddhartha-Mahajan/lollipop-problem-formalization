@@ -47,7 +47,7 @@ Lean reports the current intended `sorry`s below.
 
 ## Current Intended `sorry` Targets
 
-1. `MainTheorem.positiveInsertionSubdivision_exists`
+1. `MainTheorem.positiveInsertionSubdivision_exists_of_effective_carrier`
 2. `MainTheorem.exactPositiveInsertionSubdivision_exists`
 3. `MainTheorem.Genericity.dense_compl_tripleBadUnion_ge_three`
 
@@ -71,8 +71,18 @@ The previous broad topology placeholders are also no longer direct
 positive-insertion filtration targets:
 
 * first-lollipop side arc-lifting;
-* arbitrary bounded localized filtration for non-first insertions;
+* arbitrary bounded localized filtration for effective non-first insertions;
 * exact localized filtration for non-first generic insertions.
+
+The full-overlap arbitrary insertion case is now proved:
+
+```lean
+MainTheorem.positiveInsertionSubdivision_of_carrier_subset_old
+```
+
+Consequently `MainTheorem.positiveInsertionSubdivision_exists` is now
+ordinary case-splitting between the proved zero-edge full-overlap case and
+the remaining effective-carrier subdivision theorem.
 
 The insertion-fan budget for the first insertion is proved:
 
@@ -114,7 +124,7 @@ targets in
 `Lollipop/Concrete/EndToEnd/MainTheorem/PositiveInsertionSubdivision.lean`:
 
 ```lean
-MainTheorem.positiveInsertionSubdivision_exists
+MainTheorem.positiveInsertionSubdivision_exists_of_effective_carrier
 MainTheorem.exactPositiveInsertionSubdivision_exists
 ```
 
@@ -125,14 +135,14 @@ MainTheorem.exactPositiveInsertionSubdivision_exists
 Remove:
 
 ```lean
-MainTheorem.positiveInsertionSubdivision_exists
+MainTheorem.positiveInsertionSubdivision_exists_of_effective_carrier
 ```
 
 This requires the topology-first plan:
 
 * local crosscut insertion theorem;
 * carrier subdivision relative to the old-new insertion fan;
-* degenerate cases treated as zero-cost fan overlap pieces;
+* remaining degenerate cases treated as zero-cost fan overlap pieces;
 * finite localized edge filtration length bounded by fan component count.
 
 ### 2. Generic exact topology

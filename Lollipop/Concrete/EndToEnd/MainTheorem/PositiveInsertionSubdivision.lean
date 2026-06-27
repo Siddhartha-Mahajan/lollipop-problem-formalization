@@ -364,6 +364,28 @@ noncomputable def exactPositiveInsertionSubdivision_of_singleExactEdgeStep
       LocalInsertion.carrierExtension] using f
   edgeCount_eq_fan := hfan.symm
 
+/-- If the inserted carrier is already contained in the old carrier, no
+localized edge insertion is needed for the bounded upper-bound direction. -/
+noncomputable def positiveInsertionSubdivision_of_carrier_subset_old
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (hsubset :
+      (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))) :
+    PositiveInsertionSubdivision A k hk where
+  edgeCount := 0
+  filtration := by
+    let C :=
+      occupied (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+    let L := A ⟨k, hk⟩
+    have hfinal : C ∪ L.carrier = C :=
+      Set.union_eq_left.mpr (by simpa [C, L] using hsubset)
+    simpa [InsertionFiltration.LocalizedInsertionFiltration, C, L,
+      hfinal] using LocalFiltration.LocalizedEdgeFiltration.nil C
+  edgeCount_le_fan := by
+    exact_mod_cast
+      (Nat.zero_le (componentCount (InsertionFan.insertionFan A k hk)))
+
 /-- A bounded subdivision gives the existential localized-filtration theorem
 used by `LocalizedTopology`. -/
 theorem localizedInsertionFiltration_bound_positive_of_subdivision
@@ -376,6 +398,20 @@ theorem localizedInsertionFiltration_bound_positive_of_subdivision
       (m : ℚ) ≤
         (componentCount (InsertionFan.insertionFan A k hk) : ℚ) :=
   ⟨d.edgeCount, d.filtration, d.edgeCount_le_fan⟩
+
+/-- Remaining effective-carrier bounded subdivision theorem.
+
+The full-overlap case is already handled by
+`positiveInsertionSubdivision_of_carrier_subset_old`; this is the precise
+planar-topology construction still needed for genuinely new carrier pieces. -/
+theorem positiveInsertionSubdivision_exists_of_effective_carrier
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) (_hkpos : 0 < k)
+    (_heffective :
+      ¬ (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))) :
+    Nonempty (PositiveInsertionSubdivision A k hk) := by
+  sorry
 
 /-- An exact subdivision gives the existential exact localized-filtration
 theorem used by `LocalizedTopology`. -/
@@ -397,7 +433,14 @@ into localized edge additions using at most the old-new fan component count. -/
 theorem positiveInsertionSubdivision_exists
     {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n) (_hkpos : 0 < k) :
     Nonempty (PositiveInsertionSubdivision A k hk) := by
-  sorry
+  by_cases hsubset :
+      (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk))
+  · exact ⟨positiveInsertionSubdivision_of_carrier_subset_old
+      A k hk hsubset⟩
+  · exact positiveInsertionSubdivision_exists_of_effective_carrier
+      A k hk _hkpos hsubset
 
 /-- Remaining exact positive-insertion subdivision theorem in generic
 position.
