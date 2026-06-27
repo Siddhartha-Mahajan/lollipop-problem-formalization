@@ -246,6 +246,33 @@ theorem componentCount_insertionFan_eq_one_of_carrier_subset_prefix_compl
     A k hk hLC]
   exact componentCount_singleton infinity
 
+/-- In generic position, a positive insertion cannot already be wholly
+contained in the old prefix carrier: the inserted anchor would be an old-new
+pair crossing, contradicting generic anchor avoidance. -/
+theorem not_carrier_subset_old_of_isGeneric
+    {n : ℕ} {A : Arrangement n} (hA : IsGeneric A)
+    (k : ℕ) (hk : k < n) (_hkpos : 0 < k) :
+    ¬ (A ⟨k, hk⟩).carrier ⊆
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)) := by
+  intro hsubset
+  have hanchorOld :
+      (A ⟨k, hk⟩).anchor ∈
+        occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)) :=
+    hsubset (A ⟨k, hk⟩).anchor_mem_carrier
+  rcases (InsertionFan.mem_occupied_prefix_iff_exists_lt A hk
+      (A ⟨k, hk⟩).anchor).1 hanchorOld with
+    ⟨i, hik, hiCarrier⟩
+  let j : Fin n := ⟨k, hk⟩
+  have hij : i ≠ j := by
+    intro hij
+    have hval : i.1 = k := congrArg Fin.val hij
+    omega
+  have hpair : (A j).anchor ∈ pairCrossingSet (A i) (A j) := by
+    exact ⟨by simpa [j] using hiCarrier, (A j).anchor_mem_carrier⟩
+  exact hA.away_right_anchor i j hij hpair
+
 /-- Connected-edge version of the bounded Jordan-crosscut constructor.
 
 This is the local step used by a future carrier subdivision: after a

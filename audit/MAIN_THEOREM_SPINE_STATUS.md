@@ -84,6 +84,12 @@ Consequently `MainTheorem.positiveInsertionSubdivision_exists` is now
 ordinary case-splitting between the proved zero-edge full-overlap case and
 the remaining effective-carrier subdivision theorem.
 
+For generic exact insertions, the full-overlap case is impossible:
+
+```lean
+MainTheorem.not_carrier_subset_old_of_isGeneric
+```
+
 The disjoint whole-carrier one-edge case is also reduced to the local
 Jordan-crosscut side-lifting input:
 
