@@ -89,6 +89,8 @@ main theorem genericity file proves:
 MainTheorem.Genericity.translateParameterAt
 MainTheorem.Genericity.continuous_translateParameterAt
 MainTheorem.Genericity.exists_mem_open_not_tripleBadSet_of_pairFinite_at
+MainTheorem.Genericity.pairFiniteGood
+MainTheorem.Genericity.dense_orderedTripleGood_of_pairFiniteGood_dense
 ```
 
 The last theorem says that for one ordered triple, if the first two selected
@@ -97,6 +99,11 @@ inside any open parameter neighborhood avoids that triple-contact locus.  The
 remaining global triple-density proof must still supply or construct the
 finite-contact base condition in every relevant neighborhood, then iterate
 this local move over all ordered triples.
+
+The genericity `sorry` has therefore been reduced further: for each fixed
+ordered triple, density of the ordered-triple good locus follows from density
+of `pairFiniteGood` for the first selected pair.  The next concrete target is
+to prove that fixed pair-finite locus is dense.
 
 The previous broad topology placeholders are also no longer direct
 `intro; sorry` proofs.  They now assemble from first-insertion and

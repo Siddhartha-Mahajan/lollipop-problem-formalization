@@ -54,6 +54,12 @@ def orderedTripleGood {n : ℕ} (t : OrderedTripleIndex n) :
   (Lower.GenericityPort.tripleBadSet
     t.1.1 t.1.2.1 t.1.2.2 t.2.1 t.2.2.1 t.2.2.2)ᶜ
 
+/-- Parameter locus where one selected pair has finite carrier contact. -/
+def pairFiniteGood {n : ℕ} (i j : Fin n) :
+    Set (Lower.ArrangementParameter n) :=
+  {p | ((p.toArrangement i).carrier ∩
+    (p.toArrangement j).carrier).Finite}
+
 /-- Translate one parameter in an arrangement parameter vector. -/
 def translateParameterAt {n : ℕ}
     (p : Lower.ArrangementParameter n) (k : Fin n) (v : Point) :
@@ -184,6 +190,21 @@ theorem exists_mem_open_not_tripleBadSet_of_pairFinite_at {n : ℕ}
     (by simpa [Aij] using (show x ∈ (Aij (1 : Fin 2)).carrier ∩
         (TranslationGenericity.translate (p.toArrangement k) v).carrier from
         ⟨hxjOld, hxkNew⟩))
+
+/-- Fixed-triple density is reduced to density of finite contact for the
+first selected pair. -/
+theorem dense_orderedTripleGood_of_pairFiniteGood_dense {n : ℕ}
+    (t : OrderedTripleIndex n)
+    (hdense : Dense (pairFiniteGood t.1.1 t.1.2.1)) :
+    Dense (orderedTripleGood t) := by
+  rw [dense_iff_inter_open]
+  intro U hU hUne
+  rcases hdense.exists_mem_open hU hUne with ⟨p, hpfinite, hpU⟩
+  rcases
+    exists_mem_open_not_tripleBadSet_of_pairFinite_at
+      t.2.1 t.2.2.1 t.2.2.2 hpfinite hU hpU with
+    ⟨q, hqU, hqgood⟩
+  exact ⟨q, hqU, by simpa [orderedTripleGood] using hqgood⟩
 
 /-- The complement of the triple bad union is exactly the finite intersection
 of the fixed ordered-triple good loci. -/
