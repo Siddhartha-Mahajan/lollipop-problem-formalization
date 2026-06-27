@@ -1,4 +1,5 @@
 import Lollipop.Concrete.EndToEnd.LocalizedTopology
+import Lollipop.Concrete.EndToEnd.PrimitiveArcs
 import Mathlib.Tactic
 
 /-!
@@ -108,6 +109,69 @@ theorem one_le_componentCount_insertionFan_cast
       (componentCount (InsertionFan.insertionFan A k hk) : ℚ) := by
   exact_mod_cast
     (Nat.succ_le_of_lt (componentCount_insertionFan_pos A k hk))
+
+/-- The old complement component containing a chosen point of a connected
+edge outside the old carrier. -/
+noncomputable def connectedEdgeActiveComponent
+    (C E : Set Point) (x : Point) (hxE : x ∈ E) (hEC : E ⊆ Cᶜ) :
+    ConnectedComponents (Cᶜ : Set Point) :=
+  ConnectedComponents.mk (⟨x, hEC hxE⟩ : (Cᶜ : Set Point))
+
+/-- A connected edge disjoint from the old carrier is localized in one old
+complement component. -/
+theorem edgeLocalized_of_isConnected_subset_compl
+    {C E : Set Point} (hEconn : IsConnected E)
+    {x : Point} (hxE : x ∈ E) (hEC : E ⊆ Cᶜ) :
+    LocalInsertion.EdgeLocalized C E
+      (connectedEdgeActiveComponent C E x hxE hEC) := by
+  intro z hzE hzC
+  have h :=
+    ComponentLifting.connectedComponents_mk_eq_of_isConnected_subset
+      (P := E) (S := Cᶜ) hEconn hEC hzE hxE
+  simpa [connectedEdgeActiveComponent] using h
+
+/-- A full lollipop carrier disjoint from the old carrier is localized in one
+old complement component. -/
+theorem carrier_edgeLocalized_of_subset_compl
+    (C : Set Point) (L : Lollipop) {x : Point}
+    (hx : x ∈ L.carrier) (hLC : L.carrier ⊆ Cᶜ) :
+    LocalInsertion.EdgeLocalized C L.carrier
+      (connectedEdgeActiveComponent C L.carrier x hx hLC) :=
+  edgeLocalized_of_isConnected_subset_compl
+    (Lollipop.isConnected_carrier L) hx hLC
+
+/-- A finite stem subsegment disjoint from the old carrier is localized in one
+old complement component. -/
+theorem stemSegment_edgeLocalized_of_subset_compl
+    (C : Set Point) (L : Lollipop) {a b : ℝ} (hab : a ≠ b)
+    (hEC : PrimitiveArcs.stemSegment L a b ⊆ Cᶜ) :
+    LocalInsertion.EdgeLocalized C (PrimitiveArcs.stemSegment L a b)
+      (connectedEdgeActiveComponent C (PrimitiveArcs.stemSegment L a b)
+        (L.stemMap a)
+        (by
+          exact left_mem_segment ℝ (L.stemMap a) (L.stemMap b))
+        hEC) :=
+  edgeLocalized_of_isConnected_subset_compl
+    (PrimitiveArcs.stemSegment_isConnected L hab)
+    (by exact left_mem_segment ℝ (L.stemMap a) (L.stemMap b))
+    hEC
+
+/-- A proper circle subarc disjoint from the old carrier is localized in one
+old complement component. -/
+theorem circleArc_edgeLocalized_of_subset_compl
+    (C : Set Point) (L : Lollipop) {a b : ℝ}
+    (ha : 0 ≤ a) (hab : a < b) (hb : b < 1)
+    (hEC : PrimitiveArcs.circleArc L a b ⊆ Cᶜ) :
+    LocalInsertion.EdgeLocalized C (PrimitiveArcs.circleArc L a b)
+      (connectedEdgeActiveComponent C (PrimitiveArcs.circleArc L a b)
+        (CircleJordan.circleParam L a)
+        (by
+          exact ⟨a, ⟨le_rfl, le_of_lt hab⟩, rfl⟩)
+        hEC) :=
+  edgeLocalized_of_isConnected_subset_compl
+    (PrimitiveArcs.circleArc_isConnected L ha hab hb)
+    (by exact ⟨a, ⟨le_rfl, le_of_lt hab⟩, rfl⟩)
+    hEC
 
 /-- Bounded subdivision data for one positive ordered insertion.
 

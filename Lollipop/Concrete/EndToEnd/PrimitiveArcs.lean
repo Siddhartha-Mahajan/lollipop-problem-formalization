@@ -42,6 +42,13 @@ theorem isSimpleArcEnd_stemSegment
     IsSimpleArcEnd (stemSegment L a b) (L.stemMap a) (L.stemMap b) :=
   segment_isSimpleArcEnd (stemMap_ne_of_ne L hab)
 
+/-- A finite nondegenerate stem subsegment is connected. -/
+theorem stemSegment_isConnected
+    (L : Lollipop) {a b : ℝ} (hab : a ≠ b) :
+    IsConnected (stemSegment L a b) :=
+  isSimpleArc_isConnected
+    (isSimpleArcEnd_isSimpleArc (isSimpleArcEnd_stemSegment L hab))
+
 /-- Stem subsegments whose endpoints are on the outward ray remain in the
 stem. -/
 theorem stemSegment_subset_stem
@@ -153,6 +160,13 @@ theorem isSimpleArcEnd_circleArc
   · exact circleArc_eq_range_circleArcParam L hab
   · simp [circleArcParam]
   · simp [circleArcParam]
+
+/-- A proper circular subarc inside one turn is connected. -/
+theorem circleArc_isConnected
+    (L : Lollipop) {a b : ℝ} (ha : 0 ≤ a) (hab : a < b) (hb : b < 1) :
+    IsConnected (circleArc L a b) :=
+  isSimpleArc_isConnected
+    (isSimpleArcEnd_isSimpleArc (isSimpleArcEnd_circleArc L ha hab hb))
 
 theorem circleArc_subset_circle
     (L : Lollipop) (a b : ℝ) :
