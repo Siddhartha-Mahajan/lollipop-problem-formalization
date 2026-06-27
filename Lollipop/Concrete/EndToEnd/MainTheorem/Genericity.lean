@@ -97,6 +97,24 @@ theorem pairRegularGood_subset_pairFiniteGood {n : ℕ} (i j : Fin n) :
   intro p hp
   exact pairCrossingSet_finite_of_circle_ne_of_nonparallel hp.1 hp.2
 
+/-- Distinct centers force distinct circle sets. -/
+theorem circle_ne_of_center_ne {L M : Lollipop}
+    (hcenter : L.center ≠ M.center) :
+    L.circle ≠ M.circle := by
+  intro hcircle
+  have hsphere : concreteSphere L ≠ concreteSphere M := by
+    intro hsphere
+    exact hcenter (congrArg EuclideanGeometry.Sphere.center hsphere)
+  have hccFinite : (cc L M).Finite := by
+    apply finite_of_forall_mem_eq_left_or_right
+    intro a b x ha hb hx hab
+    exact eq_or_eq_of_mem_cc_of_two_witnesses hsphere hab ha hb hx
+  have hcircleSubset : L.circle ⊆ cc L M := by
+    intro x hx
+    exact ⟨hx, by simpa [hcircle] using hx⟩
+  exact (_root_.Lollipop.Concrete.EndToEnd.Lollipop.circle_infinite L)
+    (hccFinite.subset hcircleSubset)
+
 /-- Translate one parameter in an arrangement parameter vector. -/
 def translateParameterAt {n : ℕ}
     (p : Lower.ArrangementParameter n) (k : Fin n) (v : Point) :
@@ -146,6 +164,97 @@ theorem continuous_translateParameterAt {n : ℕ}
       funext v
       simp [translateParameterAt, ha]]
     exact continuous_const
+
+/-- The elementary pair-regular locus is dense for every ordered distinct
+pair.  The proof first enters the already-proved nonparallel-stem locus, then
+translates only the second center inside that open set.  Radials are unchanged,
+so nonparallelness is preserved, while the nonzero center translation forces
+the two circle sets to be distinct. -/
+theorem dense_pairRegularGood {n : ℕ} (i j : Fin n) (hij : i ≠ j) :
+    Dense (pairRegularGood i j) := by
+  rw [dense_iff_inter_open]
+  intro U hU hUne
+  rcases
+    (Lower.GenericityPort.dense_compl_parallelBadSet i j hij).exists_mem_open
+      hU hUne with
+    ⟨p, hpParallel, hpU⟩
+  have hpDet :
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0 := by
+    change p ∉ Lower.GenericityPort.parallelBadSet i j hij at hpParallel
+    exact hpParallel
+  by_cases hcircle :
+      (p.toArrangement i).circle ≠ (p.toArrangement j).circle
+  · exact ⟨p, hpU, hcircle, hpDet⟩
+  · have hcircleEq :
+        (p.toArrangement i).circle = (p.toArrangement j).circle :=
+      not_not.mp hcircle
+    have hcenterEq :
+        (p.toArrangement i).center = (p.toArrangement j).center := by
+      by_contra hcenterNe
+      exact hcircle (circle_ne_of_center_ne hcenterNe)
+    let V : Set (Lower.ArrangementParameter n) :=
+      U ∩ (Lower.GenericityPort.parallelBadSet i j hij)ᶜ
+    have hVopen : IsOpen V :=
+      hU.inter (Lower.GenericityPort.isOpen_compl_parallelBadSet i j hij)
+    have hpV : p ∈ V := ⟨hpU, hpParallel⟩
+    let γ : Point → Lower.ArrangementParameter n :=
+      fun v => translateParameterAt p j v
+    have hγcont : Continuous γ :=
+      continuous_translateParameterAt p j
+    have hpreOpen : IsOpen (γ ⁻¹' V) := hVopen.preimage hγcont
+    have hzero : (0 : Point) ∈ γ ⁻¹' V := by
+      change γ 0 ∈ V
+      simpa [γ] using hpV
+    have hnhds : γ ⁻¹' V ∈ nhds (0 : Point) :=
+      hpreOpen.mem_nhds hzero
+    rcases Metric.mem_nhds_iff.mp hnhds with ⟨ε, hεpos, hεsub⟩
+    let v : Point := (ε / 2) • (p.toArrangement i).unitRadial
+    have hεhalf : 0 < ε / 2 := by linarith
+    have hv_ne : v ≠ 0 := by
+      exact smul_ne_zero (ne_of_gt hεhalf)
+        (p.toArrangement i).unitRadial_ne_zero
+    have hvball : v ∈ Metric.ball (0 : Point) ε := by
+      have hhalf_lt : |ε| / 2 < ε := by
+        rw [abs_of_pos hεpos]
+        linarith
+      simpa [Metric.mem_ball, dist_eq_norm, v, norm_smul,
+        Real.norm_eq_abs, abs_of_pos hεhalf,
+        (p.toArrangement i).norm_unitRadial] using hhalf_lt
+    have hqV : γ v ∈ V := hεsub hvball
+    refine ⟨γ v, hqV.1, ?_⟩
+    have hi :
+        (γ v).toArrangement i = p.toArrangement i := by
+      simpa [γ] using
+        translateParameterAt_apply_ne p (a := i) (k := j) v hij
+    have hj :
+        (γ v).toArrangement j =
+          TranslationGenericity.translate (p.toArrangement j) v := by
+      simpa [γ] using translateParameterAt_apply_self p j v
+    have hcenterNe :
+        ((γ v).toArrangement i).center ≠
+          ((γ v).toArrangement j).center := by
+      intro hcent
+      rw [hi, hj] at hcent
+      change (p.toArrangement i).center =
+        (p.toArrangement j).center + v at hcent
+      have hv_zero : v = 0 := by
+        calc
+          v = ((p.toArrangement j).center + v) -
+              (p.toArrangement j).center := by module
+          _ = (p.toArrangement i).center -
+              (p.toArrangement j).center := by rw [← hcent]
+          _ = 0 := by rw [hcenterEq]; module
+      exact hv_ne hv_zero
+    constructor
+    · exact circle_ne_of_center_ne hcenterNe
+    · have hqParallel :
+          γ v ∉ Lower.GenericityPort.parallelBadSet i j hij := hqV.2
+      change detPoint ((γ v).toArrangement i).radial
+        ((γ v).toArrangement j).radial ≠ 0 at hqParallel
+      change detPoint ((γ v).toArrangement i).radial
+        ((γ v).toArrangement j).radial ≠ 0
+      exact hqParallel
 
 /-- Two-lollipop arrangement used to feed the translation-avoidance theorem
 for a fixed old pair. -/
@@ -252,6 +361,12 @@ theorem dense_orderedTripleGood_of_pairRegularGood_dense {n : ℕ}
   dense_orderedTripleGood_of_pairFiniteGood_dense t
     (hdense.mono (pairRegularGood_subset_pairFiniteGood t.1.1 t.1.2.1))
 
+/-- Every fixed ordered-triple good locus is dense. -/
+theorem dense_orderedTripleGood {n : ℕ}
+    (t : OrderedTripleIndex n) :
+    Dense (orderedTripleGood t) :=
+  dense_orderedTripleGood_of_pairRegularGood_dense t
+    (dense_pairRegularGood t.1.1 t.1.2.1 t.2.1)
 
 /-- The complement of the triple bad union is exactly the finite intersection
 of the fixed ordered-triple good loci. -/
@@ -303,6 +418,16 @@ theorem dense_compl_tripleBadUnion_of_orderedTriple_open_dense {n : ℕ}
     Lower.GenericityPort.dense_iInter_fintype_of_open_dense
       (orderedTripleGood (n := n)) hopen hdense
   rwa [compl_tripleBadUnion_eq_iInter_orderedTripleGood]
+
+/-- Once the fixed ordered-triple good loci are known to be open, their
+density is already proved by `dense_orderedTripleGood`. -/
+theorem dense_compl_tripleBadUnion_of_orderedTriple_open {n : ℕ}
+    (hopen : ∀ t : OrderedTripleIndex n, IsOpen (orderedTripleGood t)) :
+    Dense
+      ((Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n))ᶜ) :=
+  dense_compl_tripleBadUnion_of_orderedTriple_open_dense
+    hopen dense_orderedTripleGood
 
 /-- Remaining triple-contact avoidance theorem for the only nontrivial range
 `3 ≤ n`. -/

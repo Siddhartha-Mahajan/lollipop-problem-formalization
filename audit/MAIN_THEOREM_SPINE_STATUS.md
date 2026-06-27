@@ -94,6 +94,10 @@ MainTheorem.Genericity.dense_orderedTripleGood_of_pairFiniteGood_dense
 MainTheorem.Genericity.pairRegularGood
 MainTheorem.Genericity.pairRegularGood_subset_pairFiniteGood
 MainTheorem.Genericity.dense_orderedTripleGood_of_pairRegularGood_dense
+MainTheorem.Genericity.circle_ne_of_center_ne
+MainTheorem.Genericity.dense_pairRegularGood
+MainTheorem.Genericity.dense_orderedTripleGood
+MainTheorem.Genericity.dense_compl_tripleBadUnion_of_orderedTriple_open
 ```
 
 The last theorem says that for one ordered triple, if the first two selected
@@ -110,6 +114,18 @@ to prove that fixed pair-finite locus is dense.  A still stronger checked
 reduction is now available: unequal selected circles plus nonparallel selected
 stems imply finite carrier contact.  Thus one viable next target is density of
 `pairRegularGood i j`, the locus where those two elementary conditions hold.
+
+That next target has now also been proved.  The file proves that
+`pairRegularGood i j` is dense for every ordered distinct pair by first moving
+into the nonparallel-stem locus and then translating the second center inside
+that same open neighborhood.  Consequently every fixed ordered-triple good
+locus is dense.
+
+The remaining `dense_compl_tripleBadUnion_ge_three` work is now specifically
+the finite simultaneous-avoidance step: either prove enough openness of the
+fixed ordered-triple good loci to use the existing finite open-dense
+intersection theorem, or replace that route with a sequential finite
+avoidance proof that preserves previously removed triple contacts.
 
 The previous broad topology placeholders are also no longer direct
 `intro; sorry` proofs.  They now assemble from first-insertion and
