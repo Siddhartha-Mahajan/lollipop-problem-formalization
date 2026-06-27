@@ -93,6 +93,13 @@ MainTheorem.Genericity.pairFiniteGood
 MainTheorem.Genericity.dense_orderedTripleGood_of_pairFiniteGood_dense
 MainTheorem.Genericity.pairRegularGood
 MainTheorem.Genericity.pairRegularGood_subset_pairFiniteGood
+MainTheorem.Genericity.pairCenterRegularGood
+MainTheorem.Genericity.isOpen_pairCenterRegularGood
+MainTheorem.Genericity.dense_pairCenterRegularGood
+MainTheorem.Genericity.allPairCenterRegularGood
+MainTheorem.Genericity.isOpen_allPairCenterRegularGood
+MainTheorem.Genericity.dense_allPairCenterRegularGood
+MainTheorem.Genericity.pairFiniteArrangement_of_mem_allPairCenterRegularGood
 MainTheorem.Genericity.dense_orderedTripleGood_of_pairRegularGood_dense
 MainTheorem.Genericity.circle_ne_of_center_ne
 MainTheorem.Genericity.dense_pairRegularGood
@@ -126,6 +133,18 @@ the finite simultaneous-avoidance step: either prove enough openness of the
 fixed ordered-triple good loci to use the existing finite open-dense
 intersection theorem, or replace that route with a sequential finite
 avoidance proof that preserves previously removed triple contacts.
+
+The sequential route now has a checked open dense starting locus:
+
+```lean
+MainTheorem.Genericity.allPairCenterRegularGood
+MainTheorem.Genericity.dense_allPairCenterRegularGood
+MainTheorem.Genericity.pairFiniteArrangement_of_mem_allPairCenterRegularGood
+```
+
+Membership in this locus gives distinct centers and nonparallel stems for
+every ordered pair, hence the concrete `TranslationGenericity.PairFiniteArrangement`
+invariant needed before the first triple-removing insertion step.
 
 The sequential route now has checked append bookkeeping in
 `Lollipop/Concrete/EndToEnd/TranslationGenericity.lean`:

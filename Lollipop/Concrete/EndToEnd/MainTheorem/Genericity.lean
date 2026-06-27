@@ -70,6 +70,54 @@ def pairRegularGood {n : ℕ} (i j : Fin n) :
       detPoint (p.toArrangement i).radial
         (p.toArrangement j).radial ≠ 0}
 
+/-- Stronger open pair-regular locus: distinct centers and nonparallel stems.
+This implies `pairRegularGood`, but is better suited to finite neighborhood
+arguments because it is visibly open in the center/radial parameter space. -/
+def pairCenterRegularGood {n : ℕ} (i j : Fin n) :
+    Set (Lower.ArrangementParameter n) :=
+  {p |
+    (p.toArrangement i).center ≠ (p.toArrangement j).center ∧
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0}
+
+/-- The center-regular locus is open. -/
+theorem isOpen_pairCenterRegularGood {n : ℕ} (i j : Fin n) :
+    IsOpen (pairCenterRegularGood i j) := by
+  have hcenter_i : Continuous (fun p : Lower.ArrangementParameter n =>
+      (p.toArrangement i).center) :=
+    Lower.continuous_lollipop_center_comp
+      (Lower.continuous_toLollipop.comp (continuous_apply i))
+  have hcenter_j : Continuous (fun p : Lower.ArrangementParameter n =>
+      (p.toArrangement j).center) :=
+    Lower.continuous_lollipop_center_comp
+      (Lower.continuous_toLollipop.comp (continuous_apply j))
+  have hradial_i : Continuous (fun p : Lower.ArrangementParameter n =>
+      (p.toArrangement i).radial) :=
+    Lower.continuous_lollipop_radial_comp
+      (Lower.continuous_toLollipop.comp (continuous_apply i))
+  have hradial_j : Continuous (fun p : Lower.ArrangementParameter n =>
+      (p.toArrangement j).radial) :=
+    Lower.continuous_lollipop_radial_comp
+      (Lower.continuous_toLollipop.comp (continuous_apply j))
+  have hcenterOpen : IsOpen {p : Lower.ArrangementParameter n |
+      (p.toArrangement i).center ≠ (p.toArrangement j).center} :=
+    isOpen_ne_fun hcenter_i hcenter_j
+  have hdet : Continuous (fun p : Lower.ArrangementParameter n =>
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial) :=
+    continuous_detPoint_comp hradial_i hradial_j
+  have hdetOpen : IsOpen {p : Lower.ArrangementParameter n |
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0} :=
+    isOpen_ne_fun hdet continuous_const
+  change IsOpen
+    ({p : Lower.ArrangementParameter n |
+      (p.toArrangement i).center ≠ (p.toArrangement j).center} ∩
+    {p : Lower.ArrangementParameter n |
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0})
+  exact hcenterOpen.inter hdetOpen
+
 /-- Distinct circles plus nonparallel stems imply finite carrier contact. -/
 theorem pairCrossingSet_finite_of_circle_ne_of_nonparallel
     {L M : Lollipop} (hcircle : L.circle ≠ M.circle)
@@ -114,6 +162,20 @@ theorem circle_ne_of_center_ne {L M : Lollipop}
     exact ⟨hx, by simpa [hcircle] using hx⟩
   exact (_root_.Lollipop.Concrete.EndToEnd.Lollipop.circle_infinite L)
     (hccFinite.subset hcircleSubset)
+
+/-- Center-regular pairs are pair-regular in the carrier-finiteness sense. -/
+theorem pairCenterRegularGood_subset_pairRegularGood {n : ℕ}
+    (i j : Fin n) :
+    pairCenterRegularGood i j ⊆ pairRegularGood i j := by
+  intro p hp
+  exact ⟨circle_ne_of_center_ne hp.1, hp.2⟩
+
+/-- Center-regular pairs have finite carrier contact. -/
+theorem pairCenterRegularGood_subset_pairFiniteGood {n : ℕ}
+    (i j : Fin n) :
+    pairCenterRegularGood i j ⊆ pairFiniteGood i j :=
+  (pairCenterRegularGood_subset_pairRegularGood i j).trans
+    (pairRegularGood_subset_pairFiniteGood i j)
 
 /-- Translate one parameter in an arrangement parameter vector. -/
 def translateParameterAt {n : ℕ}
@@ -164,6 +226,136 @@ theorem continuous_translateParameterAt {n : ℕ}
       funext v
       simp [translateParameterAt, ha]]
     exact continuous_const
+
+/-- The center-regular locus is dense for every ordered distinct pair. -/
+theorem dense_pairCenterRegularGood {n : ℕ} (i j : Fin n) (hij : i ≠ j) :
+    Dense (pairCenterRegularGood i j) := by
+  rw [dense_iff_inter_open]
+  intro U hU hUne
+  rcases
+    (Lower.GenericityPort.dense_compl_parallelBadSet i j hij).exists_mem_open
+      hU hUne with
+    ⟨p, hpParallel, hpU⟩
+  have hpDet :
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0 := by
+    change p ∉ Lower.GenericityPort.parallelBadSet i j hij at hpParallel
+    exact hpParallel
+  by_cases hcenter :
+      (p.toArrangement i).center ≠ (p.toArrangement j).center
+  · exact ⟨p, hpU, hcenter, hpDet⟩
+  · have hcenterEq :
+        (p.toArrangement i).center = (p.toArrangement j).center :=
+      not_not.mp hcenter
+    let V : Set (Lower.ArrangementParameter n) :=
+      U ∩ (Lower.GenericityPort.parallelBadSet i j hij)ᶜ
+    have hVopen : IsOpen V :=
+      hU.inter (Lower.GenericityPort.isOpen_compl_parallelBadSet i j hij)
+    have hpV : p ∈ V := ⟨hpU, hpParallel⟩
+    let γ : Point → Lower.ArrangementParameter n :=
+      fun v => translateParameterAt p j v
+    have hγcont : Continuous γ :=
+      continuous_translateParameterAt p j
+    have hpreOpen : IsOpen (γ ⁻¹' V) := hVopen.preimage hγcont
+    have hzero : (0 : Point) ∈ γ ⁻¹' V := by
+      change γ 0 ∈ V
+      simpa [γ] using hpV
+    have hnhds : γ ⁻¹' V ∈ nhds (0 : Point) :=
+      hpreOpen.mem_nhds hzero
+    rcases Metric.mem_nhds_iff.mp hnhds with ⟨ε, hεpos, hεsub⟩
+    let v : Point := (ε / 2) • (p.toArrangement i).unitRadial
+    have hεhalf : 0 < ε / 2 := by linarith
+    have hv_ne : v ≠ 0 := by
+      exact smul_ne_zero (ne_of_gt hεhalf)
+        (p.toArrangement i).unitRadial_ne_zero
+    have hvball : v ∈ Metric.ball (0 : Point) ε := by
+      have hhalf_lt : |ε| / 2 < ε := by
+        rw [abs_of_pos hεpos]
+        linarith
+      simpa [Metric.mem_ball, dist_eq_norm, v, norm_smul,
+        Real.norm_eq_abs, abs_of_pos hεhalf,
+        (p.toArrangement i).norm_unitRadial] using hhalf_lt
+    have hqV : γ v ∈ V := hεsub hvball
+    refine ⟨γ v, hqV.1, ?_⟩
+    have hi :
+        (γ v).toArrangement i = p.toArrangement i := by
+      simpa [γ] using
+        translateParameterAt_apply_ne p (a := i) (k := j) v hij
+    have hj :
+        (γ v).toArrangement j =
+          TranslationGenericity.translate (p.toArrangement j) v := by
+      simpa [γ] using translateParameterAt_apply_self p j v
+    have hcenterNe :
+        ((γ v).toArrangement i).center ≠
+          ((γ v).toArrangement j).center := by
+      intro hcent
+      rw [hi, hj] at hcent
+      change (p.toArrangement i).center =
+        (p.toArrangement j).center + v at hcent
+      have hv_zero : v = 0 := by
+        calc
+          v = ((p.toArrangement j).center + v) -
+              (p.toArrangement j).center := by module
+          _ = (p.toArrangement i).center -
+              (p.toArrangement j).center := by rw [← hcent]
+          _ = 0 := by rw [hcenterEq]; module
+      exact hv_ne hv_zero
+    constructor
+    · exact hcenterNe
+    · have hqParallel :
+          γ v ∉ Lower.GenericityPort.parallelBadSet i j hij := hqV.2
+      change detPoint ((γ v).toArrangement i).radial
+        ((γ v).toArrangement j).radial ≠ 0 at hqParallel
+      change detPoint ((γ v).toArrangement i).radial
+        ((γ v).toArrangement j).radial ≠ 0
+      exact hqParallel
+
+/-- Finite index type for ordered distinct pairs. -/
+abbrev OrderedDistinctPairIndex (n : ℕ) :=
+  {ij : Fin n × Fin n // ij.1 ≠ ij.2}
+
+/-- All ordered distinct pairs are center-regular. -/
+def allPairCenterRegularGood {n : ℕ} :
+    Set (Lower.ArrangementParameter n) :=
+  ⋂ ij : OrderedDistinctPairIndex n,
+    pairCenterRegularGood ij.1.1 ij.1.2
+
+/-- The all-pairs center-regular locus is open. -/
+theorem isOpen_allPairCenterRegularGood {n : ℕ} :
+    IsOpen (allPairCenterRegularGood (n := n)) := by
+  classical
+  unfold allPairCenterRegularGood
+  apply isOpen_iInter_of_finite
+  intro ij
+  exact isOpen_pairCenterRegularGood ij.1.1 ij.1.2
+
+/-- The all-pairs center-regular locus is dense. -/
+theorem dense_allPairCenterRegularGood {n : ℕ} :
+    Dense (allPairCenterRegularGood (n := n)) := by
+  classical
+  unfold allPairCenterRegularGood
+  exact
+    Lower.GenericityPort.dense_iInter_fintype_of_open_dense
+      (fun ij : OrderedDistinctPairIndex n =>
+        pairCenterRegularGood ij.1.1 ij.1.2)
+      (by
+        intro ij
+        exact isOpen_pairCenterRegularGood ij.1.1 ij.1.2)
+      (by
+        intro ij
+        exact dense_pairCenterRegularGood ij.1.1 ij.1.2 ij.2)
+
+/-- An arrangement in the all-pairs center-regular locus has finite contact
+between every distinct pair of carriers. -/
+theorem pairFiniteArrangement_of_mem_allPairCenterRegularGood {n : ℕ}
+    {p : Lower.ArrangementParameter n}
+    (hp : p ∈ allPairCenterRegularGood (n := n)) :
+    TranslationGenericity.PairFiniteArrangement p.toArrangement := by
+  intro i j hij
+  have hpij :
+      p ∈ pairCenterRegularGood i j := by
+    exact Set.mem_iInter.mp hp ⟨(i, j), hij⟩
+  exact (pairCenterRegularGood_subset_pairFiniteGood i j hpij)
 
 /-- The elementary pair-regular locus is dense for every ordered distinct
 pair.  The proof first enters the already-proved nonparallel-stem locus, then
