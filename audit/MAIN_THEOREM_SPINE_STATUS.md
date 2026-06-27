@@ -106,6 +106,8 @@ MainTheorem.Genericity.circle_ne_of_center_ne
 MainTheorem.Genericity.dense_pairRegularGood
 MainTheorem.Genericity.dense_orderedTripleGood
 MainTheorem.Genericity.dense_compl_tripleBadUnion_of_orderedTriple_open
+MainTheorem.Genericity.not_mem_tripleBadUnion_iff_noTripleCarrierPoints
+MainTheorem.Genericity.not_mem_tripleBadUnion_of_noTripleCarrierPoints
 ```
 
 The last theorem says that for one ordered triple, if the first two selected
@@ -149,6 +151,9 @@ every ordered pair, hence the concrete `TranslationGenericity.PairFiniteArrangem
 invariant needed before the first triple-removing insertion step.  The small
 translation neighborhood theorem proves that translating one selected center
 can be kept inside any prescribed open subset of this all-pairs locus.
+The new triple-bad-union bridge identifies the terminal invariant from the
+insertion-order construction with the actual target complement of
+`Lower.GenericityPort.tripleBadUnion`.
 
 The sequential route now has checked append bookkeeping in
 `Lollipop/Concrete/EndToEnd/TranslationGenericity.lean`:

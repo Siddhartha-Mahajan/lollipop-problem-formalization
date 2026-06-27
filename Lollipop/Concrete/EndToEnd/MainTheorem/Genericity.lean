@@ -627,6 +627,53 @@ theorem compl_tripleBadUnion_eq_iInter_orderedTripleGood {n : ℕ} :
     change p ∉ Lower.GenericityPort.tripleBadSet i j k hij hik hjk at hgood
     exact hgood hbad
 
+/-- The parameter is outside the explicit triple-bad union iff its concrete
+arrangement has no triple carrier points. -/
+theorem not_mem_tripleBadUnion_iff_noTripleCarrierPoints {n : ℕ}
+    (p : Lower.ArrangementParameter n) :
+    p ∉ (Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n)) ↔
+      TranslationGenericity.NoTripleCarrierPoints p.toArrangement := by
+  constructor
+  · intro hnot i j k hij hik hjk
+    rw [Set.disjoint_left]
+    intro x hxi hxj
+    apply hnot
+    unfold Lower.GenericityPort.tripleBadUnion
+    exact Set.mem_iUnion.mpr ⟨i,
+      Set.mem_iUnion.mpr ⟨j,
+        Set.mem_iUnion.mpr ⟨k,
+          Set.mem_iUnion.mpr ⟨hij,
+            Set.mem_iUnion.mpr ⟨hik,
+              Set.mem_iUnion.mpr ⟨hjk,
+                ⟨x, by
+                  simpa only [Lower.ArrangementParameter.toArrangement,
+                    Set.mem_inter_iff] using ⟨⟨hxi.1, hxj.1⟩, hxi.2⟩⟩⟩⟩⟩⟩⟩⟩
+  · intro htriple hbad
+    unfold Lower.GenericityPort.tripleBadUnion at hbad
+    rcases Set.mem_iUnion.mp hbad with ⟨i, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨j, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨k, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hij, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hik, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hjk, hbad⟩
+    rcases hbad with ⟨x, hx⟩
+    have hx' :
+        x ∈ (p.toArrangement i).carrier ∩ (p.toArrangement k).carrier :=
+      ⟨hx.1.1, hx.2⟩
+    have hx'' :
+        x ∈ (p.toArrangement j).carrier ∩ (p.toArrangement k).carrier :=
+      ⟨hx.1.2, hx.2⟩
+    exact Set.disjoint_left.mp (htriple i j k hij hik hjk) hx' hx''
+
+/-- Direct forward form of the triple-bad-union bridge. -/
+theorem not_mem_tripleBadUnion_of_noTripleCarrierPoints {n : ℕ}
+    {p : Lower.ArrangementParameter n}
+    (htriple : TranslationGenericity.NoTripleCarrierPoints p.toArrangement) :
+    p ∉ (Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n)) :=
+  (not_mem_tripleBadUnion_iff_noTripleCarrierPoints p).2 htriple
+
 /-- Finite-index reduction for the triple-contact density theorem.  It is
 enough to prove that every fixed ordered-triple good locus is open dense. -/
 theorem dense_compl_tripleBadUnion_of_orderedTriple_open_dense {n : ℕ}
