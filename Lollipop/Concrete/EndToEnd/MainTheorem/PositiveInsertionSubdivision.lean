@@ -132,6 +132,33 @@ theorem edgeLocalized_of_isConnected_subset_compl
       (P := E) (S := Cᶜ) hEconn hEC hzE hxE
   simpa [connectedEdgeActiveComponent] using h
 
+/-- The old complement component containing a chosen genuinely new point of
+an edge.  This is the version needed for subdivision edges whose endpoints
+may lie on the old carrier. -/
+noncomputable def connectedNewPartActiveComponent
+    (C E : Set Point) (x : Point) (_hxE : x ∈ E) (hxC : x ∉ C) :
+    ConnectedComponents (Cᶜ : Set Point) :=
+  ConnectedComponents.mk (⟨x, hxC⟩ : (Cᶜ : Set Point))
+
+/-- If the genuinely new part `E ∩ Cᶜ` of an edge is connected, then the edge
+is localized in the old complement component containing any chosen new point.
+
+Unlike `edgeLocalized_of_isConnected_subset_compl`, this allows endpoints or
+overlap pieces of `E` to lie on the old carrier. -/
+theorem edgeLocalized_of_isConnected_newPart
+    {C E : Set Point} (hnew : IsConnected (E ∩ Cᶜ))
+    {x : Point} (hxE : x ∈ E) (hxC : x ∉ C) :
+    LocalInsertion.EdgeLocalized C E
+      (connectedNewPartActiveComponent C E x hxE hxC) := by
+  intro z hzE hzC
+  have hzNew : z ∈ E ∩ Cᶜ := ⟨hzE, hzC⟩
+  have hxNew : x ∈ E ∩ Cᶜ := ⟨hxE, hxC⟩
+  have h :=
+    ComponentLifting.connectedComponents_mk_eq_of_isConnected_subset
+      (P := E ∩ Cᶜ) (S := Cᶜ) hnew
+      (by intro y hy; exact hy.2) hzNew hxNew
+  simpa [connectedNewPartActiveComponent] using h
+
 /-- A full lollipop carrier disjoint from the old carrier is localized in one
 old complement component. -/
 theorem carrier_edgeLocalized_of_subset_compl
@@ -293,6 +320,25 @@ def localizedEdgeStepOfConnectedJordanCrosscut
     (edgeLocalized_of_isConnected_subset_compl hEconn hpE hEC)
     hlift
 
+/-- Connected-new-part version of the bounded Jordan-crosscut constructor.
+
+This is the form needed after cutting an inserted lollipop at old-new fan
+components: the effective open piece is connected in the old complement even
+when its endpoints lie on the old carrier. -/
+def localizedEdgeStepOfConnectedNewPartJordanCrosscut
+    {C E J : Set Point} (hnew : IsConnected (E ∩ Cᶜ))
+    {p : Point} (hpE : p ∈ E) (hpC : p ∉ C)
+    (hJK : J ⊆ LocalInsertion.carrierExtension C E)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C E) hJK hJ
+      (connectedNewPartActiveComponent C E p hpE hpC)) :
+    LocalFiltration.LocalizedEdgeStep C E :=
+  LocalCrosscut.localizedEdgeStepOfJordanCrosscut hJK hJ
+    (connectedNewPartActiveComponent C E p hpE hpC)
+    (edgeLocalized_of_isConnected_newPart hnew hpE hpC)
+    hlift
+
 /-- Connected-edge version of the exact Jordan-crosscut constructor. -/
 def localizedExactEdgeStepOfConnectedJordanCrosscut
     {C E J : Set Point} (hCclosed : IsClosed C) (L : Lollipop)
@@ -310,6 +356,25 @@ def localizedExactEdgeStepOfConnectedJordanCrosscut
   LocalCrosscut.localizedExactEdgeStepOfJordanCrosscut hCclosed L hE
     hJK hJ (connectedEdgeActiveComponent C E p hpE hEC)
     (edgeLocalized_of_isConnected_subset_compl hEconn hpE hEC)
+    hlift hside
+
+/-- Connected-new-part version of the exact Jordan-crosscut constructor. -/
+def localizedExactEdgeStepOfConnectedNewPartJordanCrosscut
+    {C E J : Set Point} (hCclosed : IsClosed C) (L : Lollipop)
+    (hE : E ⊆ L.carrier) (hnew : IsConnected (E ∩ Cᶜ))
+    {p : Point} (hpE : p ∈ E) (hpC : p ∉ C)
+    (hJK : J ⊆ LocalInsertion.carrierExtension C E)
+    (hJ : IsSimpleClosedCurve J)
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C E) hJK hJ
+      (connectedNewPartActiveComponent C E p hpE hpC))
+    (hside : JordanClassifier.ActiveSideSurjective
+      (LocalInsertion.old_subset_carrierExtension C E) hJK hJ
+      (connectedNewPartActiveComponent C E p hpE hpC)) :
+    LocalFiltration.LocalizedExactEdgeStep L C E :=
+  LocalCrosscut.localizedExactEdgeStepOfJordanCrosscut hCclosed L hE
+    hJK hJ (connectedNewPartActiveComponent C E p hpE hpC)
+    (edgeLocalized_of_isConnected_newPart hnew hpE hpC)
     hlift hside
 
 /-- Full-carrier version of the bounded Jordan-crosscut constructor. -/
@@ -367,6 +432,26 @@ def localizedEdgeStepOfConnectedTwoArcCrosscut
     (edgeLocalized_of_isConnected_subset_compl hEconn hpE hEC)
     hlift
 
+/-- Connected-new-part version of the bounded two-arc crosscut constructor. -/
+def localizedEdgeStepOfConnectedNewPartTwoArcCrosscut
+    {C E A B : Set Point} {x z p : Point}
+    (hnew : IsConnected (E ∩ Cᶜ)) (hpE : p ∈ E) (hpC : p ∉ C)
+    (hAext : A ⊆ LocalInsertion.carrierExtension C E)
+    (hBext : B ⊆ LocalInsertion.carrierExtension C E)
+    (hA : IsSimpleArcEnd A x z) (hB : IsSimpleArcEnd B x z)
+    (hxz : x ≠ z) (hinter : A ∩ B ⊆ {x, z})
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C E)
+      (union_subset hAext hBext)
+      (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs hA hB hxz
+        hinter)
+      (connectedNewPartActiveComponent C E p hpE hpC)) :
+    LocalFiltration.LocalizedEdgeStep C E :=
+  LocalCrosscut.localizedEdgeStepOfTwoArcCrosscut hAext hBext hA hB
+    hxz hinter (connectedNewPartActiveComponent C E p hpE hpC)
+    (edgeLocalized_of_isConnected_newPart hnew hpE hpC)
+    hlift
+
 /-- Connected-edge version of the exact two-arc crosscut constructor. -/
 def localizedExactEdgeStepOfConnectedTwoArcCrosscut
     {C E A B : Set Point} {x z p : Point}
@@ -393,6 +478,34 @@ def localizedExactEdgeStepOfConnectedTwoArcCrosscut
     hAext hBext hA hB hxz hinter
     (connectedEdgeActiveComponent C E p hpE hEC)
     (edgeLocalized_of_isConnected_subset_compl hEconn hpE hEC)
+    hlift hside
+
+/-- Connected-new-part version of the exact two-arc crosscut constructor. -/
+def localizedExactEdgeStepOfConnectedNewPartTwoArcCrosscut
+    {C E A B : Set Point} {x z p : Point}
+    (hCclosed : IsClosed C) (L : Lollipop) (hE : E ⊆ L.carrier)
+    (hnew : IsConnected (E ∩ Cᶜ)) (hpE : p ∈ E) (hpC : p ∉ C)
+    (hAext : A ⊆ LocalInsertion.carrierExtension C E)
+    (hBext : B ⊆ LocalInsertion.carrierExtension C E)
+    (hA : IsSimpleArcEnd A x z) (hB : IsSimpleArcEnd B x z)
+    (hxz : x ≠ z) (hinter : A ∩ B ⊆ {x, z})
+    (hlift : JordanClassifier.ActiveSideArcLifting
+      (LocalInsertion.old_subset_carrierExtension C E)
+      (union_subset hAext hBext)
+      (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs hA hB hxz
+        hinter)
+      (connectedNewPartActiveComponent C E p hpE hpC))
+    (hside : JordanClassifier.ActiveSideSurjective
+      (LocalInsertion.old_subset_carrierExtension C E)
+      (union_subset hAext hBext)
+      (ArcClosedCurve.isSimpleClosedCurve_union_of_two_arcs hA hB hxz
+        hinter)
+      (connectedNewPartActiveComponent C E p hpE hpC)) :
+    LocalFiltration.LocalizedExactEdgeStep L C E :=
+  LocalCrosscut.localizedExactEdgeStepOfTwoArcCrosscut hCclosed L hE
+    hAext hBext hA hB hxz hinter
+    (connectedNewPartActiveComponent C E p hpE hpC)
+    (edgeLocalized_of_isConnected_newPart hnew hpE hpC)
     hlift hside
 
 /-- Bounded subdivision data for one positive ordered insertion.

@@ -116,6 +116,26 @@ MainTheorem.positiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
 MainTheorem.exactPositiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
 ```
 
+The local topology bridge now also supports subdivision edges whose endpoints
+or overlap pieces lie on the old carrier.  The key new lemma is:
+
+```lean
+MainTheorem.edgeLocalized_of_isConnected_newPart
+```
+
+and the matching Jordan/two-arc constructors are:
+
+```lean
+MainTheorem.localizedEdgeStepOfConnectedNewPartJordanCrosscut
+MainTheorem.localizedExactEdgeStepOfConnectedNewPartJordanCrosscut
+MainTheorem.localizedEdgeStepOfConnectedNewPartTwoArcCrosscut
+MainTheorem.localizedExactEdgeStepOfConnectedNewPartTwoArcCrosscut
+```
+
+This is the form needed for the real carrier-subdivision theorem: effective
+subdivision arcs may have endpoints on the old carrier, but their genuinely
+new part must lie in one old complement component.
+
 The insertion-fan budget for the first insertion is proved:
 
 ```lean
