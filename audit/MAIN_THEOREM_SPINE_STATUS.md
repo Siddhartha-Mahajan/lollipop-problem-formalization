@@ -91,6 +91,9 @@ MainTheorem.Genericity.continuous_translateParameterAt
 MainTheorem.Genericity.exists_mem_open_not_tripleBadSet_of_pairFinite_at
 MainTheorem.Genericity.pairFiniteGood
 MainTheorem.Genericity.dense_orderedTripleGood_of_pairFiniteGood_dense
+MainTheorem.Genericity.pairRegularGood
+MainTheorem.Genericity.pairRegularGood_subset_pairFiniteGood
+MainTheorem.Genericity.dense_orderedTripleGood_of_pairRegularGood_dense
 ```
 
 The last theorem says that for one ordered triple, if the first two selected
@@ -103,7 +106,10 @@ this local move over all ordered triples.
 The genericity `sorry` has therefore been reduced further: for each fixed
 ordered triple, density of the ordered-triple good locus follows from density
 of `pairFiniteGood` for the first selected pair.  The next concrete target is
-to prove that fixed pair-finite locus is dense.
+to prove that fixed pair-finite locus is dense.  A still stronger checked
+reduction is now available: unequal selected circles plus nonparallel selected
+stems imply finite carrier contact.  Thus one viable next target is density of
+`pairRegularGood i j`, the locus where those two elementary conditions hold.
 
 The previous broad topology placeholders are also no longer direct
 `intro; sorry` proofs.  They now assemble from first-insertion and
@@ -137,6 +143,8 @@ MainTheorem.insertionFan_eq_singleton_infinity_of_carrier_subset_prefix_compl
 MainTheorem.componentCount_insertionFan_eq_one_of_carrier_subset_prefix_compl
 MainTheorem.positiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
 MainTheorem.exactPositiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
+MainTheorem.positiveInsertionSubdivision_exists_of_disjoint_carrier_crosscut
+MainTheorem.exactPositiveInsertionSubdivision_exists_of_disjoint_carrier_crosscut
 ```
 
 The local topology bridge now also supports subdivision edges whose endpoints

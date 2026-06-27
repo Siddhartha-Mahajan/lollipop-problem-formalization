@@ -725,6 +725,92 @@ noncomputable def exactPositiveInsertionSubdivision_of_disjoint_carrier_jordanCr
       (A ⟨k, hk⟩)
       (isClosed_occupied_prefix A k hk) hLC hJK hJ hlift hside)
 
+/-- Disjoint-carrier bounded insertion theorem.
+
+Once the inserted carrier avoids the old prefix carrier, a single localized
+edge suffices.  The only geometric topology input left in this branch is the
+local Jordan crosscut side-lifting theorem around the one inserted carrier. -/
+theorem positiveInsertionSubdivision_exists_of_disjoint_carrier_crosscut
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (hLC :
+      (A ⟨k, hk⟩).carrier ⊆
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))ᶜ)
+    (hcross :
+      ∃ J : Set Point,
+      ∃ hJK : J ⊆
+        LocalInsertion.carrierExtension
+          (occupied
+            (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+          (A ⟨k, hk⟩).carrier,
+      ∃ hJ : IsSimpleClosedCurve J,
+        JordanClassifier.ActiveSideArcLifting
+          (LocalInsertion.old_subset_carrierExtension
+            (occupied
+              (PlanarInsertion.prefixArrangement A k
+                (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier)
+          hJK hJ
+          (connectedEdgeActiveComponent
+            (occupied
+              (PlanarInsertion.prefixArrangement A k
+                (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier (A ⟨k, hk⟩).anchor
+            ((A ⟨k, hk⟩).anchor_mem_carrier) hLC)) :
+    Nonempty (PositiveInsertionSubdivision A k hk) := by
+  rcases hcross with ⟨J, hJK, hJ, hlift⟩
+  exact ⟨positiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
+    A k hk hLC hJK hJ hlift⟩
+
+/-- Disjoint-carrier exact insertion theorem.
+
+In the no-overlap branch the insertion fan is just `{∞}`, so a single exact
+localized edge has the required fan-sized length. -/
+theorem exactPositiveInsertionSubdivision_exists_of_disjoint_carrier_crosscut
+    {n : ℕ} (A : Arrangement n) (k : ℕ) (hk : k < n)
+    (hLC :
+      (A ⟨k, hk⟩).carrier ⊆
+        (occupied
+          (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))ᶜ)
+    (hcross :
+      ∃ J : Set Point,
+      ∃ hJK : J ⊆
+        LocalInsertion.carrierExtension
+          (occupied
+            (PlanarInsertion.prefixArrangement A k (Nat.le_of_lt hk)))
+          (A ⟨k, hk⟩).carrier,
+      ∃ hJ : IsSimpleClosedCurve J,
+      ∃ _hlift : JordanClassifier.ActiveSideArcLifting
+        (LocalInsertion.old_subset_carrierExtension
+          (occupied
+            (PlanarInsertion.prefixArrangement A k
+              (Nat.le_of_lt hk)))
+          (A ⟨k, hk⟩).carrier)
+        hJK hJ
+        (connectedEdgeActiveComponent
+          (occupied
+            (PlanarInsertion.prefixArrangement A k
+              (Nat.le_of_lt hk)))
+          (A ⟨k, hk⟩).carrier (A ⟨k, hk⟩).anchor
+          ((A ⟨k, hk⟩).anchor_mem_carrier) hLC),
+        JordanClassifier.ActiveSideSurjective
+          (LocalInsertion.old_subset_carrierExtension
+            (occupied
+              (PlanarInsertion.prefixArrangement A k
+                (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier)
+          hJK hJ
+          (connectedEdgeActiveComponent
+            (occupied
+              (PlanarInsertion.prefixArrangement A k
+                (Nat.le_of_lt hk)))
+            (A ⟨k, hk⟩).carrier (A ⟨k, hk⟩).anchor
+            ((A ⟨k, hk⟩).anchor_mem_carrier) hLC)) :
+    Nonempty (ExactPositiveInsertionSubdivision A k hk) := by
+  rcases hcross with ⟨J, hJK, hJ, hlift, hside⟩
+  exact ⟨exactPositiveInsertionSubdivision_of_disjoint_carrier_jordanCrosscut
+    A k hk hLC hJK hJ hlift hside⟩
+
 /-- A one-piece effective carrier gives a one-edge exact subdivision when the
 insertion fan also has component count one. -/
 noncomputable def

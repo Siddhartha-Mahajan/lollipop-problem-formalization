@@ -60,6 +60,43 @@ def pairFiniteGood {n : ℕ} (i j : Fin n) :
   {p | ((p.toArrangement i).carrier ∩
     (p.toArrangement j).carrier).Finite}
 
+/-- A stronger, elementary good locus for one pair: unequal circles and
+nonparallel stems.  This is the explicit geometric condition currently used
+as the next density target for pair-finiteness. -/
+def pairRegularGood {n : ℕ} (i j : Fin n) :
+    Set (Lower.ArrangementParameter n) :=
+  {p |
+    (p.toArrangement i).circle ≠ (p.toArrangement j).circle ∧
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0}
+
+/-- Distinct circles plus nonparallel stems imply finite carrier contact. -/
+theorem pairCrossingSet_finite_of_circle_ne_of_nonparallel
+    {L M : Lollipop} (hcircle : L.circle ≠ M.circle)
+    (hdet : detPoint L.radial M.radial ≠ 0) :
+    (pairCrossingSet L M).Finite := by
+  have hccFin : (cc L M).Finite :=
+    finite_circle_intersection_of_ne hcircle
+  have hrcFin : (rc L M).Finite :=
+    finite_ray_circle_intersection L M
+  have hcrFin : (cr L M).Finite :=
+    finite_circle_ray_intersection L M
+  have hrrFin : (rr L M).Finite := by
+    by_cases hrr : (rr L M).Nonempty
+    · exact finite_of_subsingleton_of_mem
+        (rr_subsingleton_of_transverse hdet) hrr.some_mem
+    · rw [Set.not_nonempty_iff_eq_empty.mp hrr]
+      exact Set.finite_empty
+  rw [pairCrossingSet_decompose]
+  exact ((hccFin.union hrcFin).union hcrFin).union hrrFin
+
+/-- The elementary pair-regular locus is contained in the finite-contact
+locus. -/
+theorem pairRegularGood_subset_pairFiniteGood {n : ℕ} (i j : Fin n) :
+    pairRegularGood i j ⊆ pairFiniteGood i j := by
+  intro p hp
+  exact pairCrossingSet_finite_of_circle_ne_of_nonparallel hp.1 hp.2
+
 /-- Translate one parameter in an arrangement parameter vector. -/
 def translateParameterAt {n : ℕ}
     (p : Lower.ArrangementParameter n) (k : Fin n) (v : Point) :
@@ -205,6 +242,16 @@ theorem dense_orderedTripleGood_of_pairFiniteGood_dense {n : ℕ}
       t.2.1 t.2.2.1 t.2.2.2 hpfinite hU hpU with
     ⟨q, hqU, hqgood⟩
   exact ⟨q, hqU, by simpa [orderedTripleGood] using hqgood⟩
+
+/-- Fixed-triple density is also reduced to density of the stronger elementary
+pair-regular locus. -/
+theorem dense_orderedTripleGood_of_pairRegularGood_dense {n : ℕ}
+    (t : OrderedTripleIndex n)
+    (hdense : Dense (pairRegularGood t.1.1 t.1.2.1)) :
+    Dense (orderedTripleGood t) :=
+  dense_orderedTripleGood_of_pairFiniteGood_dense t
+    (hdense.mono (pairRegularGood_subset_pairFiniteGood t.1.1 t.1.2.1))
+
 
 /-- The complement of the triple bad union is exactly the finite intersection
 of the fixed ordered-triple good loci. -/
