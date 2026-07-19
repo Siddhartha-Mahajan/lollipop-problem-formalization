@@ -1,0 +1,7 @@
+Exact closed-form verification
+==============================
+All decisions use integer arithmetic.
+Checked n = 0,...,4096 (4097 values).
+Checked 4097 periodic optimal quadruples.
+Verified M(n), S(n), the floor/indicator form, and the main region formula.
+RESULT: PASSED

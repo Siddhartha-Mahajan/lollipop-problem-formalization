@@ -1,0 +1,337 @@
+{
+  "method": "integer arithmetic only",
+  "range_checked": [
+    0,
+    4096
+  ],
+  "values_checked": 4097,
+  "periodic_optimizer_checks": 4097,
+  "delta_by_residue": [
+    0,
+    33,
+    36,
+    9,
+    16,
+    25,
+    4,
+    17,
+    32,
+    17,
+    4,
+    25,
+    16,
+    9,
+    36,
+    33
+  ],
+  "exceptional_residues": [
+    1,
+    2,
+    8,
+    14,
+    15
+  ],
+  "initial_values": [
+    {
+      "n": 0,
+      "minimizing_p": [
+        0
+      ],
+      "optimal_quadruple": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "S": 0,
+      "a_L": 1
+    },
+    {
+      "n": 1,
+      "minimizing_p": [
+        0,
+        1
+      ],
+      "optimal_quadruple": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "S": 0,
+      "a_L": 2
+    },
+    {
+      "n": 2,
+      "minimizing_p": [
+        0,
+        1
+      ],
+      "optimal_quadruple": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "S": 3,
+      "a_L": 10
+    },
+    {
+      "n": 3,
+      "minimizing_p": [
+        1
+      ],
+      "optimal_quadruple": [
+        0,
+        1,
+        1,
+        1
+      ],
+      "S": 9,
+      "a_L": 25
+    },
+    {
+      "n": 4,
+      "minimizing_p": [
+        2
+      ],
+      "optimal_quadruple": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "S": 16,
+      "a_L": 45
+    },
+    {
+      "n": 5,
+      "minimizing_p": [
+        2
+      ],
+      "optimal_quadruple": [
+        1,
+        1,
+        1,
+        2
+      ],
+      "S": 25,
+      "a_L": 71
+    },
+    {
+      "n": 6,
+      "minimizing_p": [
+        2
+      ],
+      "optimal_quadruple": [
+        1,
+        1,
+        2,
+        2
+      ],
+      "S": 37,
+      "a_L": 104
+    },
+    {
+      "n": 7,
+      "minimizing_p": [
+        3
+      ],
+      "optimal_quadruple": [
+        1,
+        2,
+        2,
+        2
+      ],
+      "S": 50,
+      "a_L": 142
+    },
+    {
+      "n": 8,
+      "minimizing_p": [
+        3
+      ],
+      "optimal_quadruple": [
+        1,
+        2,
+        2,
+        3
+      ],
+      "S": 65,
+      "a_L": 186
+    },
+    {
+      "n": 9,
+      "minimizing_p": [
+        3
+      ],
+      "optimal_quadruple": [
+        1,
+        2,
+        3,
+        3
+      ],
+      "S": 83,
+      "a_L": 237
+    },
+    {
+      "n": 10,
+      "minimizing_p": [
+        4
+      ],
+      "optimal_quadruple": [
+        2,
+        2,
+        3,
+        3
+      ],
+      "S": 103,
+      "a_L": 294
+    },
+    {
+      "n": 11,
+      "minimizing_p": [
+        4
+      ],
+      "optimal_quadruple": [
+        2,
+        2,
+        3,
+        4
+      ],
+      "S": 124,
+      "a_L": 356
+    },
+    {
+      "n": 12,
+      "minimizing_p": [
+        4
+      ],
+      "optimal_quadruple": [
+        2,
+        2,
+        4,
+        4
+      ],
+      "S": 148,
+      "a_L": 425
+    },
+    {
+      "n": 13,
+      "minimizing_p": [
+        5
+      ],
+      "optimal_quadruple": [
+        2,
+        3,
+        4,
+        4
+      ],
+      "S": 174,
+      "a_L": 500
+    },
+    {
+      "n": 14,
+      "minimizing_p": [
+        5,
+        6
+      ],
+      "optimal_quadruple": [
+        2,
+        3,
+        4,
+        5
+      ],
+      "S": 201,
+      "a_L": 580
+    },
+    {
+      "n": 15,
+      "minimizing_p": [
+        5,
+        6
+      ],
+      "optimal_quadruple": [
+        2,
+        3,
+        5,
+        5
+      ],
+      "S": 231,
+      "a_L": 667
+    },
+    {
+      "n": 16,
+      "minimizing_p": [
+        6
+      ],
+      "optimal_quadruple": [
+        3,
+        3,
+        5,
+        5
+      ],
+      "S": 264,
+      "a_L": 761
+    },
+    {
+      "n": 17,
+      "minimizing_p": [
+        6,
+        7
+      ],
+      "optimal_quadruple": [
+        3,
+        3,
+        5,
+        6
+      ],
+      "S": 297,
+      "a_L": 859
+    },
+    {
+      "n": 18,
+      "minimizing_p": [
+        6,
+        7
+      ],
+      "optimal_quadruple": [
+        3,
+        3,
+        6,
+        6
+      ],
+      "S": 333,
+      "a_L": 964
+    },
+    {
+      "n": 19,
+      "minimizing_p": [
+        7
+      ],
+      "optimal_quadruple": [
+        3,
+        4,
+        6,
+        6
+      ],
+      "S": 372,
+      "a_L": 1076
+    },
+    {
+      "n": 20,
+      "minimizing_p": [
+        8
+      ],
+      "optimal_quadruple": [
+        4,
+        4,
+        6,
+        6
+      ],
+      "S": 412,
+      "a_L": 1193
+    }
+  ],
+  "result": "PASSED"
+}

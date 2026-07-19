@@ -9,13 +9,26 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{microtype}
+\microtypesetup{nopatch=footnote}
 \usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage{setspace}
 \usepackage{longtable}
+\usepackage{url}
 
-\hypersetup{colorlinks=true,linkcolor=blue!52!black,citecolor=blue!52!black,urlcolor=blue!52!black}
+\allowdisplaybreaks[2]
+\setlength{\emergencystretch}{2em}
+\urlstyle{same}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!52!black,
+  citecolor=blue!52!black,
+  urlcolor=blue!52!black,
+  pdftitle={A Colored Turan Proof of the Exact Lollipop Formula},
+  pdfauthor={Siddhartha Mahajan, Matthias Paulsen, and Paras Chopra}
+}
 \setstretch{1.045}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.45em}
@@ -44,51 +57,40 @@
 
 \begin{document}
 
-\title{%
-% \includegraphics[width=0.33\linewidth]{lossfunk-logo.jpg}\\[0.85cm]
-A Colored Tur\'an Proof of the Lollipop Formula}
-
+\title{A Colored Tur\'an Proof of the Exact Lollipop Formula}
 \author{%
-Siddhartha Mahajan\\
-Research Fellow, Lossfunk\\
-\texttt{siddharthamahajan03@gmail.com}
-\and Matthias
-Paulsen \and
-Paras Chopra\\
-Lossfunk\\
-\texttt{paras@lossfunk.com}
-}
-
-\date{}
+Siddhartha Mahajan\thanks{Research Fellow, Lossfunk. Email: \href{mailto:siddharthamahajan03@gmail.com}{\texttt{siddharthamahajan03@gmail.com}}}
+\and Matthias Paulsen
+\and Paras Chopra\thanks{Lossfunk. Email: \href{mailto:paras@lossfunk.com}{\texttt{paras@lossfunk.com}}}}
+\date{July 2026}
 \maketitle
+
 \begin{abstract}
 A lollipop is a circle together with the outward radial ray beginning at one
 point of the circle.  Let $a_{\Lop}(n)$ be the maximum number of connected
-components of the complement of a union of $n$ lollipops in the plane.  We
-prove, for every $n\geq 0$,
+components of the complement of a union of $n$ lollipops in the plane.  Put
+$\mathcal R=\{1,2,8,14,15\}$.  We prove, for every $n\geq0$,
 \[
- a_{\Lop}(n)=4\binom n2+S(n)+n+1,
+ a_{\Lop}(n)=
+ \left\lfloor\frac{97n^2}{32}\right\rfloor-n+1
+ -\1_{\{n\bmod16\in\mathcal R\}}.
 \]
-where
-\[
- S(n)=\max_{\substack{a+b+c+d=n\\0\leq a\leq b\leq c\leq d}}
- \left(3\sum_{1\leq i<j\leq4}m_i m_j-2ab\right),
- \qquad (m_1,m_2,m_3,m_4)=(a,b,c,d).
-\]
-The upper bound is valid without a general-position assumption.  Its
-geometric input is encoded by two graphs: non-close pairs form a $K_4$-free
-graph and non-intriguing pairs form a $K_5$-free graph.  A colored Zykov
-symmetrization reduces the resulting extremal problem to a weighted blocker
-inequality.  The final inequality is an exact $3\times4$ integer-matrix
-problem, proved by support compression to star forests.  For the lower bound, we give a polynomial one-parameter family
-in which every two distinct nearby copies have exactly four transverse
-intersections, and blow up an all-rational perturbation of Karlsson's
-four-lollipop configuration.  Every decisive inequality for the base
-configuration is checked by exact rational arithmetic; no floating-point
-branch or sign decision is used.
+Equivalently, the excess over the baseline $4\binom n2+n+1$ is
+$S(n)=\lfloor33n^2/32\rfloor-
+\1_{\{n\bmod16\in\mathcal R\}}$.  The upper bound is valid without a
+general-position assumption.  Its geometric input is encoded by two graphs:
+non-close pairs form a $K_4$-free graph and non-intriguing pairs form a
+$K_5$-free graph.  A colored Zykov symmetrization reduces the resulting
+extremal problem to a weighted blocker inequality, and then to an exact
+$3\times4$ integer-matrix inequality proved by support compression to star
+forests.  For the lower bound, a polynomial one-parameter family supplies
+four crossings within each cluster, while an all-rational perturbation of
+Karlsson's four-lollipop configuration supplies the cross-cluster pattern.
+An appendix records every exact rational sign used to certify the base
+configuration.
 \end{abstract}
 
-\section{Statement and notation}\label{sec:statement}
+\section{Statement, exact formula, and proof outline}\label{sec:statement}
 
 For $c\in\R^2$, $r>0$, and a unit vector $u\in S^1$, write
 \[
@@ -99,39 +101,68 @@ The associated \emph{lollipop} is
 \[
  L(c,r,u)=C(c,r)\cup R(c,r,u),
 \]
-and its \emph{anchor} is $a=c+ru$.  No general-position hypothesis is part
-of the definition of $a_{\Lop}(n)$.
+and its \emph{anchor} is $c+ru$.  No general-position hypothesis is part of
+the definition of $a_{\Lop}(n)$.
 
-For $n\geq0$, define
+Let
+\[
+ \mathcal R=\{1,2,8,14,15\},\qquad
+ \chi(n)=\1_{\{n\bmod16\in\mathcal R\}}.
+\]
+The quantity arising naturally from the four-cluster construction is
 \begin{equation}\label{eq:Sdef}
  S(n)=\max_{\substack{a+b+c+d=n\\0\leq a\leq b\leq c\leq d}}
  \left(3\sum_{1\leq i<j\leq4}m_i m_j-2ab\right),
  \qquad (m_1,m_2,m_3,m_4)=(a,b,c,d).
 \end{equation}
-Equivalently, for a fixed multiset of four cluster sizes, the penalized
-product is the product of the two smallest sizes.
+For a fixed multiset of four cluster sizes, the penalized product is the
+product of the two smallest sizes.
 
-\begin{theorem}\label{thm:main}
+\begin{theorem}[exact lollipop formula]\label{thm:main}
 For every integer $n\geq0$,
-\begin{equation}\label{eq:main}
- a_{\Lop}(n)=4\binom n2+S(n)+n+1.
-\end{equation}
+\begin{align}
+ S(n)&=\left\lfloor\frac{33n^2}{32}\right\rfloor-\chi(n),
+ \label{eq:Sclosed}\\
+ a_{\Lop}(n)
+ &=4\binom n2+S(n)+n+1 \label{eq:mainS}\\
+ &=\left\lfloor\frac{97n^2}{32}\right\rfloor-n+1-\chi(n).
+ \label{eq:main}
+\end{align}
 \end{theorem}
 
-The proof separates into topology, pair geometry, and an exact colored
-extremal theorem.  Cutler-Karlsson-Sloane established the first geometric
-bounds and the exact cases through four lollipops; Paulsen introduced the
-close-pair and circle-angle obstructions; and Mahajan-Chopra recast those
-obstructions as a two-graph problem, determining all cases through $17$ and
-also $n=19$ while leaving one-region gaps at $18$ and $20$
-\cite{CKS,MahajanChopra,Paulsen}.  Theorem~\ref{thm:main} closes those gaps
-and proves the resulting formula for every $n$.
+The sequence $a_{\Lop}(n)$ is OEIS A389624 \cite{OEIS}.  Cutler--Karlsson--
+Sloane established the first geometric bounds and the exact cases through
+four lollipops; Paulsen introduced the close-pair and circle-angle
+obstructions; and Mahajan--Chopra recast those obstructions as a two-graph
+problem, determining all cases through $17$ and also $n=19$, with one-region
+gaps at $18$ and $20$ \cite{CKS,Paulsen,MahajanChopra}.  Theorem~\ref{thm:main}
+settles every $n$; in particular $a_{\Lop}(18)=964$ and
+$a_{\Lop}(20)=1193$.
 
-The topological argument below is included in order to remove a frequently
-used but unnecessary assertion that every extremizer may simply be assumed
-generic.
+\subsection*{Proof outline}
+The argument has four layers.
+\begin{enumerate}[label=(\roman*)]
+\item A Mayer--Vietoris and Alexander-duality argument bounds the number of
+regions of an arbitrary, possibly degenerate, arrangement by a sum of
+pair-intersection component counts.
+\item Pair geometry assigns to the lollipops two graphs $D$ and $E$.
+Non-close pairs form a $K_4$-free graph, non-intriguing pairs form a
+$K_5$-free graph, and every pair contributes at most a fixed four-crossing
+baseline plus a color-dependent saving term.
+\item A colored Zykov symmetrization, weighted Tur\'an theorem, and blocker
+argument reduce the sharp bound to a $3\times4$ nonnegative integer matrix.
+Support-compressing that matrix to a star forest proves the exact colored
+extremal theorem.
+\item A four-cluster blow-up of an exact rational base configuration attains
+the bound.  A local polynomial family supplies the four crossings needed
+within each cluster, and a chamber argument removes accidental triple
+points without changing any pair count.
+\end{enumerate}
 
-\section{A region bound valid for arbitrary arrangements}\label{sec:topology}
+The topological first step is included to avoid the unnecessary assumption
+that an extremizer may simply be taken in general position.
+
+\section{A topological region bound for arbitrary arrangements}\label{sec:topology}
 
 Let $S^2=\R^2\cup\{\infty\}$ be the one-point compactification.  For a
 lollipop $L$, put $\widehat L=L\cup\{\infty\}$.  The compactified stem is a
@@ -199,9 +230,11 @@ Starting from $\betti_1(X_1)=1$ and iterating \eqref{eq:mvstep} yields
 Alexander duality on $S^2$ \cite[Section~3.3]{Hatcher} gives
 \[
  F-1=\dim \widetilde H_0(S^2\setminus X_n;\Q)
- =\dim \widetilde H^1(X_n;\Q)=\betti_1(X_n),
+ =\dim \widetilde H^1(X_n;\Q).
 \]
-which proves \eqref{eq:top-region}.  The case $n=0$ is immediate.
+Over the field $\Q$, the universal coefficient theorem identifies the last
+dimension with $\betti_1(X_n)$.  This proves \eqref{eq:top-region}.  The
+case $n=0$ is immediate.
 
 For a generic arrangement, $X_n$ is a finite connected graph.  If $C$ is the
 total number of finite crossings, its vertices are the $C$ crossings, the $n$
@@ -221,8 +254,8 @@ They are called \emph{close} if
 \begin{equation}\label{eq:close}
  u_1\cdot u_2\geq0,
 \end{equation}
-that is, the smaller angle between their stem directions is at most
-$\pi/2$.  They are called \emph{intriguing} if either their two circle curves
+that is, the angle between their directed stem vectors is at most
+$\pi/2$.  They are called \emph{intriguing} if either their two circles
 are disjoint, or
 \begin{equation}\label{eq:intriguing}
  |d|^2\leq r_1^2+r_2^2.
@@ -367,7 +400,7 @@ Among any five circles there is an intriguing pair.
 \end{lemma}
 
 \begin{proof}
-Suppose not.  Then every two circle curves meet, and for their center distance
+Suppose not.  Then every two circles meet, and for their center distance
 $d_{ij}=|c_i-c_j|$ one has
 \begin{equation}\label{eq:nonintr}
  r_i^2+r_j^2<d_{ij}^2\leq(r_i+r_j)^2.
@@ -438,11 +471,13 @@ Combining Proposition~\ref{prop:top-region} with \eqref{eq:pointwise-q},
 Thus the upper bound in Theorem~\ref{thm:main} follows from the next purely
 combinatorial theorem.
 
-\begin{theorem}[colored Tur\'an theorem]\label{thm:colored}
+\begin{theorem}[sharp colored Tur\'an theorem]\label{thm:colored}
 If $D$ is $K_4$-free and $E$ is $K_5$-free on the same $n$-vertex set, then
 \begin{equation}\label{eq:colored}
- \sigma(D,E)\leq S(n).
+ \sigma(D,E)\leq S(n)
+ =\left\lfloor\frac{33n^2}{32}\right\rfloor-\chi(n).
 \end{equation}
+For every $n$, equality is attained by a four-part construction.
 \end{theorem}
 
 \section{Colored Zykov symmetrization}\label{sec:zykov}
@@ -482,9 +517,11 @@ No new $K_4$ in $D$ or $K_5$ in $E$ is created: a new clique containing a
 clone from $P$ but no vertex of $Q$ is obtained from an old clique by replacing
 the clone by its model in $Q$, while a clique cannot use vertices from both
 $P$ and $Q$ because their mutual pairs have color $0$.  If the weighted
-degrees are unequal, extremality is contradicted; if they are equal, $P$ and
-$Q$ merge and the square-sum tie-breaker is contradicted.  The opposite
-inequality is symmetric.  Hence no zero-colored pair joins distinct classes,
+degrees are unequal, extremality is contradicted.  If they are equal, $P$ and
+$Q$ become one zero-twin class.  No other zero-twin class splits, because all
+of its vertices undergo the same color changes toward $P$.  Hence the
+square-sum tie-breaker strictly increases, again a contradiction.  The
+opposite inequality is symmetric.  Hence no zero-colored pair joins distinct classes,
 and the zero-twin definition makes every cross-class color constant.
 \end{proof}
 
@@ -542,8 +579,10 @@ weight changes by
 The operation preserves $K_{r+1}$-freeness: a new clique cannot use vertices
 from both $P$ and $Q$, and a clique using a clone from $P$ maps to an old
 clique by replacing that clone with its model in $Q$.  Strict inequality
-contradicts maximality; equality merges $P$ and $Q$ and strictly increases the
-tie-breaker.  The opposite ordering is symmetric.  Hence distinct twin
+contradicts maximality.  In the equality case $P$ and $Q$ merge, while no
+other twin class splits because every vertex in such a class undergoes the
+same adjacency change toward $P$.  The square-sum tie-breaker therefore
+strictly increases.  The opposite ordering is symmetric.  Hence distinct twin
 classes are pairwise adjacent.
 
 The graph is therefore complete multipartite, and $K_{r+1}$-freeness leaves
@@ -566,6 +605,87 @@ two smallest entries.  Hence
 \begin{equation}\label{eq:SM}
  S(n)=\frac32n^2-M(n).
 \end{equation}
+
+\begin{proposition}[exact evaluation of $M(n)$ and $S(n)$]\label{prop:exactS}
+Write $n=16k+r$ with $0\leq r<16$.  Then
+\begin{equation}\label{eq:Mclosed}
+ M(n)=\frac{15n^2+\delta_r}{32},\qquad
+ S(n)=\frac{33n^2-\delta_r}{32},
+\end{equation}
+where the values of $\delta_r$, together with one optimal quadruple, are
+given in Table~\ref{tab:residues}.  In particular,
+\[
+ S(n)=\left\lfloor\frac{33n^2}{32}\right\rfloor-\chi(n).
+\]
+\end{proposition}
+
+\begin{table}[ht]
+\centering
+\small
+\caption{For $n=16k+r$, the table gives a minimizing $t_r$, the correction
+$\delta_r$, and an offset $v_r$ such that
+$(a,b,c,d)=(3k,3k,5k,5k)+v_r$ is optimal.}
+\label{tab:residues}
+\begin{tabular}{@{}rcccl@{\qquad}rcccl@{}}
+\toprule
+$r$&$t_r$&$\delta_r$&\multicolumn{2}{c}{$v_r$}
+&$r$&$t_r$&$\delta_r$&\multicolumn{2}{c}{$v_r$}\\
+\midrule
+0&0&0&&$(0,0,0,0)$ & 8&3&32&&$(1,2,2,3)$\\
+1&0&33&&$(0,0,0,1)$& 9&3&17&&$(1,2,3,3)$\\
+2&0&36&&$(0,0,1,1)$&10&4&4&&$(2,2,3,3)$\\
+3&1&9&&$(0,1,1,1)$&11&4&25&&$(2,2,3,4)$\\
+4&2&16&&$(1,1,1,1)$&12&4&16&&$(2,2,4,4)$\\
+5&2&25&&$(1,1,1,2)$&13&5&9&&$(2,3,4,4)$\\
+6&2&4&&$(1,1,2,2)$&14&5&36&&$(2,3,4,5)$\\
+7&3&17&&$(1,2,2,2)$&15&5&33&&$(2,3,5,5)$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{proof}
+Let $p=a+b$, $q=c+d=n-p$, and let $\varepsilon_m\in\{0,1\}$ denote the
+parity of an integer $m$.  For fixed $p$, write $h=a-b$.  Since
+\[
+ a^2+b^2=\frac{p^2+h^2}{2},\qquad
+ ab=\frac{p^2-h^2}{4},
+\]
+we have
+\[
+ \frac32(a^2+b^2)+2ab=\frac54p^2+\frac14h^2.
+\]
+The minimum occurs when $a,b$ differ by at most one, and hence $h^2=
+\varepsilon_p$.  The same balancing argument for $c,d$ gives
+\begin{equation}\label{eq:Monevar}
+ M(n)=\min_{0\leq p\leq n}
+ \frac{5p^2+3(n-p)^2+\varepsilon_p+3\varepsilon_{n-p}}4.
+\end{equation}
+Completing the square yields
+\begin{equation}\label{eq:Mcorrection}
+ 32M(n)-15n^2=
+ \min_{0\leq p\leq n}
+ \left((8p-3n)^2+8\varepsilon_p+24\varepsilon_{n-p}\right).
+\end{equation}
+
+Now write $n=16k+r$ and $p=6k+t$.  The expression in parentheses becomes
+\begin{equation}\label{eq:residueobjective}
+ (8t-3r)^2+8\varepsilon_t+24\varepsilon_{r-t},
+\end{equation}
+which depends only on $r$ and $t$.  Table~\ref{tab:residues} lists a
+minimizing integer $t_r$ and the resulting value $\delta_r$.  This is a
+complete finite check: every displayed $\delta_r$ is at most $36$, whereas
+$|8t-3r|\geq7$ already makes \eqref{eq:residueobjective} at least $49$; thus
+only the one or two nearest integers to $3r/8$ can compete.  Moreover
+$0\leq t_r\leq r$, so $p=6k+t_r$ is feasible for every $k\geq0$.  Balancing
+the two summands of $p$ and the two summands of $n-p$ gives the optimal
+offset $v_r$ in the table.  This proves \eqref{eq:Mclosed}.
+
+Finally, $n^2\equiv r^2\pmod{32}$.  The table shows that
+$\delta_r\equiv r^2\pmod{32}$ and that $\delta_r$ exceeds the least
+nonnegative residue of $r^2$ by $32$ exactly for
+$r\in\{1,2,8,14,15\}$.  Equation \eqref{eq:SM} therefore gives the claimed
+floor formula for $S(n)$.
+\end{proof}
 
 \begin{lemma}[weighted blocker lemma]\label{lem:blocker}
 If $\alpha(A)\leq3$ and $\alpha(B)\leq4$, then
@@ -605,16 +725,25 @@ The matrix theorem in Section~\ref{sec:matrix} proves $F(U)\geq M(n)$.
 
 \begin{proof}[Proof of Theorem~\ref{thm:colored}]
 Use Lemma~\ref{lem:zykov} and the quotient notation above.  The blocker lemma
-implies
-$\frac32Q+2a+2b\geq M(n)$.  Equation \eqref{eq:sigmaquot} and
-\eqref{eq:SM} give
+implies $\frac32Q+2a+2b\geq M(n)$.  Equations
+\eqref{eq:sigmaquot}, \eqref{eq:SM}, and Proposition~\ref{prop:exactS} give
 \[
  \sigma=\frac32n^2-\left(\frac32Q+2a+2b\right)
- \leq\frac32n^2-M(n)=S(n).
+ \leq\frac32n^2-M(n)=S(n)
+ =\left\lfloor\frac{33n^2}{32}\right\rfloor-\chi(n).
+\]
+
+For sharpness, choose $0\leq a\leq b\leq c\leq d$ attaining
+\eqref{eq:Sdef}, and partition the vertex set into four independent classes
+$V_1,V_2,V_3,V_4$ of these sizes.  Let $E$ be the complete four-partite
+graph, and let $D$ be the complete three-partite graph with parts
+$V_1\cup V_2,V_3,V_4$.  Then $E$ is $K_5$-free, $D$ is $K_4$-free, and
+\[
+ \sigma(D,E)=3\sum_{i<j}|V_i||V_j|-2|V_1||V_2|=S(n).
 \]
 \end{proof}
 
-\section{The exact $3\times4$ matrix inequality}\label{sec:matrix}
+\section{The exact \texorpdfstring{$3\times4$}{3 x 4} matrix inequality}\label{sec:matrix}
 
 \begin{theorem}[matrix theorem]\label{thm:matrix}
 For every $3\times4$ nonnegative integer matrix $U$ of total sum $n$,
@@ -670,6 +799,9 @@ Both expressions cannot be negative, since that would imply
 $x>2B+2z\geq2z$ and $z>2A+2x\geq2x$.  One move therefore does not increase
 $F$ and deletes the central edge.  Repetition removes every diameter-three
 component.  A forest of diameter at most two is a star forest.
+Every move uses only already-positive cells and makes at least one of them
+zero, so the support size strictly decreases.  The procedure therefore
+terminates after finitely many moves.
 \end{proof}
 
 For a star of degree $t$, edge masses $z_1,\ldots,z_t$, and total mass
@@ -703,14 +835,10 @@ give
  F(U)\geq\sum_\nu\frac{s_\nu^2}{\eta_{t_\nu}}
  \geq\frac{n^2}{\Gamma}\geq\frac{n^2}{2}.
 \]
-For $n\geq4$, $M(n)\leq n^2/2$: if $n=4q+r$, use respectively
-\[
- (q,q,q,q),\ (q,q,q,q+1),\ (q,q,q+1,q+1),\ (q,q+1,q+1,q+1)
-\]
-for $r=0,1,2,3$ in \eqref{eq:Mdef}; direct substitution gives the claimed
-inequality.  For $1\leq n\leq3$, the inequality $z^2\geq z$ for
-$z\in\mathbb Z_{\geq0}$ gives $M(n)\geq3n/2$, and the quadruples displayed
-in Section~\ref{sec:values} attain equality.  Meanwhile
+For $n\geq4$, Proposition~\ref{prop:exactS} gives $M(n)\leq n^2/2$:
+for $n=4,5$ this is equality, and for $n\geq6$ it follows from
+$\delta_r\leq36\leq n^2$.  For $1\leq n\leq3$, the same proposition gives
+$M(n)=3n/2$.  Meanwhile
 \[
  F(U)=\frac32n+3\sum_{i,j}\binom{u_{ij}}2
  +2\sum_{e\sim f}u_eu_f\geq\frac32n.
@@ -815,16 +943,15 @@ line intersection are
 It is a ray--ray point precisely when $t_i>r_i$ and $t_j>r_j$.
 
 Substitution of the displayed rational data into these tests gives the six
-rows of the table.  The ancillary program
-\path{scripts/certify_rational_base.py} performs exactly those
-substitutions using \texttt{fractions.Fraction}; its branches and sign
-decisions use no floating-point arithmetic.  The full reduced fractions for
-every decisive expression are recorded in
-\path{verification/rational_base_verification.json}.  In particular all
-circle inequalities are strict, every accepted mixed root is simple and away
-from its anchor, all $D_{ij}$ are nonzero, and both ray--ray parameters are
-strictly beyond their anchor thresholds.  The smallest absolute decisive
-quantity in this exact calculation is $151/23400>0$.
+rows of the table.  Appendix~\ref{app:certificate} records every reduced
+fraction and its required sign, making the certificate part of the paper.
+In particular, all circle inequalities are strict, every accepted mixed root
+is simple and away from its anchor, all $D_{ij}$ are nonzero, and both
+ray--ray parameters are strictly beyond their anchor thresholds.  The
+smallest absolute decisive quantity is $151/23400>0$.  The ancillary program
+\path{scripts/certify_rational_base.py} regenerates the same certificate
+using only \texttt{fractions.Fraction}; no floating-point branch or sign
+decision is used.
 \end{proof}
 
 \subsection{Pairwise chambers and a polynomial local family}
@@ -852,9 +979,6 @@ nonzero determinant of the direction vectors.  Their strict positions
 relative to the two anchor thresholds persist.  Intersecting the finitely
 many resulting open conditions proves the lemma.
 \end{proof}
-
-The following family replaces a previously proposed motion that produced
-only three intersections.
 
 \begin{lemma}[local four-crossing family]\label{lem:local4}
 Let $\Lambda$ be the unit lollipop centered at the origin with stem
@@ -936,11 +1060,12 @@ Both exceed one, because
  \qquad 1+6s-3s^2-2st>0;
 \]
 the negative terms in either expression have total magnitude at most
-$5/16$.  Hence the stems meet once beyond both anchors.  A point strictly
-beyond an anchor lies outside its own circle, which also prevents coincidence
-of this point with any circle crossing and prevents the unique mixed point
-from being a triple component intersection.  The total is
-$2+1+0+1=4$.
+$5/16$.  Hence the stems meet once beyond both anchors.  That ray--ray point
+lies outside both circles, so it cannot coincide with a circle crossing.  The
+unique mixed point lies beyond the anchor of $\Gamma_s$ and hence outside
+its own circle; it cannot lie on the other stem, because the unique ray--ray
+point lies outside the target circle.  Thus no three component intersections
+coincide.  The total is $2+1+0+1=4$.
 \end{proof}
 
 \begin{lemma}[genericization inside a chamber]\label{lem:genericize}
@@ -1014,88 +1139,222 @@ Proposition~\ref{prop:top-region} gives
 Together with the upper bound already proved, this completes the proof of
 Theorem~\ref{thm:main}.
 
-\section{Asymptotics and values}\label{sec:values}
+\section{Consequences and initial values}\label{sec:values}
 
-The continuous relaxation of \eqref{eq:Mdef} has its unique minimum at
+Proposition~\ref{prop:exactS} shows that the optimal cluster proportions are
+$3:3:5:5$, with a bounded correction depending only on $n\bmod16$.  Since
+$0\leq\delta_r\leq36$, Theorem~\ref{thm:main} immediately gives
 \[
- a=b=\frac{3n}{16},\qquad c=d=\frac{5n}{16}.
-\]
-Rounding changes the quadratic objective by $O(1)$, so
-\[
- M(n)=\frac{15}{32}n^2+O(1),
- \qquad S(n)=\frac{33}{32}n^2+O(1),
-\]
-and therefore
-\[
+ S(n)=\frac{33}{32}n^2+O(1),\qquad
  a_{\Lop}(n)=\frac{97}{32}n^2-n+O(1).
 \]
-The first values are shown below.
+The first values, including the formerly unresolved cases $n=18$ and $20$,
+are as follows.
 
 \begin{center}
-\begin{tabular}{@{}rcrr@{}}
+\small
+\begin{tabular}{@{}rrr@{\qquad}rrr@{}}
 \toprule
-$n$&one optimal $(a,b,c,d)$&$S(n)$&$a_{\Lop}(n)$\\
+$n$&$S(n)$&$a_{\Lop}(n)$&$n$&$S(n)$&$a_{\Lop}(n)$\\
 \midrule
-0&(0,0,0,0)&0&1\\
-1&(0,0,0,1)&0&2\\
-2&(0,0,1,1)&3&10\\
-3&(0,1,1,1)&9&25\\
-4&(1,1,1,1)&16&45\\
-5&(1,1,1,2)&25&71\\
-6&(1,1,2,2)&37&104\\
-7&(1,2,2,2)&50&142\\
-8&(1,2,2,3)&65&186\\
-9&(1,2,3,3)&83&237\\
-10&(2,2,3,3)&103&294\\
-11&(2,2,3,4)&124&356\\
-12&(2,2,4,4)&148&425\\
-13&(2,3,4,4)&174&500\\
-14&(2,3,4,5)&201&580\\
-15&(2,3,5,5)&231&667\\
-16&(3,3,5,5)&264&761\\
-17&(3,3,5,6)&297&859\\
-18&(3,3,6,6)&333&964\\
-19&(3,4,6,6)&372&1076\\
-20&(4,4,6,6)&412&1193\\
+0&0&1&11&124&356\\
+1&0&2&12&148&425\\
+2&3&10&13&174&500\\
+3&9&25&14&201&580\\
+4&16&45&15&231&667\\
+5&25&71&16&264&761\\
+6&37&104&17&297&859\\
+7&50&142&18&333&964\\
+8&65&186&19&372&1076\\
+9&83&237&20&412&1193\\
+10&103&294&&&\\
 \bottomrule
 \end{tabular}
 \end{center}
 
+\appendix
+
+\section{Exact rational certificate for the four-lollipop base}
+\label{app:certificate}
+
+This appendix supplies the complete exact certificate used in
+Proposition~\ref{prop:base}.  For a pair $Q_i,Q_j$, put $d=c_j-c_i$ and define
+\[
+ I^-_{ij}=|d|^2-(r_i-r_j)^2,
+ \qquad
+ I^+_{ij}=(r_i+r_j)^2-|d|^2.
+\]
+The conditions $I^-_{ij}>0$ and $I^+_{ij}>0$ certify two transverse
+circle--circle intersections.  For an ordered pair $i,j$, define
+\[
+ \Delta_{ij}=r_j^2-\bigl(|d|^2-(d\cdot u_i)^2\bigr),\qquad
+ A_{ij}=|d-r_i u_i|^2-r_j^2,\qquad
+ T_{ij}=d\cdot u_i-r_i.
+\]
+Here $\Delta_{ij}>0$ says that the supporting line meets the target circle.
+If $A_{ij}<0$, exactly one root is accepted by the ray; if $A_{ij}>0$ and
+$T_{ij}>0$, both roots are accepted; and if $A_{ij}>0$ and $T_{ij}<0$, no
+root is accepted.  Finally, let
+\[
+ D_{ij}=\det(u_i,u_j),\qquad
+ U_i=t_i-r_i,\qquad U_j=t_j-r_j,
+\]
+where $t_i,t_j$ are the supporting-line intersection parameters from
+Proposition~\ref{prop:base}.  The conditions $D_{ij}\ne0$ and $U_i,U_j>0$
+certify one transverse ray--ray intersection beyond both anchors.
+
+Every number in Table~\ref{tab:certificate} is an exact reduced fraction.
+The signs imply the component vector $(2,2,0,1)$ for $Q_0,Q_1$ and
+$(2,2,2,1)$ for each of the other five pairs.  Thus the total number of
+crossings is $5+5\cdot7=40$.
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.02}
+\setlength{\LTpre}{0.4em}
+\setlength{\LTpost}{0.4em}
+\begin{longtable}{@{}llcr@{}}
+\caption{Complete exact sign certificate for the rational base.}
+\label{tab:certificate}\\
+\toprule
+pair&test&required sign&exact value\\
+\midrule
+\endfirsthead
+\multicolumn{4}{c}{\tablename\ \thetable\ continued}\\
+\toprule
+pair&test&required sign&exact value\\
+\midrule
+\endhead
+\midrule
+\multicolumn{4}{r}{continued on next page}\\
+\endfoot
+\bottomrule
+\endlastfoot
+Q0--Q1 & $I^-_{01}$ & $+$ & \texttt{20003/50} \\
+Q0--Q1 & $I^+_{01}$ & $+$ & \texttt{1997/50} \\
+Q0--Q1 & $\Delta_{01}$ & $+$ & \texttt{57/400} \\
+Q0--Q1 & $A_{01}$ & $+$ & \texttt{3/50} \\
+Q0--Q1 & $T_{01}$ & $+$ & \texttt{9/20} \\
+Q0--Q1 & $\Delta_{10}$ & $+$ & \texttt{13263872679/336400} \\
+Q0--Q1 & $A_{10}$ & $+$ & \texttt{2317609/5800} \\
+Q0--Q1 & $T_{10}$ & $-$ & \texttt{-115751/580} \\
+Q0--Q1 & $D_{01}$ & $-$ & \texttt{-17/145} \\
+Q0--Q1 & $U_{0}$ & $+$ & \texttt{261/68} \\
+Q0--Q1 & $U_{1}$ & $+$ & \texttt{973/340} \\
+\addlinespace
+Q0--Q2 & $I^-_{02}$ & $+$ & \texttt{195901533/3400} \\
+Q0--Q2 & $I^+_{02}$ & $+$ & \texttt{76098467/3400} \\
+Q0--Q2 & $\Delta_{02}$ & $+$ & \texttt{193697559/115600} \\
+Q0--Q2 & $A_{02}$ & $+$ & \texttt{737533/3400} \\
+Q0--Q2 & $T_{02}$ & $+$ & \texttt{14791/340} \\
+Q0--Q2 & $\Delta_{20}$ & $+$ & \texttt{19931654191/2890000} \\
+Q0--Q2 & $A_{20}$ & $+$ & \texttt{92349/200} \\
+Q0--Q2 & $T_{20}$ & $+$ & \texttt{145829/1700} \\
+Q0--Q2 & $D_{02}$ & $-$ & \texttt{-77/85} \\
+Q0--Q2 & $U_{0}$ & $+$ & \texttt{1303/1540} \\
+Q0--Q2 & $U_{2}$ & $+$ & \texttt{221/308} \\
+\addlinespace
+Q0--Q3 & $I^-_{03}$ & $+$ & \texttt{261842809/5800} \\
+Q0--Q3 & $I^+_{03}$ & $+$ & \texttt{202157191/5800} \\
+Q0--Q3 & $\Delta_{03}$ & $+$ & \texttt{42898359/336400} \\
+Q0--Q3 & $A_{03}$ & $+$ & \texttt{206809/5800} \\
+Q0--Q3 & $T_{03}$ & $+$ & \texttt{7409/580} \\
+Q0--Q3 & $\Delta_{30}$ & $+$ & \texttt{1150893951/8410000} \\
+Q0--Q3 & $A_{30}$ & $+$ & \texttt{84221/200} \\
+Q0--Q3 & $T_{30}$ & $+$ & \texttt{68501/2900} \\
+Q0--Q3 & $D_{03}$ & $+$ & \texttt{144/145} \\
+Q0--Q3 & $U_{0}$ & $+$ & \texttt{3007/2880} \\
+Q0--Q3 & $U_{3}$ & $+$ & \texttt{29/576} \\
+\addlinespace
+Q1--Q2 & $I^-_{12}$ & $+$ & \texttt{14609/68} \\
+Q1--Q2 & $I^+_{12}$ & $+$ & \texttt{351/68} \\
+Q1--Q2 & $\Delta_{12}$ & $+$ & \texttt{562449451551/607622500} \\
+Q1--Q2 & $A_{12}$ & $+$ & \texttt{17286209/246500} \\
+Q1--Q2 & $T_{12}$ & $+$ & \texttt{388928/12325} \\
+Q1--Q2 & $\Delta_{21}$ & $+$ & \texttt{67821/2890000} \\
+Q1--Q2 & $A_{21}$ & $+$ & \texttt{1/4} \\
+Q1--Q2 & $T_{21}$ & $+$ & \texttt{889/1700} \\
+Q1--Q2 & $D_{12}$ & $-$ & \texttt{-468/493} \\
+Q1--Q2 & $U_{1}$ & $+$ & \texttt{151/23400} \\
+Q1--Q2 & $U_{2}$ & $+$ & \texttt{8143/23400} \\
+\addlinespace
+Q1--Q3 & $I^-_{13}$ & $+$ & \texttt{309877/1450} \\
+Q1--Q3 & $I^+_{13}$ & $+$ & \texttt{9123/1450} \\
+Q1--Q3 & $\Delta_{13}$ & $+$ & \texttt{207269701311/442050625} \\
+Q1--Q3 & $A_{13}$ & $+$ & \texttt{32792513/420500} \\
+Q1--Q3 & $T_{13}$ & $+$ & \texttt{983347/42050} \\
+Q1--Q3 & $\Delta_{31}$ & $+$ & \texttt{317/42050} \\
+Q1--Q3 & $A_{31}$ & $+$ & \texttt{13/50} \\
+Q1--Q3 & $T_{31}$ & $+$ & \texttt{15/29} \\
+Q1--Q3 & $D_{13}$ & $+$ & \texttt{20447/21025} \\
+Q1--Q3 & $U_{1}$ & $+$ & \texttt{247/29210} \\
+Q1--Q3 & $U_{3}$ & $+$ & \texttt{1131/2921} \\
+\addlinespace
+Q2--Q3 & $I^-_{23}$ & $+$ & \texttt{36750269/986} \\
+Q2--Q3 & $I^+_{23}$ & $+$ & \texttt{2689731/986} \\
+Q2--Q3 & $\Delta_{23}$ & $+$ & \texttt{7002650391/972196} \\
+Q2--Q3 & $A_{23}$ & $+$ & \texttt{7957/58} \\
+Q2--Q3 & $T_{23}$ & $+$ & \texttt{84475/986} \\
+Q2--Q3 & $\Delta_{32}$ & $+$ & \texttt{4378230968959/607622500} \\
+Q2--Q3 & $A_{32}$ & $+$ & \texttt{4617/34} \\
+Q2--Q3 & $T_{32}$ & $+$ & \texttt{2112047/24650} \\
+Q2--Q3 & $D_{23}$ & $-$ & \texttt{-6493/12325} \\
+Q2--Q3 & $U_{2}$ & $+$ & \texttt{4471/12986} \\
+Q2--Q3 & $U_{3}$ & $+$ & \texttt{5075/12986} \\
+\end{longtable}
+\endgroup
+
+The smallest absolute entry among the decisive quantities is
+$151/23400$, namely $U_1$ for the pair $Q_1,Q_2$.  All required inequalities
+are therefore strict with a positive rational margin.
+
 \section*{Reproducibility statement}
 
-The ancillary bundle contains the complete \LaTeX{} source, the exact
-rational verifier for Proposition~\ref{prop:base}, an independent finite
-checker for the colored and matrix extremal problems, their machine outputs,
-and SHA-256 checksums.  The base verifier uses no floating-point branch or sign
-decision.  The finite extremal checks are corroborative only; the proofs in
-Sections~\ref{sec:zykov}--\ref{sec:matrix} are symbolic and do not depend on
-them.
+The ancillary bundle contains the complete \LaTeX{} source, the compiled PDF,
+the exact rational verifier for Proposition~\ref{prop:base}, a symbolic
+checker for the polynomial local family, an independent checker for the
+closed form in Proposition~\ref{prop:exactS}, their machine-readable outputs,
+and SHA-256 checksums.  The command
+\path{python3 scripts/run_all_checks.py} runs all ancillary checks and confirms
+that the $66$ appendix rows match the regenerated CSV certificate.  The
+rational base verifier uses no floating-point branch or sign decision.  The
+computer checks are reproducibility aids; the proofs in the paper are symbolic
+and do not depend on a finite search.
+
 \section*{Acknowledgments}
 
-We thank David O. H. Cutler, Jonas Karlsson, and Neil J. A. Sloane for the lollipop problem and for the geometric ideas and constructions
-on which this note builds.
+We thank David O. H. Cutler, Jonas Karlsson, and Neil J. A. Sloane for the
+lollipop problem and for the geometric ideas and constructions on which this
+work builds.
+
+\clearpage
+\begingroup
+\small
 \begin{thebibliography}{9}
 
 \bibitem{CKS}
 D. O. H. Cutler, J. Karlsson, and N. J. A. Sloane,
 \emph{Cutting a Pancake with an Exotic Knife},
-arXiv:2511.15864v3, 2026.
+arXiv:2511.15864v3 [math.CO], 19 April 2026,
+\url{https://arxiv.org/abs/2511.15864}.
 
 \bibitem{MahajanChopra}
 S. Mahajan and P. Chopra,
 \emph{A Two-Graph Refinement of Paulsen's Lollipop Bounds},
-arXiv:2606.06064, 2026.
+arXiv:2606.06064v1 [math.CO], 4 June 2026,
+\url{https://arxiv.org/abs/2606.06064}.
 
 \bibitem{OEIS}
 OEIS Foundation Inc.,
 \emph{The On-Line Encyclopedia of Integer Sequences}, entry A389624,
-2026.
+``Maximum number of regions that can be formed in the plane by drawing
+lollipop (or qoppa) shapes of any size and orientation,''
+\url{https://oeis.org/A389624}.
 
 \bibitem{Paulsen}
 M. Paulsen,
 \emph{The Lollipop Problem}, 2026,
 \url{https://math.mp42.de/lollipop/}.
-
 
 \bibitem{BCR}
 J. Bochnak, M. Coste, and M.-F. Roy,
@@ -1116,5 +1375,6 @@ On some properties of linear complexes,
 \emph{Matematicheskii Sbornik} \textbf{24} (1949), 163--188.
 
 \end{thebibliography}
+\endgroup
 
 \end{document}

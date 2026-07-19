@@ -1,0 +1,15 @@
+Exact rational verification of the four-lollipop base
+======================================================
+All inputs, branches, and sign decisions use fractions.Fraction.
+
+Q0-Q1: circle-circle 2, ray Q0/circle Q1 2, ray Q1/circle Q0 0, ray-ray 1; total 5
+Q0-Q2: circle-circle 2, ray Q0/circle Q2 2, ray Q2/circle Q0 2, ray-ray 1; total 7
+Q0-Q3: circle-circle 2, ray Q0/circle Q3 2, ray Q3/circle Q0 2, ray-ray 1; total 7
+Q1-Q2: circle-circle 2, ray Q1/circle Q2 2, ray Q2/circle Q1 2, ray-ray 1; total 7
+Q1-Q3: circle-circle 2, ray Q1/circle Q3 2, ray Q3/circle Q1 2, ray-ray 1; total 7
+Q2-Q3: circle-circle 2, ray Q2/circle Q3 2, ray Q3/circle Q2 2, ray-ray 1; total 7
+
+Total crossings: 40
+Smallest absolute decisive value: 151/23400 (Q1-Q2.ray_ray.Q1_parameter_minus_radius)
+Every required inequality is strict.
+RESULT: PASSED
