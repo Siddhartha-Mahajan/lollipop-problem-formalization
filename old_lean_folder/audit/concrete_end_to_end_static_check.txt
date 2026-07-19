@@ -1,0 +1,16 @@
+Concrete end-to-end static packaging check
+==========================================
+Lean files in new development: 16
+Total lines: 3480
+Local imports checked: 27
+Missing local imports: 0
+sorry marker count: 0
+admit marker count: 0
+axiom marker count: 0
+opaque marker count: 0
+Port namespaces: BlowUpPort, EuclideanPort, GenericityPort, PairChamberPort, PairPort, TopologyPort, UpperPort
+Endpoint declaration present: True
+Expanded endpoint present: True
+GeometryCertificates token in lollipopMaximum declaration: False
+
+No Lean/Lake compilation was performed. This is a static source/package audit only.

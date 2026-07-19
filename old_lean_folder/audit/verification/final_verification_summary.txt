@@ -1,0 +1,79 @@
+FINAL VERIFICATION RUN
+======================
+
+Exact rational verification of the four-lollipop base
+======================================================
+All inputs, branches, and sign decisions use fractions.Fraction.
+
+Q0-Q1: circle-circle 2, ray Q0/circle Q1 2, ray Q1/circle Q0 0, ray-ray 1; total 5
+Q0-Q2: circle-circle 2, ray Q0/circle Q2 2, ray Q2/circle Q0 2, ray-ray 1; total 7
+Q0-Q3: circle-circle 2, ray Q0/circle Q3 2, ray Q3/circle Q0 2, ray-ray 1; total 7
+Q1-Q2: circle-circle 2, ray Q1/circle Q2 2, ray Q2/circle Q1 2, ray-ray 1; total 7
+Q1-Q3: circle-circle 2, ray Q1/circle Q3 2, ray Q3/circle Q1 2, ray-ray 1; total 7
+Q2-Q3: circle-circle 2, ray Q2/circle Q3 2, ray Q3/circle Q2 2, ray-ray 1; total 7
+
+Total crossings: 40
+Smallest absolute decisive value: 151/23400 (Q1-Q2.ray_ray.Q1_parameter_minus_radius)
+Every required inequality is strict.
+RESULT: PASSED
+
+Corrected polynomial blow-up verification
+=========================================
+
+Symbolic identities checked exactly: 7
+Exact rational parameter pairs checked: 2080
+Expected primitive component vector: 2 + 1 + 0 + 1 = 4
+
+s=0.0, t=0.01: {'circle_circle': 2, 'ray_s_circle_t': 1, 'ray_t_circle_s': 0, 'ray_ray': 1}, total=4
+s=0.03, t=0.17: {'circle_circle': 2, 'ray_s_circle_t': 1, 'ray_t_circle_s': 0, 'ray_ray': 1}, total=4
+s=0.125, t=0.25: {'circle_circle': 2, 'ray_s_circle_t': 1, 'ray_t_circle_s': 0, 'ray_ray': 1}, total=4
+
+RESULT: PASSED
+
+
+Independent combinatorial verification
+======================================
+Exhaustively checked every 3x4 nonnegative integer matrix of total mass n <= 10 (646,646 matrices).
+Solved the colored Turan 0-1 MILP independently for n=1,...,9; every optimum equals S(n).
+Computed formula and optimizing quadruples for n=0,...,40.
+RESULT: PASSED
+
+Lean source audit
+=================
+Lean project .lean files (including lakefile.lean): 99
+Lean library source files: 98
+Source lines: 45,380
+
+Placeholder/declaration scan after stripping nested comments and strings:
+  sorry: 0
+  admit: 0
+  axiom_declaration: 0
+  constant_declaration: 0
+  opaque_declaration: 0
+  unsafe_declaration: 0
+
+Public theorem endpoint conditional on GeometryCertificates: True
+Geometry obstruction theorem present: True
+Concrete complement-topology identifier counts:
+  ConnectedComponents: 0
+  connectedComponent: 0
+  IsPreconnected: 0
+  Alexander: 0
+  MayerVietoris: 0
+
+Lean kernel build for integrated repository: PASSED
+Command: lake build Lollipop
+Jobs completed: 3320
+
+VERDICT: The tree is a substantial, statically placeholder-free conditional development,
+but it is not an unconditional end-to-end formalization of the theorem about actual
+connected components of Euclidean lollipop complements.
+
+
+PDF preflight:
+PDF: lollipop_formula_research_grade.pdf
+Pages: 15
+Encrypted: False
+Openable (PyMuPDF): True
+Likely scanned: False
+XFA present: False

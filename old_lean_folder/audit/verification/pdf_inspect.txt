@@ -1,0 +1,47 @@
+PDF: /mnt/data/work/final_v2/manuscript/lollipop_formula_research_grade.pdf
+Pages: 15
+Encrypted: False
+Page sizes (pt, rounded):
+  - 595 x 842 (15 page(s))
+Metadata:
+  /Author: 
+  /CreationDate: D:20260621164915Z
+  /Creator: LaTeX with hyperref
+  /Keywords: 
+  /ModDate: D:20260621164915Z
+  /PTEX.Fullbanner: This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2025/dev/Debian) kpathsea version 6.4.0/dev
+  /Producer: pdfTeX-1.40.26
+  /Subject: 
+  /Title: 
+  /Trapped: /False
+Outline items: 11
+Form fields: 0
+Attachments: 0
+Annotations: 51
+
+Fonts (pdffonts, first 25 lines):
+name                                 type              encoding         emb sub uni object ID
+------------------------------------ ----------------- ---------------- --- --- --- ---------
+YGQAZD+LMRoman17-Regular             Type 1            Custom           yes yes yes     52  0
+GRDICC+LMRoman12-Regular             Type 1            Custom           yes yes yes     53  0
+DVQIAW+LMRoman10-Bold                Type 1            Custom           yes yes yes     54  0
+FKWDXU+LMRoman10-Regular             Type 1            Custom           yes yes yes     55  0
+VOHJFT+LMMathItalic10-Regular        Type 1            Custom           yes yes yes     56  0
+HOUUXT+LMMathSymbols7-Regular        Type 1            Custom           yes yes yes     57  0
+FKWDXU+LMRoman10-Regular             Type 1            Custom           yes yes yes     58  0
+MUDIWH+LMMathSymbols10-Regular       Type 1            Custom           yes yes yes     59  0
+CEQAAP+LMMathExtension10-Regular     Type 1            Custom           yes yes yes     60  0
+RRVCVQ+LMMathItalic7-Regular         Type 1            Custom           yes yes yes     61  0
+FPKYTY+LMRoman7-Regular              Type 1            Custom           yes yes yes     62  0
+BTCXOR+LMRoman12-Bold                Type 1            Custom           yes yes yes     63  0
+QSLEFF+MSBM10                        Type 1            Builtin          yes yes yes     64  0
+OJJKJV+LMRoman8-Regular              Type 1            Custom           yes yes yes     65  0
+GBNEXS+LMRoman10-Italic              Type 1            Custom           yes yes yes     66  0
+YFBELZ+LMMathSymbols8-Regular        Type 1            Custom           yes yes yes     67  0
+JREZAT+LMMathItalic8-Regular         Type 1            Custom           yes yes yes     69  0
+DVQIAW+LMRoman10-Bold                Type 1            Custom           yes yes yes    122  0
+OJJKJV+LMRoman8-Regular              Type 1            Custom           yes yes yes    123  0
+NVIKLM+LMMathSymbols6-Regular        Type 1            Custom           yes yes yes    160  0
+KQGTVW+LMRoman6-Regular              Type 1            Custom           yes yes yes    161  0
+GRDICC+LMRoman12-Regular             Type 1            Custom           yes yes yes    166  0
+LBVPNK+LMMathItalic6-Regular         Type 1            Custom           yes yes yes    181  0

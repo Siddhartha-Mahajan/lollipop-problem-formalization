@@ -1,0 +1,12 @@
+Corrected polynomial blow-up verification
+=========================================
+
+Symbolic identities checked exactly: 7
+Exact rational parameter pairs checked: 2080
+Expected primitive component vector: 2 + 1 + 0 + 1 = 4
+
+s=0.0, t=0.01: {'circle_circle': 2, 'ray_s_circle_t': 1, 'ray_t_circle_s': 0, 'ray_ray': 1}, total=4
+s=0.03, t=0.17: {'circle_circle': 2, 'ray_s_circle_t': 1, 'ray_t_circle_s': 0, 'ray_ray': 1}, total=4
+s=0.125, t=0.25: {'circle_circle': 2, 'ray_s_circle_t': 1, 'ray_t_circle_s': 0, 'ray_ray': 1}, total=4
+
+RESULT: PASSED

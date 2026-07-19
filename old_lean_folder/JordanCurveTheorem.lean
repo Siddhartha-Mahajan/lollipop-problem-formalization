@@ -1,0 +1,44 @@
+/-
+Copyright (c) 2025 LARA, EPFL. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: LARA, EPFL
+-/
+-- Jordan Curve Theorem: root import file
+-- One file per section, following the HOL Light proof structure
+
+-- Phase 1: Discrete Jordan Curve Theorem (Grid Curves)
+import old_lean_folder.JordanCurveTheorem.SectionA_CellGeometry
+import old_lean_folder.JordanCurveTheorem.SectionB_CellTopology
+import old_lean_folder.JordanCurveTheorem.SectionC_Rectagons
+import old_lean_folder.JordanCurveTheorem.SectionD_SegmentInduction
+import old_lean_folder.JordanCurveTheorem.SectionE_Parity
+import old_lean_folder.JordanCurveTheorem.SectionF_IntArith
+import old_lean_folder.JordanCurveTheorem.SectionG_SetTopology
+import old_lean_folder.JordanCurveTheorem.SectionH_Symmetries
+-- Graph Theory and Curve Topology
+import old_lean_folder.JordanCurveTheorem.SectionI_GraphTheory
+import old_lean_folder.JordanCurveTheorem.SectionJ_PathConnectivity
+import old_lean_folder.JordanCurveTheorem.SectionK_Analysis
+import old_lean_folder.JordanCurveTheorem.SectionL_ArcTopology
+import old_lean_folder.JordanCurveTheorem.SectionM_ClosedCurveOps
+-- K₃,₃ Nonplanarity and Complement Connectivity
+import old_lean_folder.JordanCurveTheorem.SectionN_K33
+import old_lean_folder.JordanCurveTheorem.SectionO_ComplementConnectivity
+import old_lean_folder.JordanCurveTheorem.SectionP_Automation
+-- Advanced Parity and Bounded/Unbounded
+import old_lean_folder.JordanCurveTheorem.SectionQ_RectagProps
+import old_lean_folder.JordanCurveTheorem.SectionR_AdvancedParity
+import old_lean_folder.JordanCurveTheorem.SectionS_BoundedUnbounded
+-- Grid Approximation
+import old_lean_folder.JordanCurveTheorem.SectionT_GridConstruction
+import old_lean_folder.JordanCurveTheorem.SectionU_Grid33
+import old_lean_folder.JordanCurveTheorem.SectionV_ComplementParity
+import old_lean_folder.JordanCurveTheorem.SectionW_RectagGraphs
+import old_lean_folder.JordanCurveTheorem.SectionX_RationalApprox
+import old_lean_folder.JordanCurveTheorem.SectionY_GridCells
+import old_lean_folder.JordanCurveTheorem.SectionZ_K33Nonplanar
+-- Phase 4: Final Assembly
+import old_lean_folder.JordanCurveTheorem.SectionAA_RectagApprox
+import old_lean_folder.JordanCurveTheorem.SectionBB_K33Data
+import old_lean_folder.JordanCurveTheorem.SectionCC_OneSided
+import old_lean_folder.JordanCurveTheorem.SectionDD_JordanCurveTheorem

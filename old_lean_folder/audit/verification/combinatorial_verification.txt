@@ -1,0 +1,6 @@
+Independent combinatorial verification
+======================================
+Exhaustively checked every 3x4 nonnegative integer matrix of total mass n <= 10 (646,646 matrices).
+Solved the colored Turan 0-1 MILP independently for n=1,...,9; every optimum equals S(n).
+Computed formula and optimizing quadruples for n=0,...,40.
+RESULT: PASSED
