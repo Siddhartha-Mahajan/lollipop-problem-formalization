@@ -1,16 +1,19 @@
-import Lollipop.Concrete
-import Lollipop.Final
-
-/-!
-Final formalization index for the lollipop manuscript.
-
-The buildable handoff entry point is `Lollipop.Final`.  The current canonical
-conditional theorem endpoint is `Lollipop.Final.theorem_one`, proved from the
-single final geometry certificate boundary
-`Lollipop.Final.GeometryCertificates`.
-
-`Lollipop.Concrete` starts the certificate-free Euclidean endpoint requested in
-the audit notes: actual lollipops, actual complement connected components, and
-the concrete maximum theorem shape that the remaining geometry/topology must
-prove.
--/
+import Lollipop.Theorem_1_1.Statement
+import Lollipop.Proposition_2_1.Statement
+import Lollipop.Lemma_3_1.Statement
+import Lollipop.Lemma_3_2.Statement
+import Lollipop.Proposition_3_3.Statement
+import Lollipop.Lemma_3_4.Statement
+import Lollipop.Lemma_3_5.Statement
+import Lollipop.Theorem_4_1.Statement
+import Lollipop.Lemma_5_1.Statement
+import Lollipop.Lemma_6_1.Statement
+import Lollipop.Lemma_6_2.Statement
+import Lollipop.Theorem_7_1.Statement
+import Lollipop.Lemma_7_2.Statement
+import Lollipop.Lemma_7_3.Statement
+import Lollipop.Proposition_8_1.Statement
+import Lollipop.Lemma_8_2.Statement
+import Lollipop.Lemma_8_3.Statement
+import Lollipop.Lemma_8_4.Statement
+import Lollipop.Lemma_8_5.Statement
