@@ -97,18 +97,20 @@ narrower than the corresponding statement in `main.tex`.
 | Lemma 7.2 (`lem:compression`) | **Yes** | It constructs a same-total matrix with no larger `F` and star-forest support, using a checked strictly decreasing support-cardinality argument. |
 | Lemma 7.3 (`lem:starforest`) | **Yes** | It proves the `M(total U)` lower bound for every star-forest-supported matrix, with all finite canonical support cases discharged. |
 | Proposition 8.1 (`prop:base`) | **Yes** | The six rational base pairs realize strict codes `5,7,7,7,7,7`; those codes include transverse circle/mixed/stem conditions, nonparallel stems, and strict anchor exclusions, and the checked total is 40. |
-| Lemma 8.2 (`lem:chamber`) | **No** | It proves openness only for `RealizesStrictPairCode`.  That code forces two transverse circle–circle intersections, whereas the manuscript lemma also covers other strict pair types, including disjoint circles. |
-| Lemma 8.3 (`lem:local4`) | **No** | The numbered conclusion contains continuity, four crossings, and primitive transversality, but omits the manuscript's explicit “none at an anchor” conclusion.  The stronger helper `local_realizes_four` and anchor-exclusion lemmas are present, but the numbered `proof` does not expose that clause. |
-| Lemma 8.4 (`lem:genericize`) | **No** | The statement assumes `GenericityPort.ChamberGenericityAvoidance n`; the required density/avoidance theorem is not proved.  Lean verifies genericization conditional on that assumption. |
-| Lemma 8.5 (`lem:blowup`) | **No** | The statement again assumes `ChamberGenericityAvoidance n`.  The four-cluster construction is checked after receiving that unproved genericity input, not unconditionally as in the manuscript. |
+| Lemma 8.2 (`lem:chamber`) | **Yes** | The hypothesis `GeneralRealizesStrictPairCode` covers every circle pair that is neither tangent nor coincident (crossing, apart, or nested; `exists_circleCode_of_margins_ne_zero`), strict accepted mixed roots away from anchors, and nonparallel stems whose line intersection avoids the anchors.  The conclusion gives open product neighborhoods on which all strict conditions persist and each of the four component counts (`cc`, `rc`, `cr`, `rr`) is constant. |
+| Lemma 8.3 (`lem:local4`) | **Yes** | The numbered conclusion now contains continuity, `Γ₀ = Λ`, exactly four crossings, primitive transversality, and that neither anchor lies in the pair crossing set. |
+| Lemma 8.4 (`lem:genericize`) | **Yes** | The chamber-genericity input is proved (`MainTheorem.Genericity.chamberGenericityAvoidance_all`, ported from the archived development); the statement no longer assumes it. |
+| Lemma 8.5 (`lem:blowup`) | **Yes** | The four-cluster construction now receives the proved chamber-genericity theorem instead of an assumption. |
 
 ### Audit conclusion
 
-Thirteen of the 19 numbered results currently satisfy all five checklist items:
-Lemmas 3.1, 3.2, 3.4, 3.5, 5.1, 6.1, 6.2, 7.2, and 7.3;
+Seventeen of the 19 numbered results currently satisfy all five checklist items:
+Lemmas 3.1, 3.2, 3.4, 3.5, 5.1, 6.1, 6.2, 7.2, 7.3, and 8.2--8.5;
 Propositions 3.3 and 8.1; and Theorems 4.1 and 7.1.
 
-Six do not yet constitute verified proofs of their full manuscript
-statements: Theorem 1.1, Proposition 2.1, and Lemmas 8.2–8.5.
+Two do not yet constitute verified proofs of their full manuscript
+statements: Theorem 1.1 and Proposition 2.1.  Both reduce to the single
+remaining planar-topology theorem
+`effectiveLocalizedCarrierSubdivisionData_exists` (the carrier-cutting step).
 Their Lean terms compile and use only the permitted axioms, but that fact does
 not remove the extra hypotheses or omitted conclusions described above.

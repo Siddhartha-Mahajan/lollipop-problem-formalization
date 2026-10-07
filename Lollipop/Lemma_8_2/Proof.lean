@@ -2547,6 +2547,200 @@ theorem exists_pair_chamber_neighborhood
     intro L' hL' M' hM'
     exact hsub ⟨hL', hM'⟩⟩
 
+
+/-! ### General strict pair chambers
+
+Manuscript Lemma 8.2 allows every circle pair that is neither tangent nor
+coincident: two transverse crossings, disjoint exterior circles, or disjoint
+nested circles.  The definitions below add the two disjoint alternatives to the
+crossing case used by the Karlsson construction. -/
+
+/-- The three strict circle--circle alternatives. -/
+inductive CircleCode
+  | cross
+  | apart
+  | nested
+  deriving DecidableEq, Repr
+
+namespace CircleCode
+
+/-- Number of circle--circle intersections in each alternative. -/
+def crossings : CircleCode → ℕ
+  | cross => 2
+  | apart => 0
+  | nested => 0
+
+/-- Strict realization of a circle--circle alternative. -/
+def Realized (code : CircleCode) (L M : Lollipop) : Prop :=
+  match code with
+  | cross => 0 < circleOuterMargin L M ∧ 0 < circleInnerMargin L M
+  | apart => circleOuterMargin L M < 0
+  | nested => circleInnerMargin L M < 0
+
+end CircleCode
+
+/-- A strict pair chamber with an arbitrary strict circle alternative. -/
+structure GeneralStrictPairCode where
+  circle : CircleCode
+  leftRayRightCircle : MixedCode
+  rightRayLeftCircle : MixedCode
+  rayRay : Bool
+  deriving DecidableEq, Repr
+
+/-- Parameter-space set cut out by the strict inequalities of a general pair
+code. -/
+def generalStrictPairChamberSet (code : GeneralStrictPairCode) :
+    Set (Lollipop × Lollipop) :=
+  {p | code.circle.Realized p.1 p.2} ∩
+    ({p | code.leftRayRightCircle.Realized p.1 p.2} ∩
+      ({p | code.rightRayLeftCircle.Realized p.2 p.1} ∩
+        {p | RayRayCodeRealized code.rayRay p.1 p.2}))
+
+/-- Realization of all strict inequalities of a general pair code. -/
+def GeneralRealizesStrictPairCode
+    (code : GeneralStrictPairCode) (L M : Lollipop) : Prop :=
+  (L, M) ∈ generalStrictPairChamberSet code
+
+/-- Circles that are neither tangent nor coincident realize exactly one of
+the three strict circle alternatives.  (Tangency and coincidence are exactly
+the vanishing of one of the two margins.) -/
+theorem exists_circleCode_of_margins_ne_zero {L M : Lollipop}
+    (hout : circleOuterMargin L M ≠ 0) (hin : circleInnerMargin L M ≠ 0) :
+    ∃ code : CircleCode, code.Realized L M := by
+  rcases lt_or_gt_of_ne hout with hout | hout
+  · exact ⟨.apart, hout⟩
+  · rcases lt_or_gt_of_ne hin with hin | hin
+    · exact ⟨.nested, hin⟩
+    · exact ⟨.cross, hout, hin⟩
+
+/-- A common point of the two circles forces both margins to be nonnegative. -/
+theorem circleMargins_nonneg_of_mem_cc {L M : Lollipop} {x : Point}
+    (hx : x ∈ cc L M) :
+    0 ≤ circleOuterMargin L M ∧ 0 ≤ circleInnerMargin L M := by
+  rcases hx with ⟨hxL, hxM⟩
+  have hL : ‖x - L.center‖ = L.radius := hxL
+  have hM : ‖x - M.center‖ = M.radius := hxM
+  have hd : centerDistanceSq L M = ‖M.center - L.center‖ ^ 2 := by
+    rw [point_norm_sq_eq]
+    simp only [centerDistanceSq, normSqPoint, dotPoint, displacement]
+    ring
+  have hdiff : (x - L.center) - (x - M.center) = M.center - L.center := by abel
+  have hdiff' : (x - M.center) - (x - L.center) = -(M.center - L.center) := by
+    abel
+  have htri : ‖M.center - L.center‖ ≤ L.radius + M.radius := by
+    have h := norm_sub_le (x - L.center) (x - M.center)
+    rw [hdiff, hL, hM] at h
+    exact h
+  have hrev1 : L.radius - M.radius ≤ ‖M.center - L.center‖ := by
+    have h := norm_sub_norm_le (x - L.center) (x - M.center)
+    rw [hdiff, hL, hM] at h
+    exact h
+  have hrev2 : M.radius - L.radius ≤ ‖M.center - L.center‖ := by
+    have h := norm_sub_norm_le (x - M.center) (x - L.center)
+    rw [hdiff', norm_neg, hL, hM] at h
+    exact h
+  have hnn := norm_nonneg (M.center - L.center)
+  have hLr := L.radius_pos
+  have hMr := M.radius_pos
+  constructor
+  · unfold circleOuterMargin
+    rw [hd]
+    nlinarith [mul_nonneg (sub_nonneg.mpr htri)
+      (add_nonneg (add_nonneg hLr.le hMr.le) hnn)]
+  · unfold circleInnerMargin
+    rw [hd]
+    nlinarith [mul_nonneg (sub_nonneg.mpr hrev1)
+      (show 0 ≤ ‖M.center - L.center‖ + (L.radius - M.radius) by linarith)]
+
+/-- Disjoint strict circle alternatives have no common circle point. -/
+theorem cc_eq_empty_of_margin_neg {L M : Lollipop}
+    (h : circleOuterMargin L M < 0 ∨ circleInnerMargin L M < 0) :
+    cc L M = ∅ := by
+  ext x
+  simp only [Set.mem_empty_iff_false, iff_false]
+  intro hx
+  have hnn := circleMargins_nonneg_of_mem_cc hx
+  rcases h with h | h <;> linarith [hnn.1, hnn.2]
+
+/-- Exact circle--circle count in each strict alternative. -/
+theorem circle_ncard_eq (code : CircleCode) {L M : Lollipop}
+    (h : code.Realized L M) :
+    (cc L M).ncard = code.crossings := by
+  cases code with
+  | cross =>
+      simp only [CircleCode.Realized] at h
+      exact PairChamberPort.circle_circle_ncard_eq_two h.1 h.2
+  | apart =>
+      simp only [CircleCode.Realized] at h
+      rw [cc_eq_empty_of_margin_neg (Or.inl h)]
+      simp [CircleCode.crossings]
+  | nested =>
+      simp only [CircleCode.Realized] at h
+      rw [cc_eq_empty_of_margin_neg (Or.inr h)]
+      simp [CircleCode.crossings]
+
+/-- The four component counts are determined by a general strict code. -/
+theorem general_component_counts
+    {code : GeneralStrictPairCode} {L M : Lollipop}
+    (h : GeneralRealizesStrictPairCode code L M) :
+    (cc L M).ncard = code.circle.crossings ∧
+      (rc L M).ncard = code.leftRayRightCircle.crossings ∧
+      (cr L M).ncard = code.rightRayLeftCircle.crossings ∧
+      (rr L M).ncard = (if code.rayRay then 1 else 0) := by
+  rcases h with ⟨hcc, hrc, hcr, hrr⟩
+  refine ⟨circle_ncard_eq code.circle hcc,
+    PairChamberPort.mixed_ncard_eq code.leftRayRightCircle hrc, ?_, ?_⟩
+  · simpa [cr, rc, inter_comm] using
+      PairChamberPort.mixed_ncard_eq code.rightRayLeftCircle hcr
+  · cases hcode : code.rayRay
+    · simpa [hcode] using
+        PairChamberPort.ray_ray_ncard_eq_zero_of_false_strict_code (by simpa [hcode] using hrr)
+    · simpa [hcode] using
+        PairChamberPort.ray_ray_ncard_eq_one (by simpa [hcode] using hrr)
+
+private theorem isOpen_circleCodeRealized (code : CircleCode) :
+    IsOpen {p : Lollipop × Lollipop | code.Realized p.1 p.2} := by
+  have houter : IsOpen {p : Lollipop × Lollipop |
+      0 < circleOuterMargin p.1 p.2} :=
+    isOpen_lt continuous_const continuous_circleOuterMargin_pair
+  have hinner : IsOpen {p : Lollipop × Lollipop |
+      0 < circleInnerMargin p.1 p.2} :=
+    isOpen_lt continuous_const continuous_circleInnerMargin_pair
+  cases code with
+  | cross => exact houter.inter hinner
+  | apart => exact isOpen_lt continuous_circleOuterMargin_pair continuous_const
+  | nested => exact isOpen_lt continuous_circleInnerMargin_pair continuous_const
+
+/-- A general strict chamber is open in the product parameter space. -/
+theorem isOpen_generalStrictPairChamberSet (code : GeneralStrictPairCode) :
+    IsOpen (generalStrictPairChamberSet code) :=
+  (isOpen_circleCodeRealized code.circle).inter
+    ((isOpen_mixedCodeRealized code.leftRayRightCircle).inter
+      ((isOpen_mixedCodeRealized_swap code.rightRayLeftCircle).inter
+        (isOpen_rayRayCodeRealized code.rayRay)))
+
+/-- Manuscript Lemma 8.2 in full: on product neighborhoods every strict
+condition persists and each of the four component counts is constant. -/
+theorem exists_general_pair_chamber_neighborhood
+    {code : GeneralStrictPairCode} {L M : Lollipop}
+    (h : GeneralRealizesStrictPairCode code L M) :
+    ∃ U V : Set Lollipop,
+      IsOpen U ∧ IsOpen V ∧ L ∈ U ∧ M ∈ V ∧
+      ∀ L' ∈ U, ∀ M' ∈ V, GeneralRealizesStrictPairCode code L' M' ∧
+        (cc L' M').ncard = (cc L M).ncard ∧
+        (rc L' M').ncard = (rc L M).ncard ∧
+        (cr L' M').ncard = (cr L M).ncard ∧
+        (rr L' M').ncard = (rr L M).ncard := by
+  rcases isOpen_prod_iff.mp (isOpen_generalStrictPairChamberSet code) L M h with
+    ⟨U, V, hU, hV, hLU, hMV, hsub⟩
+  refine ⟨U, V, hU, hV, hLU, hMV, ?_⟩
+  intro L' hL' M' hM'
+  have h' : GeneralRealizesStrictPairCode code L' M' := hsub ⟨hL', hM'⟩
+  obtain ⟨a1, a2, a3, a4⟩ := general_component_counts h
+  obtain ⟨b1, b2, b3, b4⟩ := general_component_counts h'
+  exact ⟨h', b1.trans a1.symm, b2.trans a2.symm, b3.trans a3.symm,
+    b4.trans a4.symm⟩
+
 end Lower
 end EndToEnd
 end Concrete
@@ -2568,11 +2762,15 @@ namespace Lollipop.Manuscript.Lemma_8_2
 
 open Concrete Concrete.EndToEnd Concrete.EndToEnd.Lower
 
-abbrev CoreStatement (code : StrictPairCode) (L M : Concrete.Lollipop) : Prop :=
-  RealizesStrictPairCode code L M ->
+abbrev CoreStatement (code : GeneralStrictPairCode) (L M : Concrete.Lollipop) : Prop :=
+  GeneralRealizesStrictPairCode code L M ->
     exists U V : Set Concrete.Lollipop,
       IsOpen U /\ IsOpen V /\ L ∈ U /\ M ∈ V /\
-      ∀ L' ∈ U, ∀ M' ∈ V, RealizesStrictPairCode code L' M'
+      ∀ L' ∈ U, ∀ M' ∈ V, GeneralRealizesStrictPairCode code L' M' /\
+        (cc L' M').ncard = (cc L M).ncard /\
+        (rc L' M').ncard = (rc L M).ncard /\
+        (cr L' M').ncard = (cr L M).ncard /\
+        (rr L' M').ncard = (rr L M).ncard
 
 end Lollipop.Manuscript.Lemma_8_2
 
@@ -2582,9 +2780,9 @@ namespace Lollipop.Manuscript.Lemma_8_2
 
 open Concrete Concrete.EndToEnd Concrete.EndToEnd.Lower
 
-theorem proof (code : StrictPairCode) (L M : Concrete.Lollipop) :
+theorem proof (code : GeneralStrictPairCode) (L M : Concrete.Lollipop) :
     CoreStatement code L M := by
   intro h
-  exact exists_pair_chamber_neighborhood h
+  exact exists_general_pair_chamber_neighborhood h
 
 end Lollipop.Manuscript.Lemma_8_2
