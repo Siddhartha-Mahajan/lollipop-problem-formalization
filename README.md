@@ -72,15 +72,15 @@ Build the numbered formalization with:
 lake build Lollipop
 ```
 
-The reorganized target was verified successfully on July 19, 2026 across
-3,276 build jobs.
+The target was verified successfully on October 8, 2026 across 3,530 build
+jobs.
 
 The full “Did you prove it?” audit is recorded in `Lollipop/README.md`.
 All 19 numbered proof terms compile and use only
-`[propext, Classical.choice, Quot.sound]`, but only 13 currently prove their
-full corresponding manuscript statements.  The remaining six are
-conditional or narrower formulations; the README identifies the exact gap in
-each case.  The axiom results can be reproduced with:
+`[propext, Classical.choice, Quot.sound]`, and (as of October 8, 2026) all 19
+prove their full corresponding manuscript statements, including the previously
+conditional Theorem 1.1 and Proposition 2.1 (see the caveat on `S(n)` in
+`Lollipop/README.md`).  The axiom results can be reproduced with:
 
 ```sh
 lake env lean Lollipop/NumberedAxiomAudit.lean
@@ -88,29 +88,30 @@ lake env lean Lollipop/NumberedAxiomAudit.lean
 
 ## Formalization boundary
 
-The numbered façade preserves the proof boundary of the substantive work:
+The numbered tree has no remaining hypotheses packages:
 
-- Theorem 1.1 is a checked assembly from explicitly named upper-geometry and
-  Karlsson lower-construction subtheorems.
-- Proposition 2.1 takes the concrete `PlanarTopologyPorts` package explicitly.
-- Lemmas 8.4 and 8.5 take the chamber-avoidance proof package explicitly.
-- The remaining numbered wrappers invoke proved endpoints contained in the
-  same `Lollipop/` tree.
+- Theorem 1.1 is proved for concrete Euclidean lollipops
+  (`Theorem_1_1/Concrete.lean`); the abstract-family assembly is kept only as
+  `proof_of_package`.
+- Proposition 2.1 is proved unconditionally
+  (`Proposition_2_1/Unconditional.lean`); the planar-topology package is proved
+  in `Lollipop/Topology/` using the Jordan curve library in
+  `JordanCurveTheorem/` and the carrier-cutting theorem.
 
-The former `JordanCurveTheorem/`, `audit/`, and `expected_fail/` trees are
-preserved only under `old_lean_folder/`; they are not part of the live source
-tree. Proposition 2.1 deliberately remains at the clean `PlanarTopologyPorts`
-interface instead of importing the later, separate topology assembly that
-contains a pre-existing unfinished proof.
+`old_lean_folder/` is an archive and not a build dependency of `Lollipop`; it
+still contains the old unfinished topology assembly with one `sorry`
+(`effectiveLocalizedCarrierSubdivisionData_exists`), now superseded by the
+proof in `Lollipop/Topology/Carrier/`.
 
-No Lean file in the new self-contained transitive build closure contains
-`sorry`, `admit`, or a project axiom.
+No Lean file in the transitive build closure of `Lollipop` contains `sorry`,
+`admit`, or a project axiom.
 
 ## Repository layout
 
 ```text
 Lollipop.lean
-Lollipop/                  # self-contained numbered façade and implementation
+Lollipop/                  # numbered façade, implementation, and Topology/ (carrier cutting)
+JordanCurveTheorem/        # Jordan curve theorem library
 old_lean_folder/           # archived substantive development
 manuscript/
   main_manuscript/

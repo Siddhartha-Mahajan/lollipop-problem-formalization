@@ -1,4 +1,4 @@
-import Lollipop.Proposition_2_1.Proof
+import Lollipop.Proposition_2_1.Unconditional
 
 /-!
 Manuscript Proposition 2.1 (`prop:top-region`): the arbitrary-arrangement

@@ -9748,7 +9748,10 @@ namespace Lollipop.Manuscript.Proposition_2_1
 
 open Concrete Concrete.EndToEnd
 
-theorem proof (ports : PlanarTopologyPorts) : CoreStatement := by
+/-- Conditional form: the proposition from the planar-topology package.  The
+package is proved in `Lollipop.Topology.PlanarPorts`; the unconditional numbered
+endpoint `proof` lives in `Proposition_2_1/Unconditional.lean`. -/
+theorem proof_of_ports (ports : PlanarTopologyPorts) : CoreStatement := by
   constructor
   · intro n A
     exact ports.crossing_excess_le_pairSum A

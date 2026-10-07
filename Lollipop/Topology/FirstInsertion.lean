@@ -7,11 +7,9 @@ import Lollipop.Topology.LocalizedTopology
 /-!
 # Main theorem spine: topology
 
-This file states the concrete topology theorems needed by the final
-certificate-free endpoint.
-
-The missing topology is intentionally exposed as named `sorry`s here.  Future
-supporting lemmas should be added only to remove these theorem-body `sorry`s.
+First-insertion part of the concrete topology spine (ported from the archived
+development): inserting one lollipop into the empty carrier is a single
+localized split.  The later insertions are handled in `Carrier/Final.lean`.
 -/
 
 noncomputable section

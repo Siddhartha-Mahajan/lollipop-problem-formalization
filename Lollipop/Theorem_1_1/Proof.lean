@@ -33,9 +33,9 @@ namespace Lollipop.Manuscript.Theorem_1_1
 
 universe u
 
-/-- Checked assembly of Theorem 1.1 from the manuscript-scale upper-geometry
-and Karlsson lower-construction subtheorems. -/
-theorem proof
+/-- Abstract assembly from the manuscript-scale subtheorem package (kept for
+reference; the concrete numbered endpoint is `Theorem_1_1/Concrete.lean`). -/
+theorem proof_of_package
     (P : TheoremOne.MaxProblemFamily.{u})
     (h : TheoremOneManuscript.FormalizedProof.StrongestKnownTheoremOneSubtheorems P) :
     CoreStatement P := by

@@ -8,19 +8,30 @@ one directory containing:
 - `Proof.lean`: the checked proof or checked assembly from explicitly named
   model-specific hypotheses.
 
-The directory is self-contained as a Lean source tree. Every project import
-made by a numbered statement or proof goes directly to another
-manuscript-numbered `Statement.lean` or `Proof.lean`; all remaining imports are
-standard Mathlib modules. The root-level axiom-audit file imports `Lollipop`
-only to inspect the complete numbered build. The substantive definitions,
-helper lemmas, and final arguments are integrated into the numbered proof files.
+The directory is self-contained as a Lean source tree: it does not depend on
+`old_lean_folder/`. The numbered `Proof.lean` files integrate their definitions
+and arguments and import only other numbered files and Mathlib, with one
+addition: the planar-topology argument behind Proposition 2.1 and Theorem 1.1
+(first insertion, the carrier-cutting theorem and the Jordan curve theorem)
+lives in two supporting trees that sit *above* the numbered files:
+
+- `Lollipop/Topology/`: ported local-insertion modules, the first-insertion
+  topology, and `Topology/Carrier/` (collars, Jordan local-side separation,
+  component-count potential, gap pieces, the driver induction), ending in
+  `Topology/PlanarPorts.lean` (the proved `PlanarTopologyPorts`) and
+  `Topology/ConcreteMaximum.lean` (concrete upper/lower assembly);
+- `JordanCurveTheorem/`: the Jordan curve theorem library (top-level Lake
+  library, no `sorry`).
+
+The unconditional endpoints are `Proposition_2_1/Unconditional.lean` and
+`Theorem_1_1/Concrete.lean`; `Statement.lean` of each imports them.
 There is no generic implementation or concrete-geometry source subtree, and
 the separately preserved archive is not a build dependency.
 
 | Manuscript result | Label in `main.tex` | New Lean directory | Local proof endpoint |
 |---|---|---|---|
-| Theorem 1.1 | `thm:main` | `Theorem_1_1/` | `FormalizedProof.theorem_one_from_formalized_subtheorems` |
-| Proposition 2.1 | `prop:top-region` | `Proposition_2_1/` | exact fields of the surviving concrete `PlanarTopologyPorts` boundary |
+| Theorem 1.1 | `thm:main` | `Theorem_1_1/` | `Theorem_1_1.proof` (`Concrete.lean`): `IsGreatest` over concrete lollipop arrangements, via `MainTheorem.Final.lollipopMaximum_expanded` |
+| Proposition 2.1 | `prop:top-region` | `Proposition_2_1/` | `Proposition_2_1.proof` (`Unconditional.lean`): `proof_of_ports` applied to the proved `Topology.planarTopologyPorts` |
 | Lemma 3.1 | `lem:close-mixed` | `Lemma_3_1/` | concrete mixed-intersection lemmas in `PairGeometry` |
 | Lemma 3.2 | `lem:intr-mixed` | `Lemma_3_2/` | `rc_diff_cc_ncard_le_one_of_near`, `cr_diff_cc_ncard_le_one_of_near`, and `rr_eq_empty_of_both_outside_mixed_of_near` |
 | Proposition 3.3 | `prop:pair-savings` | `Proposition_3_3/` | concrete `pairExcess` bounds in `PairGeometry` |
@@ -41,24 +52,25 @@ the separately preserved archive is not a build dependency.
 
 ## Proof-boundary note
 
-The reorganized files make the formalization boundary explicit rather than
-hiding it. Theorem 1.1 is assembled from a named model-specific upper-geometry
-package and Karlsson lower-construction package. Lemmas 8.4 and 8.5 take the
-chamber-avoidance proof package explicitly. Proposition 2.1 takes the clean
-concrete `PlanarTopologyPorts` proof package, so it does not import the separate
-unfinished topology assembly.
+Theorem 1.1 and Proposition 2.1 are now unconditional: the planar-topology
+package `PlanarTopologyPorts` is proved (`Topology/PlanarPorts.lean`), the
+lower-bound genericity input is proved (Lemma 8.4), and Theorem 1.1 is stated
+for concrete Euclidean lollipops (`Theorem_1_1.ConcreteStatement`).  The
+conditional forms (`Proposition_2_1.proof_of_ports`,
+`Theorem_1_1.proof_of_package`) are kept for reference.
 
 Some internal structure names contain `Certificate`; these are ordinary Lean
 records bundling data with kernel-checked proofs. They are not external files,
 unchecked computations, or additional axioms. Theorem 4.1 constructs all such
 intermediate records internally and has no certificate-valued assumption.
 
-The self-contained transitive source closure contains no `sorry`, `admit`, or
-project `axiom` declaration.
+The transitive source closure of `Lollipop` (numbered tree, `Lollipop/Topology/`,
+and `JordanCurveTheorem/`) contains no `sorry`, `admit`, or project `axiom`
+declaration.
 
 ## Verification against the “Did you prove it?” checklist
 
-Audit date: July 19, 2026.
+Audit date: October 8, 2026.
 
 The checklist has five parts: a pinned Lean repository, a successful build,
 build reachability of the proof, permitted kernel axioms, and an accurate
@@ -67,7 +79,7 @@ answer for all 19 numbered endpoints:
 
 - this is a Lake project pinned by `lean-toolchain`, `lakefile.lean`, and
   `lake-manifest.json`;
-- `lake build Lollipop` succeeds (3,276 jobs in the final clean build);
+- `lake build Lollipop` succeeds (3,530 jobs);
 - every numbered `Proof.lean` is in the transitive import closure of
   `Lollipop.lean`, so every numbered `proof` declaration is elaborated by the
   build; and
@@ -82,8 +94,8 @@ narrower than the corresponding statement in `main.tex`.
 
 | Manuscript result | Exact manuscript claim verified? | Reason |
 |---|---:|---|
-| Theorem 1.1 (`thm:main`) | **No** | `proof` takes an arbitrary `MaxProblemFamily P` and an additional `StrongestKnownTheoremOneSubtheorems P` package.  It checks the final assembly from that package, but neither constructs the concrete lollipop problem family nor proves the package's upper- and lower-geometry fields. |
-| Proposition 2.1 (`prop:top-region`) | **No** | The displayed `CoreStatement` matches the region inequality and generic equality, but `proof` requires `PlanarTopologyPorts`.  Two fields of that argument are precisely the two conclusions being claimed, so this is a conditional interface, not a proof of the proposition from Lean/Mathlib alone. |
+| Theorem 1.1 (`thm:main`) | **Yes** | `Theorem_1_1.proof : ConcreteStatement`, where `ConcreteStatement` is `∀ n, IsGreatest (Set.range fun A : Arrangement n => (regionCount A : ℚ)) (4 * choose n 2 + manuscriptS n + n + 1)` for concrete Euclidean lollipop arrangements (`regionCount` = connected components of the complement of the union of carriers).  No hypotheses: the upper bound uses the proved topology ports, the lower bound the proved chamber-genericity theorem and blow-up construction. |
+| Proposition 2.1 (`prop:top-region`) | **Yes** | `Proposition_2_1.proof : CoreStatement` has no hypotheses: `PlanarTopologyPorts` is proved by the first-insertion Jordan separation and the carrier-cutting theorem (`Topology/Carrier/`). |
 | Lemma 3.1 (`lem:close-mixed`) | **Yes** | It proves the concrete close-pair mixed-intersection cardinality bound directly; finiteness of both intersection sets is proved in Lean. |
 | Lemma 3.2 (`lem:intr-mixed`) | **Yes** | It proves the two outside-mixed bounds and the ray–ray emptiness conclusion.  The Lean version is slightly stronger because the squared-distance hypothesis suffices without separately assuming that the circles meet. |
 | Proposition 3.3 (`prop:pair-savings`) | **Yes** | `pairExcess` is the manuscript quantity `q`, defined as the compactified pair-intersection component count minus one, and all four bounds are proved for concrete lollipops. |
@@ -104,13 +116,15 @@ narrower than the corresponding statement in `main.tex`.
 
 ### Audit conclusion
 
-Seventeen of the 19 numbered results currently satisfy all five checklist items:
-Lemmas 3.1, 3.2, 3.4, 3.5, 5.1, 6.1, 6.2, 7.2, 7.3, and 8.2--8.5;
-Propositions 3.3 and 8.1; and Theorems 4.1 and 7.1.
+All 19 numbered results satisfy all five checklist items (Lean checks the full
+statement, the build succeeds, every proof is build-reachable, and the only
+kernel axioms are `propext`, `Classical.choice`, `Quot.sound`).
 
-Two do not yet constitute verified proofs of their full manuscript
-statements: Theorem 1.1 and Proposition 2.1.  Both reduce to the single
-remaining planar-topology theorem
-`effectiveLocalizedCarrierSubdivisionData_exists` (the carrier-cutting step).
-Their Lean terms compile and use only the permitted axioms, but that fact does
-not remove the extra hypotheses or omitted conclusions described above.
+Caveat on the translation test for Theorem 1.1: the Lean statement uses the
+Lean definition `manuscriptS n` (maximum of `quadVecExcess` over sorted
+nonnegative quadruples, `Lemma_7_2/Proof.lean`) for the manuscript's `S(n)`,
+and the concrete model of lollipops, carriers and `regionCount` defined in
+`Lollipop.Concrete`.  Those definitions were written to follow the manuscript
+and are exercised by the proved upper/lower bounds, but a reader should still
+compare them against `main.tex` themselves; Lean only certifies the theorem as
+stated.

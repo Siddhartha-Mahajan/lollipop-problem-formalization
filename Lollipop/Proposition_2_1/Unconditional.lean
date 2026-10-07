@@ -10,8 +10,8 @@ numbered proof no longer takes it as a hypothesis.
 
 namespace Lollipop.Manuscript.Proposition_2_1
 
-/-- Proposition 2.1 with no hypotheses. -/
-theorem proof_unconditional : CoreStatement :=
-  proof Concrete.EndToEnd.MainTheorem.Topology.planarTopologyPorts
+/-- Proposition 2.1 with no hypotheses (the numbered proof endpoint). -/
+theorem proof : CoreStatement :=
+  proof_of_ports Concrete.EndToEnd.MainTheorem.Topology.planarTopologyPorts
 
 end Lollipop.Manuscript.Proposition_2_1
