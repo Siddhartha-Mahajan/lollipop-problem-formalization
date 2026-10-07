@@ -1249,7 +1249,7 @@ public name `Statement`.
 /-!
 Manuscript Lemma 8.3 (`lem:local4`): the polynomial family starts at the
 standard unit lollipop and every two ordered members in `[0, 1/4]` have four
-transverse crossings.
+transverse crossings, none at an anchor.
 -/
 
 namespace Lollipop.Manuscript.Lemma_8_3
@@ -1262,7 +1262,11 @@ def CoreStatement : Prop :=
   (forall {s t : Real}, 0 <= s -> s < t -> t <= (1 : Real) / 4 ->
     pairCrossingCount (PolynomialFamily.member s) (PolynomialFamily.member t) = 4 /\
     PrimitivePairwiseTransverse
-      (PolynomialFamily.member s) (PolynomialFamily.member t))
+      (PolynomialFamily.member s) (PolynomialFamily.member t) /\
+    (PolynomialFamily.member s).anchor ∉
+      pairCrossingSet (PolynomialFamily.member s) (PolynomialFamily.member t) /\
+    (PolynomialFamily.member t).anchor ∉
+      pairCrossingSet (PolynomialFamily.member s) (PolynomialFamily.member t))
 
 end Lollipop.Manuscript.Lemma_8_3
 
@@ -1276,6 +1280,10 @@ theorem proof : CoreStatement := by
   refine ⟨PolynomialFamily.continuous_local, PolynomialFamily.local_zero, ?_⟩
   intro s t hs hst ht
   exact ⟨PolynomialFamily.local_pairCrossingCount_eq_four hs hst ht,
-    PolynomialFamily.local_pair_transverse hs hst ht⟩
+    PolynomialFamily.local_pair_transverse hs hst ht,
+    left_anchor_not_mem_pairCrossingSet_of_realizes
+      (PolynomialFamily.local_realizes_four hs hst ht),
+    right_anchor_not_mem_pairCrossingSet_of_realizes
+      (PolynomialFamily.local_realizes_four hs hst ht)⟩
 
 end Lollipop.Manuscript.Lemma_8_3
