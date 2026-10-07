@@ -17189,7 +17189,6 @@ namespace Lollipop.Manuscript.Lemma_8_5
 open Concrete Concrete.EndToEnd Concrete.EndToEnd.Lower
 
 abbrev CoreStatement {n : Nat} (q : QuadVec n) : Prop :=
-  GenericityPort.ChamberGenericityAvoidance n ->
   q ∈ quadVecs n ->
     exists A : Arrangement n,
       IsGeneric A /\
@@ -17204,7 +17203,8 @@ namespace Lollipop.Manuscript.Lemma_8_5
 open Concrete Concrete.EndToEnd Concrete.EndToEnd.Lower
 
 theorem proof {n : Nat} (q : QuadVec n) : CoreStatement q := by
-  intro hAvoid hq
-  exact BlowUp.exists_generic_crossings_eq_lowerCrossingsOfQuad hAvoid q hq
+  intro hq
+  exact BlowUp.exists_generic_crossings_eq_lowerCrossingsOfQuad
+    (MainTheorem.Genericity.chamberGenericityAvoidance_all n) q hq
 
 end Lollipop.Manuscript.Lemma_8_5

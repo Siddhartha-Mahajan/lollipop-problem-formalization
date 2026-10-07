@@ -10,7 +10,6 @@ namespace Lollipop.Manuscript.Lemma_8_5
 open Concrete Concrete.EndToEnd Concrete.EndToEnd.Lower
 
 abbrev Statement {n : Nat} (q : QuadVec n) : Prop :=
-  GenericityPort.ChamberGenericityAvoidance n ->
   q ∈ quadVecs n ->
     exists A : Arrangement n,
       IsGeneric A /\

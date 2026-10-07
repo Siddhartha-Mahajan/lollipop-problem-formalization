@@ -1,4 +1,6 @@
 import Lollipop.Lemma_8_3.Proof
+import Lollipop.Lemma_3_4.Proof
+import Mathlib.Topology.Separation.Connected
 import Mathlib.Analysis.Calculus.ContDiff.Basic
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic
@@ -1370,12 +1372,1580 @@ Manuscript Lemma 8.4 (`lem:genericize`): every nonempty strict pair chamber
 contains a generic arrangement with the same pairwise component counts.
 -/
 
+
+/-! Ported from the archived development (`old_lean_folder`): carrier avoidance,
+translation genericity, and the unconditional chamber-genericity theorem. -/
+
+/-! ### Ported from `old_lean_folder/Concrete/EndToEnd/CarrierAvoidance.lean` -/
+
+/-!
+# Carrier avoidance
+
+A concrete lollipop carrier has empty interior.  This is the local geometric
+fact needed by finite triple-contact avoidance: a finite list of translated
+carriers cannot fill a nonempty open set of translation parameters.
+-/
+
+noncomputable section
+
+namespace Lollipop
+namespace Concrete
+namespace EndToEnd
+
+open Set
+
+namespace Lollipop
+
+/-- The point opposite the stem anchor on the circle. -/
+def opposite (L : Lollipop) : Point :=
+  L.center - L.radial
+
+theorem opposite_mem_circle (L : Lollipop) : opposite L ∈ L.circle := by
+  unfold opposite
+  change ‖(L.center - L.radial) - L.center‖ = ‖L.radial‖
+  rw [show (L.center - L.radial) - L.center = -L.radial by module]
+  simp
+
+theorem anchor_ne_opposite (L : Lollipop) : L.anchor ≠ opposite L := by
+  intro h
+  apply L.radial_ne_zero
+  have h' : L.center + L.radial = L.center - L.radial := by
+    simpa [Lollipop.anchor, opposite] using h
+  have htwo : (2 : ℝ) • L.radial = 0 := by
+    calc
+      (2 : ℝ) • L.radial = L.radial + L.radial := by module
+      _ = (L.center + L.radial) - (L.center - L.radial) := by module
+      _ = 0 := by
+        rw [h']
+        module
+  rcases smul_eq_zero.mp htwo with htwoZero | hradial
+  · norm_num at htwoZero
+  · exact hradial
+
+theorem circle_infinite (L : Lollipop) : L.circle.Infinite := by
+  have hnontrivial : L.circle.Nontrivial :=
+    ⟨L.anchor, L.anchor_mem_circle,
+      opposite L, opposite_mem_circle L, anchor_ne_opposite L⟩
+  exact L.isConnected_circle.isPreconnected.infinite_of_nontrivial hnontrivial
+
+/-- A circle whose radius differs from `L.radius` meets `L.carrier` in a
+finite set. -/
+theorem circle_inter_carrier_finite_of_radius_ne
+    (M L : Lollipop) (hradius : M.radius ≠ L.radius) :
+    (M.circle ∩ L.carrier).Finite := by
+  have hsphere : concreteSphere M ≠ concreteSphere L := by
+    intro h
+    exact hradius (congrArg EuclideanGeometry.Sphere.radius h)
+  have hcc : (M.circle ∩ L.circle).Finite := by
+    change (cc M L).Finite
+    apply finite_of_forall_mem_eq_left_or_right
+    intro a b x ha hb hx hab
+    exact eq_or_eq_of_mem_cc_of_two_witnesses hsphere hab ha hb hx
+  have hcr : (M.circle ∩ L.stem).Finite := by
+    change (cr M L).Finite
+    exact finite_circle_ray_intersection M L
+  apply (hcc.union hcr).subset
+  intro z hz
+  change z ∈ M.circle ∧ (z ∈ L.circle ∨ z ∈ L.stem) at hz
+  rcases hz with ⟨hzM, hzLcircle | hzLstem⟩
+  · exact Or.inl ⟨hzM, hzLcircle⟩
+  · exact Or.inr ⟨hzM, hzLstem⟩
+
+/-- Every nonempty open set contains a point outside a fixed concrete
+lollipop carrier. -/
+theorem exists_mem_open_not_mem_carrier
+    (L : Lollipop) {U : Set Point}
+    (hUopen : IsOpen U) {x : Point} (hxU : x ∈ U) :
+    ∃ z : Point, z ∈ U ∧ z ∉ L.carrier := by
+  obtain ⟨ε, hεpos, hball⟩ := Metric.isOpen_iff.mp hUopen x hxU
+  let ρ : ℝ := min ε L.radius / 4
+  have hminpos : 0 < min ε L.radius := lt_min hεpos L.radius_pos
+  have hρpos : 0 < ρ := by
+    dsimp [ρ]
+    positivity
+  have hρltε : ρ < ε := by
+    have hle := min_le_left ε L.radius
+    dsimp [ρ]
+    nlinarith
+  have hρltRadius : ρ < L.radius := by
+    have hle := min_le_right ε L.radius
+    dsimp [ρ]
+    nlinarith
+  let M : Lollipop :=
+    { center := x
+      radial := ρ • L.unitRadial
+      radial_ne_zero := smul_ne_zero (ne_of_gt hρpos) L.unitRadial_ne_zero }
+  have hMradius : M.radius = ρ := by
+    simp [M, Lollipop.radius, norm_smul, Real.norm_eq_abs,
+      abs_of_pos hρpos]
+  have hcircleU : M.circle ⊆ U := by
+    intro z hz
+    apply hball
+    rw [Metric.mem_ball]
+    have hz' : ‖z - x‖ = ρ := by
+      simpa [M, Lollipop.circle, hMradius] using hz
+    simpa [dist_eq_norm, hz'] using hρltε
+  have hMRadiusNe : M.radius ≠ L.radius := by
+    rw [hMradius]
+    exact ne_of_lt hρltRadius
+  have hinterFinite : (M.circle ∩ L.carrier).Finite :=
+    circle_inter_carrier_finite_of_radius_ne M L hMRadiusNe
+  by_contra hno
+  push Not at hno
+  have hcircleSubset : M.circle ⊆ M.circle ∩ L.carrier := by
+    intro z hz
+    exact ⟨hz, hno z (hcircleU hz)⟩
+  exact circle_infinite M (hinterFinite.subset hcircleSubset)
+
+end Lollipop
+
+end EndToEnd
+end Concrete
+end Lollipop
+
+/-! ### Ported from `old_lean_folder/Concrete/EndToEnd/TranslationGenericity.lean` -/
+
+/-!
+# Translation genericity
+
+This module proves the finite-avoidance step used to remove triple contacts
+when inserting one lollipop into an arrangement whose old pair-contact sets
+are finite.
+-/
+
+noncomputable section
+
+namespace Lollipop
+namespace Concrete
+namespace EndToEnd
+namespace TranslationGenericity
+
+open Set
+
+/-- Translate a concrete lollipop by moving its center and retaining its
+radial vector. -/
+def translate (L : Lollipop) (v : Point) : Lollipop where
+  center := L.center + v
+  radial := L.radial
+  radial_ne_zero := L.radial_ne_zero
+
+/-- The lollipop carrier in translation-parameter space forbidden by one
+ambient point `p`. -/
+def translationForbidden (L : Lollipop) (p : Point) : Lollipop where
+  center := p - L.center
+  radial := -L.radial
+  radial_ne_zero := by
+    intro h
+    exact L.radial_ne_zero (neg_eq_zero.mp h)
+
+@[simp] theorem translate_radius (L : Lollipop) (v : Point) :
+    (translate L v).radius = L.radius := by
+  rfl
+
+@[simp] theorem translationForbidden_radius (L : Lollipop) (p : Point) :
+    (translationForbidden L p).radius = L.radius := by
+  simp [translationForbidden, Lollipop.radius]
+
+theorem mem_translate_circle_iff (L : Lollipop) (v x : Point) :
+    x ∈ (translate L v).circle ↔ x - v ∈ L.circle := by
+  have hvec : x - (L.center + v) = (x - v) - L.center := by
+    module
+  change ‖x - (L.center + v)‖ = L.radius ↔
+    ‖(x - v) - L.center‖ = L.radius
+  rw [hvec]
+
+theorem mem_translate_stem_iff (L : Lollipop) (v x : Point) :
+    x ∈ (translate L v).stem ↔ x - v ∈ L.stem := by
+  constructor
+  · rintro ⟨t, ht, htx⟩
+    refine ⟨t, ht, ?_⟩
+    rw [htx]
+    change L.center + v + t • L.radial - v =
+      L.center + t • L.radial
+    module
+  · rintro ⟨t, ht, htx⟩
+    refine ⟨t, ht, ?_⟩
+    change x = L.center + v + t • L.radial
+    calc
+      x = (x - v) + v := by module
+      _ = (L.center + t • L.radial) + v := by rw [htx]
+      _ = L.center + v + t • L.radial := by module
+
+theorem mem_translate_carrier_iff (L : Lollipop) (v x : Point) :
+    x ∈ (translate L v).carrier ↔ x - v ∈ L.carrier := by
+  simp only [Lollipop.carrier, mem_union,
+    mem_translate_circle_iff, mem_translate_stem_iff]
+
+theorem mem_translationForbidden_circle_iff
+    (L : Lollipop) (p v : Point) :
+    v ∈ (translationForbidden L p).circle ↔ p - v ∈ L.circle := by
+  have hvec :
+      v - (p - L.center) = -((p - v) - L.center) := by
+    module
+  unfold translationForbidden
+  change ‖v - (p - L.center)‖ = ‖-L.radial‖ ↔
+    ‖(p - v) - L.center‖ = L.radius
+  rw [hvec, norm_neg]
+  simp [Lollipop.radius]
+
+theorem mem_translationForbidden_stem_iff
+    (L : Lollipop) (p v : Point) :
+    v ∈ (translationForbidden L p).stem ↔ p - v ∈ L.stem := by
+  constructor
+  · rintro ⟨t, ht, htv⟩
+    refine ⟨t, ht, ?_⟩
+    rw [htv]
+    change p - (p - L.center + t • -L.radial) =
+      L.center + t • L.radial
+    module
+  · rintro ⟨t, ht, htp⟩
+    refine ⟨t, ht, ?_⟩
+    change v = p - L.center + t • -L.radial
+    calc
+      v = p - (p - v) := by module
+      _ = p - (L.center + t • L.radial) := by rw [htp]
+      _ = p - L.center + t • -L.radial := by module
+
+theorem mem_translationForbidden_carrier_iff
+    (L : Lollipop) (p v : Point) :
+    v ∈ (translationForbidden L p).carrier ↔ p - v ∈ L.carrier := by
+  simp only [Lollipop.carrier, mem_union,
+    mem_translationForbidden_circle_iff,
+    mem_translationForbidden_stem_iff]
+
+theorem mem_translate_carrier_iff_mem_translationForbidden
+    (L : Lollipop) (p v : Point) :
+    p ∈ (translate L v).carrier ↔
+      v ∈ (translationForbidden L p).carrier := by
+  rw [mem_translate_carrier_iff,
+    mem_translationForbidden_carrier_iff]
+
+/-- Avoid finitely many prescribed points on a translated carrier while
+choosing the translation vector in an arbitrary nonempty open set. -/
+theorem exists_mem_open_forall_not_mem_translate_carrier
+    (L : Lollipop) (P : Finset Point)
+    {U : Set Point} (hU : IsOpen U) {v₀ : Point} (hv₀ : v₀ ∈ U) :
+    ∃ v : Point, v ∈ U ∧
+      ∀ p : Point, p ∈ P → p ∉ (translate L v).carrier := by
+  classical
+  induction P using Finset.induction_on generalizing U v₀ with
+  | empty =>
+      exact ⟨v₀, hv₀, by simp⟩
+  | insert p P hp ih =>
+      obtain ⟨w, hwU, hwp⟩ :=
+        EndToEnd.Lollipop.exists_mem_open_not_mem_carrier
+          (translationForbidden L p) hU hv₀
+      let V : Set Point := U ∩ (translationForbidden L p).carrierᶜ
+      have hVopen : IsOpen V :=
+        hU.inter ((translationForbidden L p).isClosed_carrier).isOpen_compl
+      have hwV : w ∈ V := ⟨hwU, hwp⟩
+      obtain ⟨v, hvV, havoid⟩ := ih hVopen hwV
+      refine ⟨v, hvV.1, ?_⟩
+      intro q hq
+      rw [Finset.mem_insert] at hq
+      rcases hq with rfl | hq
+      · intro hpv
+        exact hvV.2
+          ((mem_translate_carrier_iff_mem_translationForbidden L q v).mp hpv)
+      · exact havoid q hq
+
+/-- Pairwise finiteness of old carrier intersections. -/
+def PairFiniteArrangement {n : ℕ} (A : Arrangement n) : Prop :=
+  ∀ i j : Fin n, i ≠ j → ((A i).carrier ∩ (A j).carrier).Finite
+
+/-- No finite point of the inserted carrier lies on two distinct old
+carriers. -/
+def NoTripleContactWithInserted {n : ℕ}
+    (A : Arrangement n) (L : Lollipop) : Prop :=
+  ∀ ⦃i j : Fin n⦄, i ≠ j →
+    Disjoint ((A i).carrier ∩ L.carrier)
+      ((A j).carrier ∩ L.carrier)
+
+/-- Contact finiteness between every old carrier and one inserted carrier. -/
+def PairContactsFinite {n : ℕ} (A : Arrangement n) (L : Lollipop) : Prop :=
+  ∀ i : Fin n, ((A i).carrier ∩ L.carrier).Finite
+
+/-- No point lies on three pairwise-distinct carriers.  This unordered form is
+the invariant used by the insertion-order genericization route. -/
+def NoTripleCarrierPoints {n : ℕ} (A : Arrangement n) : Prop :=
+  ∀ i j k : Fin n,
+    i ≠ j → i ≠ k → j ≠ k →
+      Disjoint
+        ((A i).carrier ∩ (A k).carrier)
+        ((A j).carrier ∩ (A k).carrier)
+
+/-- The empty arrangement is pairwise finite. -/
+theorem pairFiniteArrangement_empty (A : Arrangement 0) :
+    PairFiniteArrangement A := by
+  intro i
+  exact Fin.elim0 i
+
+/-- The empty arrangement has no triple carrier points. -/
+theorem noTripleCarrierPoints_empty (A : Arrangement 0) :
+    NoTripleCarrierPoints A := by
+  intro i
+  exact Fin.elim0 i
+
+/-- Pairwise finiteness restricts to every ordered prefix. -/
+theorem pairFiniteArrangement_prefix
+    {n k : ℕ} (A : Arrangement n) (hk : k ≤ n)
+    (hA : PairFiniteArrangement A) :
+    PairFiniteArrangement (PlanarInsertion.prefixArrangement A k hk) := by
+  intro i j hij
+  have hij' :
+      (⟨i.1, i.2.trans_le hk⟩ : Fin n) ≠
+        ⟨j.1, j.2.trans_le hk⟩ := by
+    intro h
+    apply hij
+    exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+  simpa [PlanarInsertion.prefixArrangement] using
+    hA ⟨i.1, i.2.trans_le hk⟩
+      ⟨j.1, j.2.trans_le hk⟩ hij'
+
+/-- Absence of triple carrier points restricts to every ordered prefix. -/
+theorem noTripleCarrierPoints_prefix
+    {n k : ℕ} (A : Arrangement n) (hk : k ≤ n)
+    (hA : NoTripleCarrierPoints A) :
+    NoTripleCarrierPoints (PlanarInsertion.prefixArrangement A k hk) := by
+  intro i j l hij hil hjl
+  have hij' :
+      (⟨i.1, i.2.trans_le hk⟩ : Fin n) ≠
+        ⟨j.1, j.2.trans_le hk⟩ := by
+    intro h
+    apply hij
+    exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+  have hil' :
+      (⟨i.1, i.2.trans_le hk⟩ : Fin n) ≠
+        ⟨l.1, l.2.trans_le hk⟩ := by
+    intro h
+    apply hil
+    exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+  have hjl' :
+      (⟨j.1, j.2.trans_le hk⟩ : Fin n) ≠
+        ⟨l.1, l.2.trans_le hk⟩ := by
+    intro h
+    apply hjl
+    exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+  simpa [PlanarInsertion.prefixArrangement] using
+    hA ⟨i.1, i.2.trans_le hk⟩
+      ⟨j.1, j.2.trans_le hk⟩
+      ⟨l.1, l.2.trans_le hk⟩ hij' hil' hjl'
+
+/-- Pairwise finiteness is preserved when the appended lollipop has finite
+contact with every old carrier. -/
+theorem pairFiniteArrangement_snoc
+    {n : ℕ} {A : Arrangement n} {L : Lollipop}
+    (hA : PairFiniteArrangement A)
+    (hL : PairContactsFinite A L) :
+    PairFiniteArrangement (Insertion.snocArrangement A L) := by
+  intro i j hij
+  by_cases hi : i.1 < n
+  · by_cases hj : j.1 < n
+    · have hijOld : (⟨i.1, hi⟩ : Fin n) ≠ ⟨j.1, hj⟩ := by
+        intro h
+        apply hij
+        exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+      simpa [Insertion.snocArrangement, hi, hj] using
+        hA ⟨i.1, hi⟩ ⟨j.1, hj⟩ hijOld
+    · simpa [Insertion.snocArrangement, hi, hj] using hL ⟨i.1, hi⟩
+  · by_cases hj : j.1 < n
+    · simpa [Insertion.snocArrangement, hi, hj, inter_comm] using
+        hL ⟨j.1, hj⟩
+    · have hieq := Insertion.fin_eq_last_of_not_lt hi
+      have hjeq := Insertion.fin_eq_last_of_not_lt hj
+      exact (hij (hieq.trans hjeq.symm)).elim
+
+/-- Global no-triple position is preserved by appending a lollipop satisfying
+the old/new no-triple contact condition. -/
+theorem noTripleCarrierPoints_snoc
+    {n : ℕ} {A : Arrangement n} {L : Lollipop}
+    (hA : NoTripleCarrierPoints A)
+    (hL : NoTripleContactWithInserted A L) :
+    NoTripleCarrierPoints (Insertion.snocArrangement A L) := by
+  intro i j k hij hik hjk
+  rw [Set.disjoint_left]
+  intro x hxi hxj
+  by_cases hkOld : k.1 < n
+  · by_cases hiOld : i.1 < n
+    · by_cases hjOld : j.1 < n
+      · have hijOld : (⟨i.1, hiOld⟩ : Fin n) ≠ ⟨j.1, hjOld⟩ := by
+          intro h
+          apply hij
+          exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+        have hikOld : (⟨i.1, hiOld⟩ : Fin n) ≠ ⟨k.1, hkOld⟩ := by
+          intro h
+          apply hik
+          exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+        have hjkOld : (⟨j.1, hjOld⟩ : Fin n) ≠ ⟨k.1, hkOld⟩ := by
+          intro h
+          apply hjk
+          exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+        have hd := hA ⟨i.1, hiOld⟩ ⟨j.1, hjOld⟩
+          ⟨k.1, hkOld⟩ hijOld hikOld hjkOld
+        exact Set.disjoint_left.mp hd
+          ⟨by simpa [Insertion.snocArrangement, hiOld] using hxi.1,
+            by simpa [Insertion.snocArrangement, hkOld] using hxi.2⟩
+          ⟨by simpa [Insertion.snocArrangement, hjOld] using hxj.1,
+            by simpa [Insertion.snocArrangement, hkOld] using hxj.2⟩
+      · have hikOld : (⟨i.1, hiOld⟩ : Fin n) ≠ ⟨k.1, hkOld⟩ := by
+          intro h
+          apply hik
+          exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+        have hd := hL hikOld
+        exact Set.disjoint_left.mp hd
+          ⟨by simpa [Insertion.snocArrangement, hiOld] using hxi.1,
+            by simpa [Insertion.snocArrangement, hjOld] using hxj.1⟩
+          ⟨by simpa [Insertion.snocArrangement, hkOld] using hxi.2,
+            by simpa [Insertion.snocArrangement, hjOld] using hxj.1⟩
+    · have hiLast := Insertion.fin_eq_last_of_not_lt hiOld
+      have hjOld : j.1 < n := by
+        by_contra hjNotOld
+        have hjLast := Insertion.fin_eq_last_of_not_lt hjNotOld
+        exact hij (hiLast.trans hjLast.symm)
+      have hjkOld : (⟨j.1, hjOld⟩ : Fin n) ≠ ⟨k.1, hkOld⟩ := by
+        intro h
+        apply hjk
+        exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+      have hd := hL hjkOld
+      exact Set.disjoint_left.mp hd
+        ⟨by simpa [Insertion.snocArrangement, hjOld] using hxj.1,
+          by simpa [Insertion.snocArrangement, hiOld] using hxi.1⟩
+        ⟨by simpa [Insertion.snocArrangement, hkOld] using hxi.2,
+          by simpa [Insertion.snocArrangement, hiOld] using hxi.1⟩
+  · have hkLast := Insertion.fin_eq_last_of_not_lt hkOld
+    have hiOld : i.1 < n := by
+      by_contra hiNotOld
+      have hiLast := Insertion.fin_eq_last_of_not_lt hiNotOld
+      exact hik (hiLast.trans hkLast.symm)
+    have hjOld : j.1 < n := by
+      by_contra hjNotOld
+      have hjLast := Insertion.fin_eq_last_of_not_lt hjNotOld
+      exact hjk (hjLast.trans hkLast.symm)
+    have hijOld : (⟨i.1, hiOld⟩ : Fin n) ≠ ⟨j.1, hjOld⟩ := by
+      intro h
+      apply hij
+      exact Fin.ext (congrArg (fun x : Fin n => x.1) h)
+    have hd := hL hijOld
+    exact Set.disjoint_left.mp hd
+      ⟨by simpa [Insertion.snocArrangement, hiOld] using hxi.1,
+        by simpa [Insertion.snocArrangement, hkOld] using hxi.2⟩
+      ⟨by simpa [Insertion.snocArrangement, hjOld] using hxj.1,
+        by simpa [Insertion.snocArrangement, hkOld] using hxj.2⟩
+
+/-- Union of old pair-contact sets over a finite collection of index pairs. -/
+def oldPairContactUnionOn {n : ℕ} (A : Arrangement n)
+    (s : Finset (Fin n × Fin n)) : Set Point :=
+  InsertionFan.finsetSetUnion s
+    (fun p => (A p.1).carrier ∩ (A p.2).carrier)
+
+/-- The finite set of all contacts between distinct old lollipops. -/
+def oldDoublePointSet {n : ℕ} (A : Arrangement n) : Set Point :=
+  oldPairContactUnionOn A (pairFinset n)
+
+theorem oldPairContactUnionOn_finite
+    {n : ℕ} {A : Arrangement n}
+    (hfinite : PairFiniteArrangement A)
+    (s : Finset (Fin n × Fin n))
+    (hdiag : ∀ p ∈ s, p.1 ≠ p.2) :
+    (oldPairContactUnionOn A s).Finite := by
+  exact InsertionFan.finite_finsetSetUnion s
+    (fun p => (A p.1).carrier ∩ (A p.2).carrier)
+    (fun p hp => hfinite p.1 p.2 (hdiag p hp))
+
+theorem oldDoublePointSet_finite
+    {n : ℕ} {A : Arrangement n}
+    (hfinite : PairFiniteArrangement A) :
+    (oldDoublePointSet A).Finite := by
+  apply oldPairContactUnionOn_finite hfinite
+  intro p hp
+  rw [pairFinset, Finset.mem_filter] at hp
+  exact ne_of_lt hp.2
+
+theorem pair_inter_subset_oldDoublePointSet
+    {n : ℕ} (A : Arrangement n) {i j : Fin n} (hij : i ≠ j) :
+    (A i).carrier ∩ (A j).carrier ⊆ oldDoublePointSet A := by
+  intro x hx
+  rcases lt_or_gt_of_ne hij with hijlt | hjilt
+  · apply (InsertionFan.mem_finsetSetUnion_iff (pairFinset n)
+      (fun p => (A p.1).carrier ∩ (A p.2).carrier) x).2
+    exact ⟨(i, j), by simp [pairFinset, hijlt], hx⟩
+  · apply (InsertionFan.mem_finsetSetUnion_iff (pairFinset n)
+      (fun p => (A p.1).carrier ∩ (A p.2).carrier) x).2
+    exact ⟨(j, i), by simp [pairFinset, hjilt], ⟨hx.2, hx.1⟩⟩
+
+theorem noTripleContactWithInserted_translate_of_disjoint_oldDoublePointSet
+    {n : ℕ} (A : Arrangement n) (L : Lollipop) (v : Point)
+    (hdisj : Disjoint (translate L v).carrier (oldDoublePointSet A)) :
+    NoTripleContactWithInserted A (translate L v) := by
+  intro i j hij
+  rw [Set.disjoint_left]
+  intro x hxi hxj
+  exact Set.disjoint_left.mp hdisj hxi.2
+    (pair_inter_subset_oldDoublePointSet A hij ⟨hxi.1, hxj.1⟩)
+
+/-- In every nonempty open neighborhood of translation space there is a
+translation eliminating all triple contacts with a pairwise-finite old
+arrangement. -/
+theorem exists_mem_open_noTripleContactWithInserted_translate
+    {n : ℕ} (A : Arrangement n) (L : Lollipop)
+    (hfinite : PairFiniteArrangement A)
+    {U : Set Point} (hU : IsOpen U) {v₀ : Point} (hv₀ : v₀ ∈ U) :
+    ∃ v : Point, v ∈ U ∧
+      NoTripleContactWithInserted A (translate L v) := by
+  classical
+  let P : Set Point := oldDoublePointSet A
+  have hP : P.Finite := oldDoublePointSet_finite hfinite
+  obtain ⟨v, hvU, havoid⟩ :=
+    exists_mem_open_forall_not_mem_translate_carrier
+      L hP.toFinset hU hv₀
+  have hdisj : Disjoint (translate L v).carrier P := by
+    rw [Set.disjoint_left]
+    intro p hpL hpP
+    exact havoid p (hP.mem_toFinset.mpr hpP) hpL
+  exact ⟨v, hvU,
+    noTripleContactWithInserted_translate_of_disjoint_oldDoublePointSet
+      A L v hdisj⟩
+
+/-- Metric form: the triple-removing translation can be chosen with
+arbitrarily small norm. -/
+theorem exists_norm_lt_noTripleContactWithInserted_translate
+    {n : ℕ} (A : Arrangement n) (L : Lollipop)
+    (hfinite : PairFiniteArrangement A)
+    {ε : ℝ} (hε : 0 < ε) :
+    ∃ v : Point, ‖v‖ < ε ∧
+      NoTripleContactWithInserted A (translate L v) := by
+  have hzero : (0 : Point) ∈ Metric.ball (0 : Point) ε := by
+    simpa [Metric.mem_ball] using hε
+  obtain ⟨v, hv, htriple⟩ :=
+    exists_mem_open_noTripleContactWithInserted_translate
+      A L hfinite Metric.isOpen_ball hzero
+  refine ⟨v, ?_, htriple⟩
+  simpa [Metric.mem_ball, dist_eq_norm] using hv
+
+/-- The old/new pair profiles are constant throughout a prescribed open ball
+of translation parameters.  This is the stability input needed when the lower
+construction removes triple contacts without changing the extremal pair
+table. -/
+def PairProfilesStableInBall {n : ℕ} (A : Arrangement n) (L : Lollipop)
+    (ε : ℝ) : Prop :=
+  ∀ v : Point, ‖v‖ < ε → ∀ i : Fin n,
+    pairExcess (A i) (translate L v) = pairExcess (A i) L
+
+/-- One insertion-order genericization step.
+
+If all sufficiently small translations retain finite contact with every old
+carrier, then one can choose such a translation which simultaneously preserves
+pairwise finiteness and extends global no-triple position. -/
+theorem exists_norm_lt_pairFinite_noTriple_snoc_translate
+    {n : ℕ} (A : Arrangement n) (L : Lollipop)
+    (hfinite : PairFiniteArrangement A)
+    (htriple : NoTripleCarrierPoints A)
+    {ε : ℝ} (hε : 0 < ε)
+    (hcontacts : ∀ v : Point, ‖v‖ < ε →
+      PairContactsFinite A (translate L v)) :
+    ∃ v : Point, ‖v‖ < ε ∧
+      PairFiniteArrangement (Insertion.snocArrangement A (translate L v)) ∧
+      NoTripleCarrierPoints (Insertion.snocArrangement A (translate L v)) := by
+  obtain ⟨v, hv, hnewTriple⟩ :=
+    exists_norm_lt_noTripleContactWithInserted_translate A L hfinite hε
+  exact ⟨v, hv,
+    pairFiniteArrangement_snoc hfinite (hcontacts v hv),
+    noTripleCarrierPoints_snoc htriple hnewTriple⟩
+
+/-- The same one-step choice can retain every old/new pair profile.
+
+The stability hypothesis is deliberately explicit: this theorem supplies the
+finite avoidance and append bookkeeping, while the analytic proof that a
+suitable profile-stability ball exists remains a separate target. -/
+theorem exists_norm_lt_preservePairProfiles_pairFinite_noTriple_snoc_translate
+    {n : ℕ} (A : Arrangement n) (L : Lollipop)
+    (hfinite : PairFiniteArrangement A)
+    (htriple : NoTripleCarrierPoints A)
+    {ε : ℝ} (hε : 0 < ε)
+    (hcontacts : ∀ v : Point, ‖v‖ < ε →
+      PairContactsFinite A (translate L v))
+    (hprofiles : PairProfilesStableInBall A L ε) :
+    ∃ v : Point, ‖v‖ < ε ∧
+      (∀ i : Fin n,
+        pairExcess (A i) (translate L v) = pairExcess (A i) L) ∧
+      PairFiniteArrangement (Insertion.snocArrangement A (translate L v)) ∧
+      NoTripleCarrierPoints (Insertion.snocArrangement A (translate L v)) := by
+  obtain ⟨v, hv, hpair, hglobal⟩ :=
+    exists_norm_lt_pairFinite_noTriple_snoc_translate
+      A L hfinite htriple hε hcontacts
+  exact ⟨v, hv, hprofiles v hv, hpair, hglobal⟩
+
+end TranslationGenericity
+end EndToEnd
+end Concrete
+end Lollipop
+
+/-! ### Ported from `old_lean_folder/Concrete/EndToEnd/MainTheorem/Genericity.lean` -/
+
+/-!
+# Main theorem spine: lower genericity
+
+This file states the concrete genericity-avoidance theorem needed by the final
+certificate-free endpoint.
+
+The theorem is not a caller-facing certificate.  It is the named target for
+the finite bad-locus avoidance proof.
+-/
+
+noncomputable section
+
+namespace Lollipop
+namespace Concrete
+namespace EndToEnd
+namespace MainTheorem
+namespace Genericity
+
+/-- There are no three pairwise-distinct indices in `Fin n` when `n < 3`. -/
+theorem no_three_distinct_fin_of_lt_three {n : ℕ} (hn : n < 3) :
+    ∀ i j k : Fin n, i ≠ j → i ≠ k → j ≠ k → False := by
+  intro i j k hij hik hjk
+  have hijv : i.1 ≠ j.1 := fun h => hij (Fin.ext h)
+  have hikv : i.1 ≠ k.1 := fun h => hik (Fin.ext h)
+  have hjkv : j.1 ≠ k.1 := fun h => hjk (Fin.ext h)
+  have hi3 : i.1 < 3 := lt_trans i.2 hn
+  have hj3 : j.1 < 3 := lt_trans j.2 hn
+  have hk3 : k.1 < 3 := lt_trans k.2 hn
+  omega
+
+/-- For `n < 3`, the triple-contact bad locus is empty and hence avoidable. -/
+theorem dense_compl_tripleBadUnion_of_lt_three {n : ℕ} (hn : n < 3) :
+    Dense
+      ((Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n))ᶜ) := by
+  rw [Lower.GenericityPort.tripleBadUnion_eq_empty_of_no_three_distinct
+    (no_three_distinct_fin_of_lt_three hn)]
+  simp
+
+/-- Ordered triples of pairwise-distinct indices.  This packages the index
+and proof arguments in `Lower.GenericityPort.tripleBadUnion` into one finite
+type, so the remaining density theorem can be reduced to finitely many fixed
+triple-incidence loci. -/
+abbrev OrderedTripleIndex (n : ℕ) :=
+  {ijk : Fin n × Fin n × Fin n //
+    ijk.1 ≠ ijk.2.1 ∧ ijk.1 ≠ ijk.2.2 ∧ ijk.2.1 ≠ ijk.2.2}
+
+/-- The good locus for one ordered triple of pairwise-distinct indices. -/
+def orderedTripleGood {n : ℕ} (t : OrderedTripleIndex n) :
+    Set (Lower.ArrangementParameter n) :=
+  (Lower.GenericityPort.tripleBadSet
+    t.1.1 t.1.2.1 t.1.2.2 t.2.1 t.2.2.1 t.2.2.2)ᶜ
+
+/-- Parameter locus where one selected pair has finite carrier contact. -/
+def pairFiniteGood {n : ℕ} (i j : Fin n) :
+    Set (Lower.ArrangementParameter n) :=
+  {p | ((p.toArrangement i).carrier ∩
+    (p.toArrangement j).carrier).Finite}
+
+/-- A stronger, elementary good locus for one pair: unequal circles and
+nonparallel stems.  This is the explicit geometric condition currently used
+as the next density target for pair-finiteness. -/
+def pairRegularGood {n : ℕ} (i j : Fin n) :
+    Set (Lower.ArrangementParameter n) :=
+  {p |
+    (p.toArrangement i).circle ≠ (p.toArrangement j).circle ∧
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0}
+
+/-- Stronger open pair-regular locus: distinct centers and nonparallel stems.
+This implies `pairRegularGood`, but is better suited to finite neighborhood
+arguments because it is visibly open in the center/radial parameter space. -/
+def pairCenterRegularGood {n : ℕ} (i j : Fin n) :
+    Set (Lower.ArrangementParameter n) :=
+  {p |
+    (p.toArrangement i).center ≠ (p.toArrangement j).center ∧
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0}
+
+/-- The center-regular locus is open. -/
+theorem isOpen_pairCenterRegularGood {n : ℕ} (i j : Fin n) :
+    IsOpen (pairCenterRegularGood i j) := by
+  have hcenter_i : Continuous (fun p : Lower.ArrangementParameter n =>
+      (p.toArrangement i).center) :=
+    Lower.continuous_lollipop_center_comp
+      (Lower.continuous_toLollipop.comp (continuous_apply i))
+  have hcenter_j : Continuous (fun p : Lower.ArrangementParameter n =>
+      (p.toArrangement j).center) :=
+    Lower.continuous_lollipop_center_comp
+      (Lower.continuous_toLollipop.comp (continuous_apply j))
+  have hradial_i : Continuous (fun p : Lower.ArrangementParameter n =>
+      (p.toArrangement i).radial) :=
+    Lower.continuous_lollipop_radial_comp
+      (Lower.continuous_toLollipop.comp (continuous_apply i))
+  have hradial_j : Continuous (fun p : Lower.ArrangementParameter n =>
+      (p.toArrangement j).radial) :=
+    Lower.continuous_lollipop_radial_comp
+      (Lower.continuous_toLollipop.comp (continuous_apply j))
+  have hcenterOpen : IsOpen {p : Lower.ArrangementParameter n |
+      (p.toArrangement i).center ≠ (p.toArrangement j).center} :=
+    isOpen_ne_fun hcenter_i hcenter_j
+  have hdet : Continuous (fun p : Lower.ArrangementParameter n =>
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial) :=
+    continuous_detPoint_comp hradial_i hradial_j
+  have hdetOpen : IsOpen {p : Lower.ArrangementParameter n |
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0} :=
+    isOpen_ne_fun hdet continuous_const
+  change IsOpen
+    ({p : Lower.ArrangementParameter n |
+      (p.toArrangement i).center ≠ (p.toArrangement j).center} ∩
+    {p : Lower.ArrangementParameter n |
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0})
+  exact hcenterOpen.inter hdetOpen
+
+/-- Distinct circles plus nonparallel stems imply finite carrier contact. -/
+theorem pairCrossingSet_finite_of_circle_ne_of_nonparallel
+    {L M : Lollipop} (hcircle : L.circle ≠ M.circle)
+    (hdet : detPoint L.radial M.radial ≠ 0) :
+    (pairCrossingSet L M).Finite := by
+  have hccFin : (cc L M).Finite :=
+    finite_circle_intersection_of_ne hcircle
+  have hrcFin : (rc L M).Finite :=
+    finite_ray_circle_intersection L M
+  have hcrFin : (cr L M).Finite :=
+    finite_circle_ray_intersection L M
+  have hrrFin : (rr L M).Finite := by
+    by_cases hrr : (rr L M).Nonempty
+    · exact finite_of_subsingleton_of_mem
+        (rr_subsingleton_of_transverse hdet) hrr.some_mem
+    · rw [Set.not_nonempty_iff_eq_empty.mp hrr]
+      exact Set.finite_empty
+  rw [pairCrossingSet_decompose]
+  exact ((hccFin.union hrcFin).union hcrFin).union hrrFin
+
+/-- The elementary pair-regular locus is contained in the finite-contact
+locus. -/
+theorem pairRegularGood_subset_pairFiniteGood {n : ℕ} (i j : Fin n) :
+    pairRegularGood i j ⊆ pairFiniteGood i j := by
+  intro p hp
+  exact pairCrossingSet_finite_of_circle_ne_of_nonparallel hp.1 hp.2
+
+/-- Distinct centers force distinct circle sets. -/
+theorem circle_ne_of_center_ne {L M : Lollipop}
+    (hcenter : L.center ≠ M.center) :
+    L.circle ≠ M.circle := by
+  intro hcircle
+  have hsphere : concreteSphere L ≠ concreteSphere M := by
+    intro hsphere
+    exact hcenter (congrArg EuclideanGeometry.Sphere.center hsphere)
+  have hccFinite : (cc L M).Finite := by
+    apply finite_of_forall_mem_eq_left_or_right
+    intro a b x ha hb hx hab
+    exact eq_or_eq_of_mem_cc_of_two_witnesses hsphere hab ha hb hx
+  have hcircleSubset : L.circle ⊆ cc L M := by
+    intro x hx
+    exact ⟨hx, by simpa [hcircle] using hx⟩
+  exact (_root_.Lollipop.Concrete.EndToEnd.Lollipop.circle_infinite L)
+    (hccFinite.subset hcircleSubset)
+
+/-- Center-regular pairs are pair-regular in the carrier-finiteness sense. -/
+theorem pairCenterRegularGood_subset_pairRegularGood {n : ℕ}
+    (i j : Fin n) :
+    pairCenterRegularGood i j ⊆ pairRegularGood i j := by
+  intro p hp
+  exact ⟨circle_ne_of_center_ne hp.1, hp.2⟩
+
+/-- Center-regular pairs have finite carrier contact. -/
+theorem pairCenterRegularGood_subset_pairFiniteGood {n : ℕ}
+    (i j : Fin n) :
+    pairCenterRegularGood i j ⊆ pairFiniteGood i j :=
+  (pairCenterRegularGood_subset_pairRegularGood i j).trans
+    (pairRegularGood_subset_pairFiniteGood i j)
+
+/-- Translate one parameter in an arrangement parameter vector. -/
+def translateParameterAt {n : ℕ}
+    (p : Lower.ArrangementParameter n) (k : Fin n) (v : Point) :
+    Lower.ArrangementParameter n :=
+  fun a =>
+    if _h : a = k then
+      ⟨((p a).1.1 + v, (p a).1.2), (p a).2⟩
+    else p a
+
+@[simp] theorem translateParameterAt_zero {n : ℕ}
+    (p : Lower.ArrangementParameter n) (k : Fin n) :
+    translateParameterAt p k 0 = p := by
+  funext a
+  by_cases ha : a = k
+  · simp [translateParameterAt, ha]
+  · simp [translateParameterAt, ha]
+
+theorem translateParameterAt_apply_self {n : ℕ}
+    (p : Lower.ArrangementParameter n) (k : Fin n) (v : Point) :
+    (translateParameterAt p k v).toArrangement k =
+      TranslationGenericity.translate (p.toArrangement k) v := by
+  ext <;>
+    simp [translateParameterAt, Lower.ArrangementParameter.toArrangement,
+      Lower.LollipopParameter.toLollipop, TranslationGenericity.translate]
+
+theorem translateParameterAt_apply_ne {n : ℕ}
+    (p : Lower.ArrangementParameter n) {a k : Fin n} (v : Point)
+    (hak : a ≠ k) :
+    (translateParameterAt p k v).toArrangement a =
+      p.toArrangement a := by
+  simp [translateParameterAt, Lower.ArrangementParameter.toArrangement, hak]
+
+/-- The one-parameter translation path is continuous in the raw center/radial
+parameter space. -/
+theorem continuous_translateParameterAt {n : ℕ}
+    (p : Lower.ArrangementParameter n) (k : Fin n) :
+    Continuous (fun v : Point => translateParameterAt p k v) := by
+  apply continuous_pi
+  intro a
+  by_cases ha : a = k
+  · rw [continuous_induced_rng]
+    change Continuous (fun v : Point => (translateParameterAt p k v a).1)
+    simp [translateParameterAt, ha]
+    constructor <;> fun_prop
+  · rw [show (fun v : Point => translateParameterAt p k v a) =
+        fun _v : Point => p a by
+      funext v
+      simp [translateParameterAt, ha]]
+    exact continuous_const
+
+/-- The center-regular locus is dense for every ordered distinct pair. -/
+theorem dense_pairCenterRegularGood {n : ℕ} (i j : Fin n) (hij : i ≠ j) :
+    Dense (pairCenterRegularGood i j) := by
+  rw [dense_iff_inter_open]
+  intro U hU hUne
+  rcases
+    (Lower.GenericityPort.dense_compl_parallelBadSet i j hij).exists_mem_open
+      hU hUne with
+    ⟨p, hpParallel, hpU⟩
+  have hpDet :
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0 := by
+    change p ∉ Lower.GenericityPort.parallelBadSet i j hij at hpParallel
+    exact hpParallel
+  by_cases hcenter :
+      (p.toArrangement i).center ≠ (p.toArrangement j).center
+  · exact ⟨p, hpU, hcenter, hpDet⟩
+  · have hcenterEq :
+        (p.toArrangement i).center = (p.toArrangement j).center :=
+      not_not.mp hcenter
+    let V : Set (Lower.ArrangementParameter n) :=
+      U ∩ (Lower.GenericityPort.parallelBadSet i j hij)ᶜ
+    have hVopen : IsOpen V :=
+      hU.inter (Lower.GenericityPort.isOpen_compl_parallelBadSet i j hij)
+    have hpV : p ∈ V := ⟨hpU, hpParallel⟩
+    let γ : Point → Lower.ArrangementParameter n :=
+      fun v => translateParameterAt p j v
+    have hγcont : Continuous γ :=
+      continuous_translateParameterAt p j
+    have hpreOpen : IsOpen (γ ⁻¹' V) := hVopen.preimage hγcont
+    have hzero : (0 : Point) ∈ γ ⁻¹' V := by
+      change γ 0 ∈ V
+      simpa [γ] using hpV
+    have hnhds : γ ⁻¹' V ∈ nhds (0 : Point) :=
+      hpreOpen.mem_nhds hzero
+    rcases Metric.mem_nhds_iff.mp hnhds with ⟨ε, hεpos, hεsub⟩
+    let v : Point := (ε / 2) • (p.toArrangement i).unitRadial
+    have hεhalf : 0 < ε / 2 := by linarith
+    have hv_ne : v ≠ 0 := by
+      exact smul_ne_zero (ne_of_gt hεhalf)
+        (p.toArrangement i).unitRadial_ne_zero
+    have hvball : v ∈ Metric.ball (0 : Point) ε := by
+      have hhalf_lt : |ε| / 2 < ε := by
+        rw [abs_of_pos hεpos]
+        linarith
+      simpa [Metric.mem_ball, dist_eq_norm, v, norm_smul,
+        Real.norm_eq_abs, abs_of_pos hεhalf,
+        (p.toArrangement i).norm_unitRadial] using hhalf_lt
+    have hqV : γ v ∈ V := hεsub hvball
+    refine ⟨γ v, hqV.1, ?_⟩
+    have hi :
+        (γ v).toArrangement i = p.toArrangement i := by
+      simpa [γ] using
+        translateParameterAt_apply_ne p (a := i) (k := j) v hij
+    have hj :
+        (γ v).toArrangement j =
+          TranslationGenericity.translate (p.toArrangement j) v := by
+      simpa [γ] using translateParameterAt_apply_self p j v
+    have hcenterNe :
+        ((γ v).toArrangement i).center ≠
+          ((γ v).toArrangement j).center := by
+      intro hcent
+      rw [hi, hj] at hcent
+      change (p.toArrangement i).center =
+        (p.toArrangement j).center + v at hcent
+      have hv_zero : v = 0 := by
+        calc
+          v = ((p.toArrangement j).center + v) -
+              (p.toArrangement j).center := by module
+          _ = (p.toArrangement i).center -
+              (p.toArrangement j).center := by rw [← hcent]
+          _ = 0 := by rw [hcenterEq]; module
+      exact hv_ne hv_zero
+    constructor
+    · exact hcenterNe
+    · have hqParallel :
+          γ v ∉ Lower.GenericityPort.parallelBadSet i j hij := hqV.2
+      change detPoint ((γ v).toArrangement i).radial
+        ((γ v).toArrangement j).radial ≠ 0 at hqParallel
+      change detPoint ((γ v).toArrangement i).radial
+        ((γ v).toArrangement j).radial ≠ 0
+      exact hqParallel
+
+/-- Finite index type for ordered distinct pairs. -/
+abbrev OrderedDistinctPairIndex (n : ℕ) :=
+  {ij : Fin n × Fin n // ij.1 ≠ ij.2}
+
+/-- All ordered distinct pairs are center-regular. -/
+def allPairCenterRegularGood {n : ℕ} :
+    Set (Lower.ArrangementParameter n) :=
+  ⋂ ij : OrderedDistinctPairIndex n,
+    pairCenterRegularGood ij.1.1 ij.1.2
+
+/-- The all-pairs center-regular locus is open. -/
+theorem isOpen_allPairCenterRegularGood {n : ℕ} :
+    IsOpen (allPairCenterRegularGood (n := n)) := by
+  classical
+  unfold allPairCenterRegularGood
+  apply isOpen_iInter_of_finite
+  intro ij
+  exact isOpen_pairCenterRegularGood ij.1.1 ij.1.2
+
+/-- The all-pairs center-regular locus is dense. -/
+theorem dense_allPairCenterRegularGood {n : ℕ} :
+    Dense (allPairCenterRegularGood (n := n)) := by
+  classical
+  unfold allPairCenterRegularGood
+  exact
+    Lower.GenericityPort.dense_iInter_fintype_of_open_dense
+      (fun ij : OrderedDistinctPairIndex n =>
+        pairCenterRegularGood ij.1.1 ij.1.2)
+      (by
+        intro ij
+        exact isOpen_pairCenterRegularGood ij.1.1 ij.1.2)
+      (by
+        intro ij
+        exact dense_pairCenterRegularGood ij.1.1 ij.1.2 ij.2)
+
+/-- An arrangement in the all-pairs center-regular locus has finite contact
+between every distinct pair of carriers. -/
+theorem pairFiniteArrangement_of_mem_allPairCenterRegularGood {n : ℕ}
+    {p : Lower.ArrangementParameter n}
+    (hp : p ∈ allPairCenterRegularGood (n := n)) :
+    TranslationGenericity.PairFiniteArrangement p.toArrangement := by
+  intro i j hij
+  have hpij :
+      p ∈ pairCenterRegularGood i j := by
+    exact Set.mem_iInter.mp hp ⟨(i, j), hij⟩
+  exact (pairCenterRegularGood_subset_pairFiniteGood i j hpij)
+
+/-- Around a point in an open all-pairs center-regular neighborhood, small
+translations of one selected center remain inside that same neighborhood. -/
+theorem exists_norm_ball_translateParameterAt_subset_open_allPairCenterRegularGood
+    {n : ℕ} {p : Lower.ArrangementParameter n} (k : Fin n)
+    {U : Set (Lower.ArrangementParameter n)}
+    (hU : IsOpen U) (hpU : p ∈ U)
+    (hpPair : p ∈ allPairCenterRegularGood (n := n)) :
+    ∃ ε : ℝ, 0 < ε ∧
+      ∀ v : Point, ‖v‖ < ε →
+        translateParameterAt p k v ∈
+          U ∩ allPairCenterRegularGood (n := n) := by
+  let V : Set (Lower.ArrangementParameter n) :=
+    U ∩ allPairCenterRegularGood (n := n)
+  have hVopen : IsOpen V :=
+    hU.inter isOpen_allPairCenterRegularGood
+  have hpV : p ∈ V := ⟨hpU, hpPair⟩
+  let γ : Point → Lower.ArrangementParameter n :=
+    fun v => translateParameterAt p k v
+  have hγcont : Continuous γ :=
+    continuous_translateParameterAt p k
+  have hpreOpen : IsOpen (γ ⁻¹' V) := hVopen.preimage hγcont
+  have hzero : (0 : Point) ∈ γ ⁻¹' V := by
+    change γ 0 ∈ V
+    simpa [γ] using hpV
+  have hnhds : γ ⁻¹' V ∈ nhds (0 : Point) :=
+    hpreOpen.mem_nhds hzero
+  rcases Metric.mem_nhds_iff.mp hnhds with ⟨ε, hεpos, hεsub⟩
+  refine ⟨ε, hεpos, ?_⟩
+  intro v hv
+  exact hεsub (by simpa [Metric.mem_ball, dist_eq_norm] using hv)
+
+/-- If a translated full parameter remains in the all-pairs center-regular
+locus, then every old member of the `k`-prefix has finite contact with the
+translated `k`th lollipop. -/
+theorem pairContactsFinite_prefix_translate_of_mem_allPairCenterRegularGood
+    {n k : ℕ} {p : Lower.ArrangementParameter n} (hk : k < n)
+    {v : Point}
+    (hp :
+      translateParameterAt p ⟨k, hk⟩ v ∈
+        allPairCenterRegularGood (n := n)) :
+    TranslationGenericity.PairContactsFinite
+      (PlanarInsertion.prefixArrangement p.toArrangement k (Nat.le_of_lt hk))
+      (TranslationGenericity.translate (p.toArrangement ⟨k, hk⟩) v) := by
+  intro i
+  let q : Lower.ArrangementParameter n := translateParameterAt p ⟨k, hk⟩ v
+  have hqfinite :
+      TranslationGenericity.PairFiniteArrangement q.toArrangement :=
+    pairFiniteArrangement_of_mem_allPairCenterRegularGood hp
+  let ii : Fin n := ⟨i.1, lt_trans i.2 hk⟩
+  let kk : Fin n := ⟨k, hk⟩
+  have hik : ii ≠ kk := by
+    intro h
+    have hv := congrArg (fun x : Fin n => x.1) h
+    dsimp [ii, kk] at hv
+    omega
+  have hqi : q.toArrangement ii = p.toArrangement ii := by
+    simpa [q, ii, kk] using
+      translateParameterAt_apply_ne p (a := ii) (k := kk) v hik
+  have hqk :
+      q.toArrangement kk =
+        TranslationGenericity.translate (p.toArrangement kk) v := by
+    simpa [q, kk] using translateParameterAt_apply_self p kk v
+  have hfin := hqfinite ii kk hik
+  simpa [PlanarInsertion.prefixArrangement, ii, kk, hqi, hqk] using hfin
+
+/-- Updating the `k`th center and then taking the `(k+1)`-prefix is the same
+as appending the translated `k`th lollipop to the old `k`-prefix. -/
+theorem prefix_translateParameterAt_succ_eq_snoc
+    {n k : ℕ} (p : Lower.ArrangementParameter n) (hk : k < n)
+    (v : Point) :
+    PlanarInsertion.prefixArrangement
+        (translateParameterAt p ⟨k, hk⟩ v).toArrangement
+        (k + 1) (Nat.succ_le_of_lt hk) =
+      Insertion.snocArrangement
+        (PlanarInsertion.prefixArrangement p.toArrangement k
+          (Nat.le_of_lt hk))
+        (TranslationGenericity.translate (p.toArrangement ⟨k, hk⟩) v) := by
+  funext i
+  by_cases hik : i.1 < k
+  · let ii : Fin n := ⟨i.1, i.2.trans_le (Nat.succ_le_of_lt hk)⟩
+    let iiOld : Fin n := ⟨i.1, lt_trans hik hk⟩
+    let kk : Fin n := ⟨k, hk⟩
+    have hii : ii = iiOld := by
+      exact Fin.ext rfl
+    have hine : ii ≠ kk := by
+      intro h
+      have hv := congrArg (fun x : Fin n => x.1) h
+      dsimp [ii, kk] at hv
+      omega
+    have happly :
+        (translateParameterAt p kk v).toArrangement ii =
+          p.toArrangement ii := by
+      simpa [kk] using
+        translateParameterAt_apply_ne p (a := ii) (k := kk) v hine
+    simp [PlanarInsertion.prefixArrangement, Insertion.snocArrangement,
+      hik, happly, hii, ii, iiOld, kk]
+  · have hi : i = Fin.last k := Insertion.fin_eq_last_of_not_lt hik
+    subst i
+    let kk : Fin n := ⟨k, hk⟩
+    have happly :
+        (translateParameterAt p kk v).toArrangement kk =
+          TranslationGenericity.translate (p.toArrangement kk) v := by
+      simpa [kk] using translateParameterAt_apply_self p kk v
+    simp [PlanarInsertion.prefixArrangement, Insertion.snocArrangement,
+      happly, kk]
+
+/-- One step of the finite prefix genericization: translate the `k`th
+lollipop while staying in the prescribed open all-pairs regular locus, and
+extend no-triple position from the `k`-prefix to the `(k+1)`-prefix. -/
+theorem exists_translateParameterAt_step_prefix_noTriple
+    {n k : ℕ} {p : Lower.ArrangementParameter n} (hk : k < n)
+    {U : Set (Lower.ArrangementParameter n)}
+    (hU : IsOpen U) (hpU : p ∈ U)
+    (hpPair : p ∈ allPairCenterRegularGood (n := n))
+    (htriple :
+      TranslationGenericity.NoTripleCarrierPoints
+        (PlanarInsertion.prefixArrangement p.toArrangement k
+          (Nat.le_of_lt hk))) :
+    ∃ q : Lower.ArrangementParameter n,
+      q ∈ U ∧
+        q ∈ allPairCenterRegularGood (n := n) ∧
+        TranslationGenericity.NoTripleCarrierPoints
+          (PlanarInsertion.prefixArrangement q.toArrangement (k + 1)
+            (Nat.succ_le_of_lt hk)) ∧
+        ∃ v : Point, q = translateParameterAt p ⟨k, hk⟩ v := by
+  obtain ⟨ε, hεpos, hball⟩ :=
+    exists_norm_ball_translateParameterAt_subset_open_allPairCenterRegularGood
+      ⟨k, hk⟩ hU hpU hpPair
+  let Aold : Arrangement k :=
+    PlanarInsertion.prefixArrangement p.toArrangement k (Nat.le_of_lt hk)
+  let Lnew : Lollipop := p.toArrangement ⟨k, hk⟩
+  have hfinite : TranslationGenericity.PairFiniteArrangement Aold := by
+    exact TranslationGenericity.pairFiniteArrangement_prefix
+      p.toArrangement (Nat.le_of_lt hk)
+      (pairFiniteArrangement_of_mem_allPairCenterRegularGood hpPair)
+  have hcontacts :
+      ∀ v : Point, ‖v‖ < ε →
+        TranslationGenericity.PairContactsFinite Aold
+          (TranslationGenericity.translate Lnew v) := by
+    intro v hv
+    have hpvPair :
+        translateParameterAt p ⟨k, hk⟩ v ∈
+          allPairCenterRegularGood (n := n) := (hball v hv).2
+    simpa [Aold, Lnew] using
+      pairContactsFinite_prefix_translate_of_mem_allPairCenterRegularGood
+        (p := p) hk hpvPair
+  obtain ⟨v, hv, _hpair, htri⟩ :=
+    TranslationGenericity.exists_norm_lt_pairFinite_noTriple_snoc_translate
+      Aold Lnew hfinite htriple hεpos hcontacts
+  let q : Lower.ArrangementParameter n := translateParameterAt p ⟨k, hk⟩ v
+  have hqOpenPair :
+      q ∈ U ∩ allPairCenterRegularGood (n := n) := hball v hv
+  refine ⟨q, hqOpenPair.1, hqOpenPair.2, ?_, ⟨v, rfl⟩⟩
+  change
+    TranslationGenericity.NoTripleCarrierPoints
+      (PlanarInsertion.prefixArrangement
+        (translateParameterAt p ⟨k, hk⟩ v).toArrangement
+        (k + 1) (Nat.succ_le_of_lt hk))
+  rw [prefix_translateParameterAt_succ_eq_snoc p hk v]
+  simpa [Aold, Lnew] using htri
+
+/-- Finite prefix induction for the concrete triple-genericity construction.
+
+Starting from any point in an open all-pairs center-regular locus, repeatedly
+translate the next indexed lollipop by a sufficiently small vector.  The
+construction stays in the same open set and extends no-triple position from
+the current prefix to the next prefix at each step. -/
+theorem exists_mem_open_allPairCenterRegularGood_prefix_noTriple
+    {n : ℕ} {U : Set (Lower.ArrangementParameter n)}
+    (hU : IsOpen U) {p : Lower.ArrangementParameter n}
+    (hpU : p ∈ U) (hpPair : p ∈ allPairCenterRegularGood (n := n)) :
+    ∀ k : ℕ, ∀ hk : k ≤ n,
+      ∃ q : Lower.ArrangementParameter n,
+        q ∈ U ∧
+          q ∈ allPairCenterRegularGood (n := n) ∧
+          TranslationGenericity.NoTripleCarrierPoints
+            (PlanarInsertion.prefixArrangement q.toArrangement k hk) := by
+  intro k
+  induction k with
+  | zero =>
+      intro hk
+      refine ⟨p, hpU, hpPair, ?_⟩
+      exact TranslationGenericity.noTripleCarrierPoints_empty
+        (PlanarInsertion.prefixArrangement p.toArrangement 0 hk)
+  | succ k ih =>
+      intro hkSucc
+      have hklt : k < n := Nat.lt_of_succ_le hkSucc
+      have hk : k ≤ n := Nat.le_of_lt hklt
+      rcases ih hk with ⟨p', hp'U, hp'Pair, hp'Triple⟩
+      rcases
+        exists_translateParameterAt_step_prefix_noTriple
+          (p := p') hklt hU hp'U hp'Pair hp'Triple with
+        ⟨q, hqU, hqPair, hqTriple, _hv⟩
+      refine ⟨q, hqU, hqPair, ?_⟩
+      simpa [Nat.succ_eq_add_one] using hqTriple
+
+/-- Every open set meeting the all-pairs center-regular locus also contains a
+point whose full concrete arrangement has no triple carrier point. -/
+theorem exists_mem_open_allPairCenterRegularGood_noTriple
+    {n : ℕ} {U : Set (Lower.ArrangementParameter n)}
+    (hU : IsOpen U) {p : Lower.ArrangementParameter n}
+    (hpU : p ∈ U) (hpPair : p ∈ allPairCenterRegularGood (n := n)) :
+    ∃ q : Lower.ArrangementParameter n,
+      q ∈ U ∧
+        q ∈ allPairCenterRegularGood (n := n) ∧
+        TranslationGenericity.NoTripleCarrierPoints q.toArrangement := by
+  rcases
+    exists_mem_open_allPairCenterRegularGood_prefix_noTriple
+      hU hpU hpPair n le_rfl with
+    ⟨q, hqU, hqPair, hqTriple⟩
+  refine ⟨q, hqU, hqPair, ?_⟩
+  rw [PlanarInsertion.prefix_full q.toArrangement] at hqTriple
+  exact hqTriple
+
+/-- The elementary pair-regular locus is dense for every ordered distinct
+pair.  The proof first enters the already-proved nonparallel-stem locus, then
+translates only the second center inside that open set.  Radials are unchanged,
+so nonparallelness is preserved, while the nonzero center translation forces
+the two circle sets to be distinct. -/
+theorem dense_pairRegularGood {n : ℕ} (i j : Fin n) (hij : i ≠ j) :
+    Dense (pairRegularGood i j) := by
+  rw [dense_iff_inter_open]
+  intro U hU hUne
+  rcases
+    (Lower.GenericityPort.dense_compl_parallelBadSet i j hij).exists_mem_open
+      hU hUne with
+    ⟨p, hpParallel, hpU⟩
+  have hpDet :
+      detPoint (p.toArrangement i).radial
+        (p.toArrangement j).radial ≠ 0 := by
+    change p ∉ Lower.GenericityPort.parallelBadSet i j hij at hpParallel
+    exact hpParallel
+  by_cases hcircle :
+      (p.toArrangement i).circle ≠ (p.toArrangement j).circle
+  · exact ⟨p, hpU, hcircle, hpDet⟩
+  · have hcircleEq :
+        (p.toArrangement i).circle = (p.toArrangement j).circle :=
+      not_not.mp hcircle
+    have hcenterEq :
+        (p.toArrangement i).center = (p.toArrangement j).center := by
+      by_contra hcenterNe
+      exact hcircle (circle_ne_of_center_ne hcenterNe)
+    let V : Set (Lower.ArrangementParameter n) :=
+      U ∩ (Lower.GenericityPort.parallelBadSet i j hij)ᶜ
+    have hVopen : IsOpen V :=
+      hU.inter (Lower.GenericityPort.isOpen_compl_parallelBadSet i j hij)
+    have hpV : p ∈ V := ⟨hpU, hpParallel⟩
+    let γ : Point → Lower.ArrangementParameter n :=
+      fun v => translateParameterAt p j v
+    have hγcont : Continuous γ :=
+      continuous_translateParameterAt p j
+    have hpreOpen : IsOpen (γ ⁻¹' V) := hVopen.preimage hγcont
+    have hzero : (0 : Point) ∈ γ ⁻¹' V := by
+      change γ 0 ∈ V
+      simpa [γ] using hpV
+    have hnhds : γ ⁻¹' V ∈ nhds (0 : Point) :=
+      hpreOpen.mem_nhds hzero
+    rcases Metric.mem_nhds_iff.mp hnhds with ⟨ε, hεpos, hεsub⟩
+    let v : Point := (ε / 2) • (p.toArrangement i).unitRadial
+    have hεhalf : 0 < ε / 2 := by linarith
+    have hv_ne : v ≠ 0 := by
+      exact smul_ne_zero (ne_of_gt hεhalf)
+        (p.toArrangement i).unitRadial_ne_zero
+    have hvball : v ∈ Metric.ball (0 : Point) ε := by
+      have hhalf_lt : |ε| / 2 < ε := by
+        rw [abs_of_pos hεpos]
+        linarith
+      simpa [Metric.mem_ball, dist_eq_norm, v, norm_smul,
+        Real.norm_eq_abs, abs_of_pos hεhalf,
+        (p.toArrangement i).norm_unitRadial] using hhalf_lt
+    have hqV : γ v ∈ V := hεsub hvball
+    refine ⟨γ v, hqV.1, ?_⟩
+    have hi :
+        (γ v).toArrangement i = p.toArrangement i := by
+      simpa [γ] using
+        translateParameterAt_apply_ne p (a := i) (k := j) v hij
+    have hj :
+        (γ v).toArrangement j =
+          TranslationGenericity.translate (p.toArrangement j) v := by
+      simpa [γ] using translateParameterAt_apply_self p j v
+    have hcenterNe :
+        ((γ v).toArrangement i).center ≠
+          ((γ v).toArrangement j).center := by
+      intro hcent
+      rw [hi, hj] at hcent
+      change (p.toArrangement i).center =
+        (p.toArrangement j).center + v at hcent
+      have hv_zero : v = 0 := by
+        calc
+          v = ((p.toArrangement j).center + v) -
+              (p.toArrangement j).center := by module
+          _ = (p.toArrangement i).center -
+              (p.toArrangement j).center := by rw [← hcent]
+          _ = 0 := by rw [hcenterEq]; module
+      exact hv_ne hv_zero
+    constructor
+    · exact circle_ne_of_center_ne hcenterNe
+    · have hqParallel :
+          γ v ∉ Lower.GenericityPort.parallelBadSet i j hij := hqV.2
+      change detPoint ((γ v).toArrangement i).radial
+        ((γ v).toArrangement j).radial ≠ 0 at hqParallel
+      change detPoint ((γ v).toArrangement i).radial
+        ((γ v).toArrangement j).radial ≠ 0
+      exact hqParallel
+
+/-- Two-lollipop arrangement used to feed the translation-avoidance theorem
+for a fixed old pair. -/
+def twoArrangement (L M : Lollipop) : Arrangement 2 :=
+  fun a => if a = (0 : Fin 2) then L else M
+
+@[simp] theorem twoArrangement_zero (L M : Lollipop) :
+    twoArrangement L M (0 : Fin 2) = L := by
+  simp [twoArrangement]
+
+@[simp] theorem twoArrangement_one (L M : Lollipop) :
+    twoArrangement L M (1 : Fin 2) = M := by
+  simp [twoArrangement]
+
+theorem pairFinite_twoArrangement_of_finite {L M : Lollipop}
+    (hfinite : (L.carrier ∩ M.carrier).Finite) :
+    TranslationGenericity.PairFiniteArrangement (twoArrangement L M) := by
+  intro a b hab
+  fin_cases a <;> fin_cases b
+  · exact False.elim (hab rfl)
+  · simpa using hfinite
+  · simpa [Set.inter_comm] using hfinite
+  · exact False.elim (hab rfl)
+
+/-- Local triple-contact avoidance for one ordered triple.
+
+If the first two carriers already have finite contact, then translating the
+third lollipop inside any open parameter neighborhood avoids common points of
+the three selected carriers.  This is the bridge from the tracked
+`TranslationGenericity` module to the remaining finite-avoidance theorem. -/
+theorem exists_mem_open_not_tripleBadSet_of_pairFinite_at {n : ℕ}
+    {p : Lower.ArrangementParameter n} {i j k : Fin n}
+    (hij : i ≠ j) (hik : i ≠ k) (hjk : j ≠ k)
+    (hfinite :
+      ((p.toArrangement i).carrier ∩
+        (p.toArrangement j).carrier).Finite)
+    {U : Set (Lower.ArrangementParameter n)} (hU : IsOpen U)
+    (hpU : p ∈ U) :
+    ∃ q : Lower.ArrangementParameter n,
+      q ∈ U ∧
+        q ∉ Lower.GenericityPort.tripleBadSet i j k hij hik hjk := by
+  classical
+  let Aij : Arrangement 2 :=
+    twoArrangement (p.toArrangement i) (p.toArrangement j)
+  have hAijFinite : TranslationGenericity.PairFiniteArrangement Aij := by
+    simpa [Aij] using pairFinite_twoArrangement_of_finite hfinite
+  let γ : Point → Lower.ArrangementParameter n :=
+    fun v => translateParameterAt p k v
+  have hγcont : Continuous γ :=
+    continuous_translateParameterAt p k
+  have hpreOpen : IsOpen (γ ⁻¹' U) := hU.preimage hγcont
+  have hzero : (0 : Point) ∈ γ ⁻¹' U := by
+    change γ 0 ∈ U
+    simpa [γ] using hpU
+  obtain ⟨v, hvU, havoid⟩ :=
+    TranslationGenericity.exists_mem_open_noTripleContactWithInserted_translate
+      Aij (p.toArrangement k) hAijFinite hpreOpen hzero
+  refine ⟨γ v, hvU, ?_⟩
+  intro hbad
+  rcases hbad with ⟨x, hx⟩
+  rcases hx with ⟨hxij, hxk⟩
+  rcases hxij with ⟨hxi, hxj⟩
+  have hxiOld : x ∈ (p.toArrangement i).carrier := by
+    simpa [γ, Lower.ArrangementParameter.toArrangement, translateParameterAt,
+      hik] using hxi
+  have hxjOld : x ∈ (p.toArrangement j).carrier := by
+    simpa [γ, Lower.ArrangementParameter.toArrangement, translateParameterAt,
+      hjk] using hxj
+  have hxkNew :
+      x ∈ (TranslationGenericity.translate (p.toArrangement k) v).carrier := by
+    simpa [γ, Lower.ArrangementParameter.toArrangement, translateParameterAt,
+      Lower.LollipopParameter.toLollipop, TranslationGenericity.translate]
+      using hxk
+  have hdisj := havoid (i := (0 : Fin 2)) (j := (1 : Fin 2)) (by decide)
+  exact Set.disjoint_left.mp hdisj
+    (by simpa [Aij] using (show x ∈ (Aij (0 : Fin 2)).carrier ∩
+        (TranslationGenericity.translate (p.toArrangement k) v).carrier from
+        ⟨hxiOld, hxkNew⟩))
+    (by simpa [Aij] using (show x ∈ (Aij (1 : Fin 2)).carrier ∩
+        (TranslationGenericity.translate (p.toArrangement k) v).carrier from
+        ⟨hxjOld, hxkNew⟩))
+
+/-- Fixed-triple density is reduced to density of finite contact for the
+first selected pair. -/
+theorem dense_orderedTripleGood_of_pairFiniteGood_dense {n : ℕ}
+    (t : OrderedTripleIndex n)
+    (hdense : Dense (pairFiniteGood t.1.1 t.1.2.1)) :
+    Dense (orderedTripleGood t) := by
+  rw [dense_iff_inter_open]
+  intro U hU hUne
+  rcases hdense.exists_mem_open hU hUne with ⟨p, hpfinite, hpU⟩
+  rcases
+    exists_mem_open_not_tripleBadSet_of_pairFinite_at
+      t.2.1 t.2.2.1 t.2.2.2 hpfinite hU hpU with
+    ⟨q, hqU, hqgood⟩
+  exact ⟨q, hqU, by simpa [orderedTripleGood] using hqgood⟩
+
+/-- Fixed-triple density is also reduced to density of the stronger elementary
+pair-regular locus. -/
+theorem dense_orderedTripleGood_of_pairRegularGood_dense {n : ℕ}
+    (t : OrderedTripleIndex n)
+    (hdense : Dense (pairRegularGood t.1.1 t.1.2.1)) :
+    Dense (orderedTripleGood t) :=
+  dense_orderedTripleGood_of_pairFiniteGood_dense t
+    (hdense.mono (pairRegularGood_subset_pairFiniteGood t.1.1 t.1.2.1))
+
+/-- Every fixed ordered-triple good locus is dense. -/
+theorem dense_orderedTripleGood {n : ℕ}
+    (t : OrderedTripleIndex n) :
+    Dense (orderedTripleGood t) :=
+  dense_orderedTripleGood_of_pairRegularGood_dense t
+    (dense_pairRegularGood t.1.1 t.1.2.1 t.2.1)
+
+/-- The complement of the triple bad union is exactly the finite intersection
+of the fixed ordered-triple good loci. -/
+theorem compl_tripleBadUnion_eq_iInter_orderedTripleGood {n : ℕ} :
+    ((Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n))ᶜ) =
+      ⋂ t : OrderedTripleIndex n, orderedTripleGood t := by
+  ext p
+  constructor
+  · intro hp
+    rw [Set.mem_iInter]
+    intro t
+    change p ∉
+      Lower.GenericityPort.tripleBadSet
+        t.1.1 t.1.2.1 t.1.2.2 t.2.1 t.2.2.1 t.2.2.2
+    intro hbad
+    apply hp
+    unfold Lower.GenericityPort.tripleBadUnion
+    exact Set.mem_iUnion.mpr ⟨t.1.1,
+      Set.mem_iUnion.mpr ⟨t.1.2.1,
+        Set.mem_iUnion.mpr ⟨t.1.2.2,
+          Set.mem_iUnion.mpr ⟨t.2.1,
+            Set.mem_iUnion.mpr ⟨t.2.2.1,
+              Set.mem_iUnion.mpr ⟨t.2.2.2, hbad⟩⟩⟩⟩⟩⟩
+  · intro hp hbad
+    unfold Lower.GenericityPort.tripleBadUnion at hbad
+    rcases Set.mem_iUnion.mp hbad with ⟨i, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨j, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨k, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hij, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hik, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hjk, hbad⟩
+    let t : OrderedTripleIndex n := ⟨(i, j, k), ⟨hij, hik, hjk⟩⟩
+    have hgood : p ∈ orderedTripleGood t := Set.mem_iInter.mp hp t
+    change p ∉ Lower.GenericityPort.tripleBadSet i j k hij hik hjk at hgood
+    exact hgood hbad
+
+/-- The parameter is outside the explicit triple-bad union iff its concrete
+arrangement has no triple carrier points. -/
+theorem not_mem_tripleBadUnion_iff_noTripleCarrierPoints {n : ℕ}
+    (p : Lower.ArrangementParameter n) :
+    p ∉ (Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n)) ↔
+      TranslationGenericity.NoTripleCarrierPoints p.toArrangement := by
+  constructor
+  · intro hnot i j k hij hik hjk
+    rw [Set.disjoint_left]
+    intro x hxi hxj
+    apply hnot
+    unfold Lower.GenericityPort.tripleBadUnion
+    exact Set.mem_iUnion.mpr ⟨i,
+      Set.mem_iUnion.mpr ⟨j,
+        Set.mem_iUnion.mpr ⟨k,
+          Set.mem_iUnion.mpr ⟨hij,
+            Set.mem_iUnion.mpr ⟨hik,
+              Set.mem_iUnion.mpr ⟨hjk,
+                ⟨x, by
+                  simpa only [Lower.ArrangementParameter.toArrangement,
+                    Set.mem_inter_iff] using ⟨⟨hxi.1, hxj.1⟩, hxi.2⟩⟩⟩⟩⟩⟩⟩⟩
+  · intro htriple hbad
+    unfold Lower.GenericityPort.tripleBadUnion at hbad
+    rcases Set.mem_iUnion.mp hbad with ⟨i, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨j, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨k, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hij, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hik, hbad⟩
+    rcases Set.mem_iUnion.mp hbad with ⟨hjk, hbad⟩
+    rcases hbad with ⟨x, hx⟩
+    have hx' :
+        x ∈ (p.toArrangement i).carrier ∩ (p.toArrangement k).carrier :=
+      ⟨hx.1.1, hx.2⟩
+    have hx'' :
+        x ∈ (p.toArrangement j).carrier ∩ (p.toArrangement k).carrier :=
+      ⟨hx.1.2, hx.2⟩
+    exact Set.disjoint_left.mp (htriple i j k hij hik hjk) hx' hx''
+
+/-- Direct forward form of the triple-bad-union bridge. -/
+theorem not_mem_tripleBadUnion_of_noTripleCarrierPoints {n : ℕ}
+    {p : Lower.ArrangementParameter n}
+    (htriple : TranslationGenericity.NoTripleCarrierPoints p.toArrangement) :
+    p ∉ (Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n)) :=
+  (not_mem_tripleBadUnion_iff_noTripleCarrierPoints p).2 htriple
+
+/-- Finite-index reduction for the triple-contact density theorem.  It is
+enough to prove that every fixed ordered-triple good locus is open dense. -/
+theorem dense_compl_tripleBadUnion_of_orderedTriple_open_dense {n : ℕ}
+    (hopen : ∀ t : OrderedTripleIndex n, IsOpen (orderedTripleGood t))
+    (hdense : ∀ t : OrderedTripleIndex n, Dense (orderedTripleGood t)) :
+    Dense
+      ((Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n))ᶜ) := by
+  classical
+  have hfinite :
+      Dense (⋂ t : OrderedTripleIndex n, orderedTripleGood t) :=
+    Lower.GenericityPort.dense_iInter_fintype_of_open_dense
+      (orderedTripleGood (n := n)) hopen hdense
+  rwa [compl_tripleBadUnion_eq_iInter_orderedTripleGood]
+
+/-- Once the fixed ordered-triple good loci are known to be open, their
+density is already proved by `dense_orderedTripleGood`. -/
+theorem dense_compl_tripleBadUnion_of_orderedTriple_open {n : ℕ}
+    (hopen : ∀ t : OrderedTripleIndex n, IsOpen (orderedTripleGood t)) :
+    Dense
+      ((Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n))ᶜ) :=
+  dense_compl_tripleBadUnion_of_orderedTriple_open_dense
+    hopen dense_orderedTripleGood
+
+/-- Remaining triple-contact avoidance theorem for the only nontrivial range
+`3 ≤ n`. -/
+theorem dense_compl_tripleBadUnion_ge_three (n : ℕ) (_hn : 3 ≤ n) :
+    Dense
+      ((Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n))ᶜ) := by
+  rw [dense_iff_inter_open]
+  intro U hU hUne
+  rcases dense_allPairCenterRegularGood.exists_mem_open hU hUne with
+    ⟨p, hpPair, hpU⟩
+  rcases
+    exists_mem_open_allPairCenterRegularGood_noTriple
+      hU hpU hpPair with
+    ⟨q, hqU, _hqPair, hqTriple⟩
+  exact ⟨q, hqU, not_mem_tripleBadUnion_of_noTripleCarrierPoints hqTriple⟩
+
+/-- The complement of the triple-contact bad locus is dense in every finite
+arrangement parameter space.
+
+This is the remaining concrete finite-avoidance fact needed for the lower
+genericization argument.  The nonparallel-stem complement is already proved
+open dense in `Lower.GenericityPort.dense_compl_parallelBadUnion`. -/
+theorem dense_compl_tripleBadUnion (n : ℕ) :
+    Dense
+      ((Lower.GenericityPort.tripleBadUnion :
+        Set (Lower.ArrangementParameter n))ᶜ) := by
+  by_cases hn : n < 3
+  · exact dense_compl_tripleBadUnion_of_lt_three hn
+  · exact dense_compl_tripleBadUnion_ge_three n (by omega)
+
+/-- The reduced chamber-bad locus is avoidable.
+
+This combines the remaining triple-contact density target with the existing
+open dense nonparallel-stem theorem. -/
+theorem dense_compl_chamberBadUnion (n : ℕ) :
+    Dense
+      ((Lower.GenericityPort.chamberBadUnion :
+        Set (Lower.ArrangementParameter n))ᶜ) := by
+  have hparallelDense :
+      Dense
+        ((Lower.GenericityPort.parallelBadUnion :
+          Set (Lower.ArrangementParameter n))ᶜ) :=
+    Lower.GenericityPort.dense_compl_parallelBadUnion
+  have hparallelOpen :
+      IsOpen
+        ((Lower.GenericityPort.parallelBadUnion :
+          Set (Lower.ArrangementParameter n))ᶜ) :=
+    Lower.GenericityPort.isOpen_compl_parallelBadUnion
+  have htp :
+      Dense
+        (((Lower.GenericityPort.parallelBadUnion :
+            Set (Lower.ArrangementParameter n))ᶜ) ∩
+          ((Lower.GenericityPort.tripleBadUnion :
+            Set (Lower.ArrangementParameter n))ᶜ)) :=
+    hparallelDense.inter_of_isOpen_left
+      (dense_compl_tripleBadUnion n) hparallelOpen
+  simpa [Lower.GenericityPort.chamberBadUnion, Set.compl_union,
+    Set.inter_comm, Set.inter_left_comm, Set.inter_assoc] using htp
+
+/-- Every finite strict pair chamber contains a generic arrangement.
+
+This is the all-`n` concrete finite-avoidance theorem needed by the lower
+construction after topology supplies the generic Euler equality. -/
+theorem chamberGenericityAvoidance_all :
+    ∀ n : ℕ, Lower.GenericityPort.ChamberGenericityAvoidance n := by
+  intro n
+  exact { dense_good := dense_compl_chamberBadUnion n }
+
+theorem chamberGenericityAvoidance (n : ℕ) :
+    Lower.GenericityPort.ChamberGenericityAvoidance n :=
+  chamberGenericityAvoidance_all n
+
+end Genericity
+end MainTheorem
+end EndToEnd
+end Concrete
+end Lollipop
+
 namespace Lollipop.Manuscript.Lemma_8_4
 
 open Concrete Concrete.EndToEnd Concrete.EndToEnd.Lower
 
 abbrev CoreStatement {n : Nat} (S : PairCodeSpec n) (A : Arrangement n) : Prop :=
-  GenericityPort.ChamberGenericityAvoidance n ->
   RealizesPairCodeSpec S A ->
     exists B : Arrangement n,
       IsGeneric B /\
@@ -1392,7 +2962,8 @@ open Concrete Concrete.EndToEnd Concrete.EndToEnd.Lower
 
 theorem proof {n : Nat} (S : PairCodeSpec n) (A : Arrangement n) :
     CoreStatement S A := by
-  intro hAvoid hA
-  exact exists_generic_with_pairCrossingCounts_of_chamber_avoidance hAvoid hA
+  intro hA
+  exact exists_generic_with_pairCrossingCounts_of_chamber_avoidance
+    (MainTheorem.Genericity.chamberGenericityAvoidance_all n) hA
 
 end Lollipop.Manuscript.Lemma_8_4
