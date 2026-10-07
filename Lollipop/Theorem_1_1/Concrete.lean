@@ -17,12 +17,17 @@ open Concrete Concrete.EndToEnd
 /-- The concrete statement of Theorem 1.1. -/
 def ConcreteStatement : Prop :=
   ∀ n : ℕ,
+    -- every arrangement has finitely many regions (so `regionCount`, a
+    -- `Nat.card`, is the true number of components and not a junk value `0`)
+    (∀ A : Arrangement n, Finite (ConnectedComponents (FreeSpace A))) ∧
     IsGreatest
       (Set.range (fun A : Arrangement n => (regionCount A : ℚ)))
       (4 * ((n.choose 2 : ℕ) : ℚ) + TheoremOneManuscript.manuscriptS n + (n : ℚ) + 1)
 
 /-- Theorem 1.1, with no hypotheses (the numbered proof endpoint). -/
 theorem proof : ConcreteStatement :=
-  fun n => MainTheorem.Final.lollipopMaximum_expanded n
+  fun n =>
+    ⟨fun A => MainTheorem.Topology.planarTopologyPorts.region_components_finite A,
+      MainTheorem.Final.lollipopMaximum_expanded n⟩
 
 end Lollipop.Manuscript.Theorem_1_1
